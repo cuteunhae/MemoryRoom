@@ -4,13 +4,46 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const pressedKeys = new Set();
 const movementKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+
+// TODO: 사용자가 허용한 임시 크기·색·도로·해안선·시작 위치. 최종 아트와 동선 확정 시 교체한다.
+const city = {
+  width: 1000,
+  height: 900,
+  spawn: { x: 500, y: 450 },
+  debug: false, // true로 바꿀 때만 장소명·ID·대표점을 표시한다.
+  coast: [[500, 35], [650, 85], [780, 120], [900, 220], [955, 370],
+    [930, 510], [940, 650], [830, 750], [710, 810], [580, 865],
+    [410, 850], [280, 810], [160, 715], [70, 620], [55, 470],
+    [85, 320], [170, 220], [300, 125]],
+  roads: [
+    [[260, 390], [350, 245], [520, 200], [680, 235], [755, 295],
+      [820, 430], [760, 650], [610, 730], [420, 700], [245, 605], [260, 390]],
+    [[500, 450], [520, 200]], [[500, 450], [260, 390]],
+    [[500, 450], [820, 430]], [[500, 450], [610, 730]],
+    [[245, 605], [170, 615], [170, 600]],
+    [[260, 390], [265, 345]], [[755, 295], [774, 345]],
+    [[760, 650], [765, 605], [809, 571]],
+    [[610, 730], [610, 790], [585, 820], [533, 820]],
+  ],
+  locations: [
+    { id: "C01", name: "사진관", x: 170, y: 565, width: 86, height: 64, color: "#c68f79", solid: true },
+    { id: "C02", name: "학교", x: 265, y: 305, width: 126, height: 78, color: "#d4b572", solid: true },
+    { id: "C03", name: "놀이공원", x: 774, y: 345, width: 134, height: 112, color: "#e9c9b1", solid: false },
+    { id: "C04", name: "놀이터", x: 809, y: 571, width: 112, height: 94, color: "#e6d5a0", solid: false },
+    { id: "C05", name: "집", x: 533, y: 778, width: 82, height: 62, color: "#a6b7bd", solid: true },
+  ],
+};
+const camera = { x: 0, y: 0 };
 const player = {
-  x: canvas.width / 2,
-  y: canvas.height / 2,
+  x: city.spawn.x,
+  y: city.spawn.y,
   width: 32,
   height: 48,
   speed: 210, // 초당 이동 거리 (논리 픽셀)
   facing: "down",
+  // TODO: 발밑의 원을 임시 충돌 범위로 사용한다. 최종 캐릭터에 맞춰 조정한다.
+  collisionRadius: 10,
+  footOffset: 18,
 };
 
 window.addEventListener("keydown", (event) => {
@@ -44,10 +77,122 @@ function update(deltaSeconds) {
   // 대각선 이동도 상하좌우 이동과 같은 속도를 사용한다.
   dx /= length;
   dy /= length;
-  player.x += dx * player.speed * deltaSeconds;
-  player.y += dy * player.speed * deltaSeconds;
-  player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.x));
-  player.y = Math.max(player.height / 2, Math.min(canvas.height - player.height / 2, player.y));
+  // 작은 간격으로 나눠 검사해 벽이나 해안선을 뛰어넘지 않도록 한다.
+  const distance = player.speed * deltaSeconds;
+  const steps = Math.max(1, Math.ceil(distance / (player.collisionRadius / 2)));
+  for (let step = 0; step < steps; step += 1) {
+    const nextX = player.x + dx * distance / steps;
+    if (canStand(nextX, player.y)) player.x = nextX;
+    const nextY = player.y + dy * distance / steps;
+    if (canStand(player.x, nextY)) player.y = nextY;
+  }
+}
+
+function pointInIsland(x, y) {
+  let inside = false;
+  const points = city.coast;
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const [ax, ay] = points[i];
+    const [bx, by] = points[j];
+    if ((ay > y) !== (by > y) && x < (bx - ax) * (y - ay) / (by - ay) + ax) inside = !inside;
+  }
+  return inside;
+}
+
+function distanceToSegment(x, y, a, b) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy)));
+  return Math.hypot(x - (a[0] + t * dx), y - (a[1] + t * dy));
+}
+
+function canStand(x, y) {
+  const footY = y + player.footOffset;
+  const radius = player.collisionRadius;
+  if (!pointInIsland(x, footY)) return false;
+  for (let i = 0; i < city.coast.length; i += 1) {
+    if (distanceToSegment(x, footY, city.coast[i], city.coast[(i + 1) % city.coast.length]) < radius) return false;
+  }
+  for (const place of city.locations) {
+    if (!place.solid) continue;
+    const nearestX = Math.max(place.x - place.width / 2, Math.min(place.x + place.width / 2, x));
+    const nearestY = Math.max(place.y - place.height / 2, Math.min(place.y + place.height / 2, footY));
+    if (Math.hypot(x - nearestX, footY - nearestY) < radius) return false;
+  }
+  return true;
+}
+
+function updateCamera() {
+  camera.x = Math.max(0, Math.min(city.width - canvas.width, player.x - canvas.width / 2));
+  camera.y = Math.max(0, Math.min(city.height - canvas.height, player.y - canvas.height / 2));
+}
+
+function tracePath(points, close = false) {
+  ctx.beginPath();
+  ctx.moveTo(points[0][0], points[0][1]);
+  for (let i = 1; i < points.length; i += 1) ctx.lineTo(points[i][0], points[i][1]);
+  if (close) ctx.closePath();
+}
+
+function drawCity() {
+  tracePath(city.coast, true);
+  ctx.fillStyle = "#dbe3ce";
+  ctx.fill();
+  ctx.strokeStyle = "#eee0b9";
+  ctx.lineWidth = 12;
+  ctx.stroke();
+
+  ctx.save();
+  tracePath(city.coast, true);
+  ctx.clip();
+  // 바닥 무늬는 카메라가 아닌 도시 좌표에 고정한다.
+  ctx.fillStyle = "#c5d3b6";
+  for (let x = 32; x < city.width; x += 48) {
+    for (let y = 32; y < city.height; y += 48) ctx.fillRect(x, y, 3, 3);
+  }
+  ctx.strokeStyle = "#f1e6cd";
+  ctx.lineWidth = 28;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  for (const road of city.roads) {
+    tracePath(road);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  for (const place of city.locations) {
+    const left = place.x - place.width / 2;
+    const top = place.y - place.height / 2;
+    ctx.fillStyle = place.color;
+    ctx.fillRect(left, top, place.width, place.height);
+    ctx.strokeStyle = place.solid ? "#746e60" : "#b5aa83";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(left, top, place.width, place.height);
+    if (place.solid) {
+      ctx.fillStyle = "#ffffff45";
+      ctx.fillRect(left + 8, top + 8, place.width - 16, 12);
+      ctx.fillStyle = "#f7e9c8";
+      ctx.fillRect(left + 12, top + 32, 14, 14);
+      ctx.fillRect(left + place.width - 26, top + 32, 14, 14);
+    } else {
+      // 야외 장소는 테두리까지 모두 보행 가능하다.
+      ctx.strokeStyle = "#ffffff88";
+      ctx.beginPath();
+      ctx.arc(place.x, place.y, place.id === "C03" ? 32 : 22, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawDebug() {
+  if (!city.debug) return;
+  ctx.font = "12px sans-serif";
+  ctx.textAlign = "center";
+  for (const place of city.locations) {
+    ctx.fillStyle = "#292f35";
+    ctx.fillText(`${place.id} ${place.name} (${place.x}, ${place.y})`, place.x, place.y - place.height / 2 - 10);
+    ctx.fillRect(place.x - 2, place.y - 2, 4, 4);
+  }
 }
 
 function drawPlayer() {
@@ -84,23 +229,14 @@ function drawPlayer() {
 }
 
 function draw() {
-  ctx.fillStyle = "#dbe3ce";
+  ctx.fillStyle = "#a9cdd4";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // 이동을 알아보기 위한 바닥 격자.
-  ctx.strokeStyle = "#cdd7c0";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  for (let x = 0; x <= canvas.width; x += 64) {
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, canvas.height);
-  }
-  for (let y = 0; y <= canvas.height; y += 64) {
-    ctx.moveTo(0, y);
-    ctx.lineTo(canvas.width, y);
-  }
-  ctx.stroke();
+  ctx.save();
+  ctx.translate(-camera.x, -camera.y);
+  drawCity();
   drawPlayer();
+  drawDebug();
+  ctx.restore();
 }
 
 let previousTime = null;
@@ -108,6 +244,7 @@ function frame(time) {
   const deltaSeconds = previousTime === null ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
   update(deltaSeconds);
+  updateCamera();
   draw();
   requestAnimationFrame(frame);
 }
