@@ -5,7 +5,14 @@ const ctx = canvas.getContext("2d");
 const pressedKeys = new Set();
 const movementKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 
+// 월드 배율은 논리 좌표 1칸에 대응하는 픽셀 수, 이동 속도는 초당 픽셀 수다.
+const settings = {
+  worldScale: 3,
+  playerSpeed: 630,
+};
+
 // TODO: 사용자가 허용한 임시 크기·색·도로·해안선·시작 위치. 최종 아트와 동선 확정 시 교체한다.
+// 기획서의 논리 좌표를 유지한다. 그리기와 충돌 판정에서 같은 배율을 사용한다.
 const city = {
   width: 1000,
   height: 900,
@@ -33,13 +40,16 @@ const city = {
     { id: "C05", name: "집", x: 533, y: 778, width: 82, height: 62, color: "#a6b7bd", solid: true },
   ],
 };
+const world = {
+  width: city.width * settings.worldScale,
+  height: city.height * settings.worldScale,
+};
 const camera = { x: 0, y: 0 };
 const player = {
-  x: city.spawn.x,
-  y: city.spawn.y,
+  x: city.spawn.x * settings.worldScale,
+  y: city.spawn.y * settings.worldScale,
   width: 32,
   height: 48,
-  speed: 210, // 초당 이동 거리 (논리 픽셀)
   facing: "down",
   // TODO: 발밑의 원을 임시 충돌 범위로 사용한다. 최종 캐릭터에 맞춰 조정한다.
   collisionRadius: 10,
@@ -78,7 +88,7 @@ function update(deltaSeconds) {
   dx /= length;
   dy /= length;
   // 작은 간격으로 나눠 검사해 벽이나 해안선을 뛰어넘지 않도록 한다.
-  const distance = player.speed * deltaSeconds;
+  const distance = settings.playerSpeed * deltaSeconds;
   const steps = Math.max(1, Math.ceil(distance / (player.collisionRadius / 2)));
   for (let step = 0; step < steps; step += 1) {
     const nextX = player.x + dx * distance / steps;
@@ -107,24 +117,30 @@ function distanceToSegment(x, y, a, b) {
 }
 
 function canStand(x, y) {
-  const footY = y + player.footOffset;
-  const radius = player.collisionRadius;
-  if (!pointInIsland(x, footY)) return false;
+  // 캐릭터 전체가 픽셀 기준 월드 경계를 넘지 못하게 한다.
+  if (x < player.width / 2 || x > world.width - player.width / 2 ||
+      y < player.height / 2 || y > world.height - player.height / 2) return false;
+
+  // 발밑 충돌 원을 논리 좌표로 변환해 원본 도시 배치와 비교한다.
+  const logicalX = x / settings.worldScale;
+  const footY = (y + player.footOffset) / settings.worldScale;
+  const radius = player.collisionRadius / settings.worldScale;
+  if (!pointInIsland(logicalX, footY)) return false;
   for (let i = 0; i < city.coast.length; i += 1) {
-    if (distanceToSegment(x, footY, city.coast[i], city.coast[(i + 1) % city.coast.length]) < radius) return false;
+    if (distanceToSegment(logicalX, footY, city.coast[i], city.coast[(i + 1) % city.coast.length]) < radius) return false;
   }
   for (const place of city.locations) {
     if (!place.solid) continue;
-    const nearestX = Math.max(place.x - place.width / 2, Math.min(place.x + place.width / 2, x));
+    const nearestX = Math.max(place.x - place.width / 2, Math.min(place.x + place.width / 2, logicalX));
     const nearestY = Math.max(place.y - place.height / 2, Math.min(place.y + place.height / 2, footY));
-    if (Math.hypot(x - nearestX, footY - nearestY) < radius) return false;
+    if (Math.hypot(logicalX - nearestX, footY - nearestY) < radius) return false;
   }
   return true;
 }
 
 function updateCamera() {
-  camera.x = Math.max(0, Math.min(city.width - canvas.width, player.x - canvas.width / 2));
-  camera.y = Math.max(0, Math.min(city.height - canvas.height, player.y - canvas.height / 2));
+  camera.x = Math.max(0, Math.min(world.width - canvas.width, player.x - canvas.width / 2));
+  camera.y = Math.max(0, Math.min(world.height - canvas.height, player.y - canvas.height / 2));
 }
 
 function tracePath(points, close = false) {
@@ -233,9 +249,15 @@ function draw() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.save();
   ctx.translate(-camera.x, -camera.y);
+  ctx.save();
+  ctx.scale(settings.worldScale, settings.worldScale);
   drawCity();
+  ctx.restore();
   drawPlayer();
+  ctx.save();
+  ctx.scale(settings.worldScale, settings.worldScale);
   drawDebug();
+  ctx.restore();
   ctx.restore();
 }
 
