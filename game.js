@@ -41,6 +41,7 @@ const player = {
 window.addEventListener("keydown", (event) => {
   if (!movementKeys.has(event.key)) return;
   event.preventDefault();
+  if (inventoryUiState.open) return;
   pressedKeys.add(event.key);
 });
 
@@ -158,6 +159,7 @@ function finishMapTransition() {
 }
 
 function handleDoorClick(event) {
+  if (inventoryUiState.open) return;
   canvas.focus();
   if (event.button !== 0 || Date.now() < scene.nextTransitionAt) return;
   const rectangle = canvas.getBoundingClientRect();
@@ -169,6 +171,16 @@ function handleDoorClick(event) {
     Math.abs(y - target.y) <= target.height / 2 + city.entrances.clickPadding;
   const interior = currentInterior();
   if (interior) {
+    const object = INSPECTION_OBJECTS.find(object => object.placeId === interior.placeId &&
+      Math.abs(x - object.x) <= object.width / 2 && Math.abs(y - object.y) <= object.height / 2);
+    if (object) {
+      if (Math.hypot(player.x - object.x, player.y + player.footOffset - object.y) > object.interactDistance) {
+        showDoorMessage(object.messages.tooFar);
+      } else {
+        showDoorMessage(acquireItem(object.rewardId) ? object.messages.acquired : object.messages.alreadyAcquired);
+      }
+      return;
+    }
     if (!hit(interior.exit)) return;
     if (!nearInteriorExit(interior)) showDoorMessage(city.interiorUi.tooFar);
     else exitInterior();
@@ -190,6 +202,7 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 
 function update(deltaSeconds) {
+  if (inventoryUiState.open) return;
   let dx = Number(pressedKeys.has("ArrowRight")) - Number(pressedKeys.has("ArrowLeft"));
   let dy = Number(pressedKeys.has("ArrowDown")) - Number(pressedKeys.has("ArrowUp"));
   const length = Math.hypot(dx, dy);
@@ -275,6 +288,8 @@ function canStand(x, y) {
 
 function canStandInterior(x, y, interior) {
   const footY = y + player.footOffset;
+  if (INSPECTION_OBJECTS.some(object => object.placeId === interior.placeId && object.table &&
+      circleHitsRectangle(x, footY, player.collisionRadius, object.table))) return false;
   return x - player.width / 2 >= interior.wall && x + player.width / 2 <= interior.width - interior.wall &&
     y - player.height / 2 >= interior.wall && y + player.height / 2 <= interior.height - interior.wall &&
     footY - player.collisionRadius >= interior.wall && footY + player.collisionRadius <= interior.height - interior.wall;
@@ -572,6 +587,20 @@ function drawInterior(interior) {
   ctx.fillStyle = "#f5eee3";
   ctx.textAlign = "center";
   ctx.fillText(city.interiorUi.exitLabel, exit.x, exit.y);
+  for (const object of INSPECTION_OBJECTS.filter(object => object.placeId === interior.placeId)) {
+    const table = object.table;
+    if (table) {
+      ctx.fillStyle = table.color;
+      ctx.fillRect(table.x - table.width / 2, table.y - table.height / 2, table.width, table.height);
+      ctx.strokeStyle = "#76583f";
+      ctx.strokeRect(table.x - table.width / 2, table.y - table.height / 2, table.width, table.height);
+    }
+    ctx.fillStyle = object.color;
+    ctx.fillRect(object.x - object.width / 2, object.y - object.height / 2, object.width, object.height);
+    ctx.fillStyle = "#fff8e9";
+    ctx.font = "14px 'Malgun Gothic', sans-serif";
+    ctx.fillText(object.name, object.x, object.y);
+  }
 }
 
 function drawDoorHint() {

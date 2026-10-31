@@ -44,7 +44,7 @@ const sandbox = {
   segmentRectangleDistance,
 };
 vm.createContext(sandbox);
-for (const file of ["city-data.js", "game.js"]) {
+for (const file of ["city-data.js", "data/items.js", "data/objects.js", "game-state.js", "game.js"]) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 }
 vm.runInContext(`

@@ -16,3 +16,25 @@ canvas {
   height: 100%;
   outline: none;
 }
+
+#inventory-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 24px;
+  border: 2px solid #96856d;
+  border-radius: 12px;
+  color: #403a32;
+  background: #f8f1e4;
+  font: 16px "Malgun Gothic", sans-serif;
+}
+#inventory-dialog::backdrop { background: #18231cb3; }
+.inventory-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.inventory-header h1 { margin: 0; font-size: 24px; }
+.inventory-header button { padding: 10px 14px; cursor: pointer; }
+.inventory-help, .inventory-empty { color: #6b6050; line-height: 1.6; }
+#inventory-list { max-height: min(420px, 55dvh); overflow-y: auto; display: grid; gap: 10px; padding: 4px; }
+.inventory-item { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; border: 2px solid #d0c3af; border-radius: 8px; background: #fffaf1; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.inventory-item[aria-pressed="true"] { border-color: #45675c; background: #e0ecdf; }
+.inventory-item:focus-visible, #inventory-close:focus-visible { outline: 3px solid #45675c; outline-offset: 2px; }
+.item-icon { width: 36px; height: 36px; flex-shrink: 0; border: 5px solid #c9b792; background: #8ca49a; }
+.selection-badge { margin-left: auto; font-size: 13px; color: #36594c; }

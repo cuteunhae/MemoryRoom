@@ -6,7 +6,12 @@
     <title>도시 속 빛나는 존재 — 도시 탐색</title>
     <link rel="stylesheet" href="style.css" />
     <script src="city-data.js" defer></script>
+    <script src="data/items.js" defer></script>
+    <script src="data/objects.js" defer></script>
+    <script src="game-state.js" defer></script>
     <script src="game.js" defer></script>
+    <script src="inventory-list.js" defer></script>
+    <script src="inventory-ui.js" defer></script>
   </head>
   <body>
     <main>
@@ -14,5 +19,13 @@
         이 게임은 Canvas를 지원하는 PC 브라우저에서 실행할 수 있습니다.
       </canvas>
     </main>
+    <dialog id="inventory-dialog" aria-labelledby="inventory-title">
+      <header class="inventory-header">
+        <h1 id="inventory-title">인벤토리</h1>
+        <button id="inventory-close" type="button">닫기 (I)</button>
+      </header>
+      <p class="inventory-help">아이템을 클릭하면 선택됩니다.</p>
+      <div id="inventory-list" aria-label="보유 아이템"></div>
+    </dialog>
   </body>
 </html>
