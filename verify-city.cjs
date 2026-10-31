@@ -5,6 +5,34 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const path = require("node:path");
 const assert = require("node:assert/strict");
+
+// 선분과 사각형 사이의 최단 거리를 구한다. 도로 폭·둥근 끝·테두리까지 검사하기 위해 사용한다.
+function pointSegmentDistance(point, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const lengthSquared = dx * dx + dy * dy;
+  const t = lengthSquared ? Math.max(0, Math.min(1, ((point[0] - a[0]) * dx + (point[1] - a[1]) * dy) / lengthSquared)) : 0;
+  return Math.hypot(point[0] - a[0] - t * dx, point[1] - a[1] - t * dy);
+}
+
+function segmentRectangleDistance(a, b, rectangle) {
+  const left = rectangle.x - rectangle.width / 2, right = rectangle.x + rectangle.width / 2;
+  const top = rectangle.y - rectangle.height / 2, bottom = rectangle.y + rectangle.height / 2;
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  let enter = 0, leave = 1;
+  for (const [p, q] of [[-dx, a[0] - left], [dx, right - a[0]], [-dy, a[1] - top], [dy, bottom - a[1]]]) {
+    if (p === 0) {
+      if (q < 0) { enter = 2; break; }
+    } else if (p < 0) enter = Math.max(enter, q / p);
+    else leave = Math.min(leave, q / p);
+  }
+  if (enter <= leave) return 0;
+  const distanceToPoint = point => Math.hypot(Math.max(left - point[0], 0, point[0] - right), Math.max(top - point[1], 0, point[1] - bottom));
+  return Math.min(distanceToPoint(a), distanceToPoint(b),
+    ...[[left, top], [left, bottom], [right, top], [right, bottom]].map(point => pointSegmentDistance(point, a, b)));
+}
+
+assert.equal(segmentRectangleDistance([-5, 0], [5, 0], { x: 0, y: 0, width: 2, height: 2 }), 0);
+assert.equal(segmentRectangleDistance([-5, 4], [5, 4], { x: 0, y: 0, width: 2, height: 2 }), 3);
 const context = new Proxy({}, { get: (target, key) => target[key] ?? (() => {}) });
 const canvas = { width: 1280, height: 720, getContext: () => context, addEventListener() {} };
 const sandbox = {
@@ -13,6 +41,7 @@ const sandbox = {
   requestAnimationFrame() {},
   assert,
   console,
+  segmentRectangleDistance,
 };
 vm.createContext(sandbox);
 for (const file of ["city-data.js", "game.js"]) {
@@ -28,6 +57,31 @@ vm.runInContext(`
   assert.deepEqual(JSON.stringify(city.locations.map(p => [p.x, p.y])),
     JSON.stringify([[170,565],[265,305],[774,345],[809,571],[533,778]]));
   const canWalk = (x, y) => canStand(x * settings.worldScale, y * settings.worldScale - player.footOffset);
+  const buildings = [
+    ...city.locations.filter(place => place.solid).map(locationBounds),
+    ...city.buildings.map((building, i) => ({ ...building, id: "일반 건물 " + (i + 1) })),
+  ];
+  for (const building of buildings) {
+    // 건물 외곽선 0.5와 오른쪽·아래쪽 그림자 3까지 포함한 영역이다.
+    const visualBounds = { ...building, x: building.x + 1.25, y: building.y + 1.25,
+      width: building.width + 3.5, height: building.height + 3.5 };
+    for (const road of city.roads) for (let i = 1; i < road.points.length; i++) {
+      const clearance = segmentRectangleDistance(road.points[i-1], road.points[i], visualBounds) - (road.width + 3) / 2;
+      assert.ok(clearance >= -0.001, building.id + " / " + road.id + " 도로 겹침: " + (-clearance));
+    }
+  }
+  console.log("겹침 없음: 주요 건물 3개 + 일반 건물 30개 (그림자·도로 테두리 포함)");
+  const house = city.locations.find(place => place.id === "C05");
+  assert.equal(house.x, 533); assert.equal(house.y, 778);
+  assert.equal(house.doors.find(door => door.side === "south").kind, "locked");
+  assert.equal(house.doors.find(door => door.side === "north").kind, "side");
+  const rearDoor = city.accessPoints.find(point => point.placeId === "C05" && point.door === "north");
+  assert.ok(canWalk(rearDoor.x, rearDoor.y));
+  const allRoads = city.roads;
+  try {
+    city.roads = allRoads.filter(road => road.id !== "R16");
+    assert.equal(canWalk(rearDoor.x, rearDoor.y), false, "쪽문 골목 외의 길이 문 앞으로 직접 연결됩니다.");
+  } finally { city.roads = allRoads; }
   assert.ok(canStand(player.x, player.y), "시작점이 보행 구역 밖입니다.");
   for (const point of city.coast) assert.ok(pointInPolygon(...point, city.frame), "해안선이 오각형 밖입니다.");
   assert.equal(canWalk(500, 100), false, "도로 밖 잔디에 진입할 수 있습니다.");
@@ -46,9 +100,9 @@ vm.runInContext(`
   }
   // 두 야외 장소는 중심선에서 떨어진 바닥도 이동 가능해야 한다.
   for (const place of city.locations.filter(p => !p.solid)) {
-    const size = locationSize(place);
+    const size = locationBounds(place);
     for (const dx of [-1, 1]) for (const dy of [-1, 1]) {
-      assert.ok(canWalk(place.x + dx * (size.width / 2 - 5), place.y + dy * (size.height / 2 - 5)));
+      assert.ok(canWalk(size.x + dx * (size.width / 2 - 5), size.y + dy * (size.height / 2 - 5)));
     }
   }
 

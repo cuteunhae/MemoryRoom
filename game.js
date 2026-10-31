@@ -119,9 +119,9 @@ function isWalkableSurface(x, y, radius) {
   // 놀이공원·놀이터 바닥은 사용자의 요청에 따라 전체를 보행 구역으로 취급한다.
   for (const place of city.locations) {
     if (place.solid) continue;
-    const size = locationSize(place);
-    if (Math.abs(x - place.x) <= size.width / 2 - radius &&
-        Math.abs(y - place.y) <= size.height / 2 - radius) return true;
+    const bounds = locationBounds(place);
+    if (Math.abs(x - bounds.x) <= bounds.width / 2 - radius &&
+        Math.abs(y - bounds.y) <= bounds.height / 2 - radius) return true;
   }
   // 둥근 도로 끝과 교차로도 도로 중심선·폭으로 판정한다.
   return city.roads.some(road => road.points.some((point, i) =>
@@ -152,7 +152,7 @@ function canStand(x, y) {
   if (!isWalkableSurface(logicalX, footY, radius)) return false;
   for (const place of city.locations) {
     if (!place.solid) continue;
-    if (circleHitsRectangle(logicalX, footY, radius, { ...place, ...locationSize(place) })) return false;
+    if (circleHitsRectangle(logicalX, footY, radius, locationBounds(place))) return false;
   }
   if (city.buildings.some(building => circleHitsRectangle(logicalX, footY, radius, building))) return false;
   if (city.landmarks.some(landmark => hitsLandmark(logicalX, footY, radius, landmark))) return false;
@@ -171,6 +171,16 @@ function locationSize(place) {
   // 장소 크기를 월드 배율과 별도로 정하고 충돌용 논리 좌표로 환산한다.
   const scale = settings.locationScale / settings.worldScale;
   return { width: place.width * scale, height: place.height * scale };
+}
+
+function locationBounds(place) {
+  // 기획서 대표점과 실제 건물 영역을 분리하고, 그리기·문 위치·충돌에 같은 영역을 사용한다.
+  return {
+    ...place,
+    ...locationSize(place),
+    x: place.x + (place.offset?.x ?? 0),
+    y: place.y + (place.offset?.y ?? 0),
+  };
 }
 
 function tracePath(points, close = false) {
@@ -231,9 +241,9 @@ function drawCity() {
   // 야외 장소의 바닥을 먼저 깔고 일반 건물과 주요 건물을 그린다.
   for (const place of city.locations) {
     if (place.solid) continue;
-    const { width, height } = locationSize(place);
-    const left = place.x - width / 2;
-    const top = place.y - height / 2;
+    const { x, y, width, height } = locationBounds(place);
+    const left = x - width / 2;
+    const top = y - height / 2;
     ctx.fillStyle = place.color;
     ctx.fillRect(left, top, width, height);
     ctx.strokeStyle = "#ffffff35";
@@ -249,7 +259,7 @@ function drawCity() {
   }
   for (const building of city.buildings) drawBuilding(building);
   for (const place of city.locations) {
-    if (place.solid) drawBuilding({ ...place, ...locationSize(place) });
+    if (place.solid) drawBuilding(locationBounds(place));
   }
   for (const landmark of city.landmarks) drawLandmark(landmark);
 }
@@ -343,8 +353,9 @@ function drawDebug() {
   ctx.font = "12px sans-serif";
   ctx.textAlign = "center";
   for (const place of city.locations) {
+    const bounds = locationBounds(place);
     ctx.fillStyle = "#292f35";
-    ctx.fillText(`${place.id} ${place.name} (${place.x}, ${place.y})`, place.x, place.y - locationSize(place).height / 2 - 10);
+    ctx.fillText(`${place.id} ${place.name} (${place.x}, ${place.y})`, bounds.x, bounds.y - bounds.height / 2 - 10);
     ctx.fillRect(place.x - 2, place.y - 2, 4, 4);
   }
   for (const landmark of city.landmarks) {

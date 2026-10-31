@@ -31,12 +31,13 @@ const CITY_DATA = {
     { id: "R04", kind: "branch", width: 22, points: [[500, 450], [630, 445]] },
     { id: "R05", kind: "branch", width: 22, points: [[500, 450], [500, 710]] },
     { id: "R06", kind: "branch", width: 22, points: [[500, 450], [390, 550], [275, 570]] },
-    { id: "R07", kind: "street", width: 20, points: [[275, 640], [180, 650], [140, 640], [140, 618]] },
-    { id: "R08", kind: "street", width: 18, points: [[265, 405], [265, 370]] },
+    // 둥근 도로 끝·테두리가 건물과 그림자 아래까지 들어가지 않게 끝점을 조정한다.
+    { id: "R07", kind: "street", width: 20, points: [[275, 640], [180, 650], [140, 640], [140, 633]] },
+    { id: "R08", kind: "street", width: 18, points: [[265, 405], [265, 384]] },
     { id: "R09", kind: "street", width: 20, points: [[620, 345], [685, 345]] },
     { id: "R10", kind: "street", width: 20, points: [[670, 625], [690, 660], [730, 670], [740, 640]] },
-    // 집 북쪽 도로를 넓혀 쪽문 앞까지 바로 닿게 한다. 전용 쪽문 골목은 만들지 않는다.
-    { id: "R11", kind: "street", width: 36, points: [[450, 710], [585, 710]] },
+    // 집 뒤편과 간격을 두고 쪽문 전용 골목으로 연결한다.
+    { id: "R11", kind: "street", width: 28, points: [[450, 710], [585, 710]] },
     // 주택가 남쪽 도로는 잠긴 정문 쪽으로 이어진다.
     { id: "R12", kind: "street", width: 26, points: [
       [450, 710], [435, 740], [435, 800], [450, 840], [533, 842], [585, 842],
@@ -45,6 +46,10 @@ const CITY_DATA = {
     { id: "R13", kind: "alley", width: 14, points: [[390, 405], [345, 435], [345, 475], [380, 490], [420, 490], [445, 510], [500, 510]] },
     { id: "R14", kind: "alley", width: 14, points: [[500, 585], [550, 585], [575, 615], [625, 615], [670, 625]] },
     { id: "R15", kind: "alley", width: 14, points: [[275, 485], [220, 470], [200, 440], [140, 440], [125, 410]] },
+    // 북쪽 쪽문은 이 골목을 통해서만 접근한다. 실내 진입 기능은 이후 단계에서 연결한다.
+    { id: "R16", kind: "alley", width: 8, points: [[570, 710], [570, 720], [525, 720], [525, 722.667]] },
+    // 남쪽 정문은 접근만 가능하며 잠금 상태를 유지한다.
+    { id: "R17", kind: "street", width: 8, points: [[533, 842], [525, 842], [525, 824]] },
   ],
   // 크기는 기존 원본 값이다. game.js의 locationScale을 적용한다.
   locations: [
@@ -54,7 +59,8 @@ const CITY_DATA = {
       doors: [{ side: "south", offset: 0, kind: "entrance" }] },
     { id: "C03", name: "놀이공원", x: 774, y: 345, width: 134, height: 112, color: "#e9c9b1", solid: false },
     { id: "C04", name: "놀이터", x: 809, y: 571, width: 112, height: 94, color: "#e6d5a0", solid: false },
-    { id: "C05", name: "집", x: 533, y: 778, width: 82, height: 62, color: "#a6b7bd", solid: true,
+    // 대표점은 유지한다. offset은 대표점에 대한 실제 건물 중심의 논리 좌표 차이다.
+    { id: "C05", name: "집", x: 533, y: 778, width: 76, height: 52, offset: { x: -8, y: -6 }, color: "#a6b7bd", solid: true,
       doors: [{ side: "south", offset: 0, kind: "locked" }, { side: "north", offset: 0, kind: "side" }] },
   ],
   // 일반 건물은 논리 좌표 크기를 그대로 쓴다. 자동 무작위 배치를 하지 않는다.
@@ -99,11 +105,11 @@ const CITY_DATA = {
   // 실제 이동 판정으로 시작점에서 각 지점까지 이어지는지 검사할 때 사용한다.
   // 목표 좌표는 캐릭터 중심이 아닌 발밑 기준이다.
   accessPoints: [
-    { placeId: "C01", x: 140, y: 621 },
-    { placeId: "C02", x: 265, y: 373 },
+    { placeId: "C01", x: 140, y: 625 },
+    { placeId: "C02", x: 265, y: 377 },
     { placeId: "C03", x: 680, y: 345 },
     { placeId: "C04", x: 740, y: 640 },
-    { placeId: "C05", door: "north", x: 533, y: 724 },
-    { placeId: "C05", door: "south", x: 533, y: 832 },
+    { placeId: "C05", door: "north", x: 525, y: 725.5 },
+    { placeId: "C05", door: "south", x: 525, y: 822 },
   ],
 };
