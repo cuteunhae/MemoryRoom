@@ -17,6 +17,8 @@ files["/game-state.js"] = ["game-state.js", "text/javascript; charset=utf-8"];
 files["/inventory-list.js"] = ["inventory-list.js", "text/javascript; charset=utf-8"];
 files["/inventory-ui.js"] = ["inventory-ui.js", "text/javascript; charset=utf-8"];
 files["/studio-ui.js"] = ["studio-ui.js", "text/javascript; charset=utf-8"];
+files["/school.js"] = ["school.js", "text/javascript; charset=utf-8"];
+files["/data/school.js"] = ["data/school.js", "text/javascript; charset=utf-8"];
 const server = http.createServer((request, response) => {
   const file = files[request.url.split("?")[0]];
   if (!file || !["GET", "HEAD"].includes(request.method)) {

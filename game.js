@@ -22,6 +22,7 @@ const world = {
 const camera = { x: 0, y: 0 };
 const scene = {
   interiorId: null,
+  schoolFloor: 1,
   returnPoint: null,
   nextTransitionAt: 0,
   message: "",
@@ -59,7 +60,9 @@ document.addEventListener("visibilitychange", () => {
 canvas.addEventListener("pointerdown", handleDoorClick);
 
 function currentInterior() {
-  return city.interiors.find(interior => interior.placeId === scene.interiorId) || null;
+  const interior = city.interiors.find(interior => interior.placeId === scene.interiorId) || null;
+  if (interior?.placeId === SCHOOL_DATA.placeId) return { ...interior, name: schoolFloor().name, exit: scene.schoolFloor === 1 ? interior.exit : null };
+  return interior;
 }
 
 function doorRectangle(building, door) {
@@ -104,7 +107,7 @@ function nearOutdoorDoor(target) {
 }
 
 function nearInteriorExit(interior) {
-  return Math.hypot(player.x - interior.exit.x, player.y + player.footOffset - interior.exit.y) <= city.entrances.interactDistance;
+  return !!interior.exit && Math.hypot(player.x - interior.exit.x, player.y + player.footOffset - interior.exit.y) <= city.entrances.interactDistance;
 }
 
 function showDoorMessage(message) {
@@ -127,6 +130,7 @@ function enterInterior(target) {
   };
   if (!canStandCity(returnPoint.x, returnPoint.y) ||
       !canStandInterior(interior.spawn.x, interior.spawn.footY - player.footOffset, interior)) return false;
+  scene.schoolFloor = 1;
   scene.returnPoint = returnPoint;
   scene.interiorId = interior.placeId;
   player.x = interior.spawn.x;
@@ -171,7 +175,8 @@ function handleDoorClick(event) {
     Math.abs(y - target.y) <= target.height / 2 + city.entrances.clickPadding;
   const interior = currentInterior();
   if (interior) {
-    const object = INSPECTION_OBJECTS.find(object => object.placeId === interior.placeId &&
+    if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolStairs(x, y)) return;
+    const object = inspectionObjectsFor(interior).find(object =>
       Math.abs(x - object.x) <= object.width / 2 && Math.abs(y - object.y) <= object.height / 2);
     if (object) {
       if (Math.hypot(player.x - object.x, player.y + player.footOffset - object.y) > object.interactDistance) {
@@ -181,7 +186,7 @@ function handleDoorClick(event) {
       }
       return;
     }
-    if (!hit(interior.exit)) return;
+    if (!interior.exit || !hit(interior.exit)) return;
     if (!nearInteriorExit(interior)) showDoorMessage(city.interiorUi.tooFar);
     else exitInterior();
     return;
@@ -288,6 +293,7 @@ function canStand(x, y) {
 
 function canStandInterior(x, y, interior) {
   const footY = y + player.footOffset;
+  if (interior.placeId === SCHOOL_DATA.placeId && schoolWalls().some(wall => circleHitsRectangle(x, footY, player.collisionRadius, wall))) return false;
   if (INSPECTION_OBJECTS.some(object => object.placeId === interior.placeId && object.table &&
       circleHitsRectangle(x, footY, player.collisionRadius, object.table))) return false;
   return x - player.width / 2 >= interior.wall && x + player.width / 2 <= interior.width - interior.wall &&
@@ -581,13 +587,17 @@ function drawInterior(interior) {
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
   ctx.fillText(interior.name, interior.wall + 12, interior.wall / 2);
+  if (interior.placeId === SCHOOL_DATA.placeId) drawSchool();
   const exit = interior.exit;
+  if (exit) {
   ctx.fillStyle = "#45675c";
   ctx.fillRect(exit.x - exit.width / 2, exit.y - exit.height / 2, exit.width, exit.height);
   ctx.fillStyle = "#f5eee3";
   ctx.textAlign = "center";
   ctx.fillText(city.interiorUi.exitLabel, exit.x, exit.y);
-  for (const object of INSPECTION_OBJECTS.filter(object => object.placeId === interior.placeId)) {
+  }
+  ctx.textAlign = "center";
+  for (const object of inspectionObjectsFor(interior)) {
     const table = object.table;
     if (table) {
       ctx.fillStyle = table.color;
@@ -615,7 +625,7 @@ function drawDoorHint() {
   ctx.save();
   const width = Math.min(340, canvas.width - 24);
   // 남쪽 출구의 글자를 가리지 않도록 안내는 화면 위쪽에 표시한다.
-  const top = interior?.exit.side === "south" ? 16 : canvas.height - 62;
+  const top = interior?.exit?.side === "south" ? 16 : canvas.height - 62;
   ctx.fillStyle = "#26342de6";
   ctx.fillRect((canvas.width - width) / 2, top, width, 42);
   ctx.font = "15px 'Malgun Gothic', sans-serif";

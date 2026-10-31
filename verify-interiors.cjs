@@ -24,7 +24,7 @@ const sandbox = {
   requestAnimationFrame() {},
 };
 vm.createContext(sandbox);
-for (const file of ["city-data.js", "data/items.js", "data/objects.js", "game-state.js", "game.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
+for (const file of ["city-data.js", "data/school.js", "school.js", "data/items.js", "data/objects.js", "game-state.js", "game.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 const run = code => vm.runInContext(code, sandbox);
 const read = code => JSON.parse(run(`JSON.stringify(${code})`));
 const advance = () => { now += 300; };
@@ -70,11 +70,11 @@ for (const target of doors.filter(door => door.kind !== "locked")) {
     assert.equal(run("scene.interiorId"), target.placeId);
 
     for (const direction of ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]) {
-      run(`player.x = ${interior.width / 2}; player.y = ${interior.height / 2}; pressedKeys.clear(); pressedKeys.add("${direction}"); update(5)`);
+      run(`player.x = ${interior.width / 2}; player.y = ${interior.placeId === "C02" ? 700 : interior.height / 2}; pressedKeys.clear(); pressedKeys.add("${direction}"); update(5)`);
       assert.ok(run("canStand(player.x, player.y)"));
       assert.equal(run("scene.interiorId"), target.placeId, "걷기만으로 맵이 바뀌었습니다.");
     }
-    run(`player.x = ${interior.width / 2}; player.y = ${interior.height / 2}; updateCamera()`);
+    run(`player.x = ${interior.width / 2}; player.y = ${interior.placeId === "C02" ? 700 : interior.height / 2}; updateCamera()`);
     advance(); click(interior.exit);
     assert.equal(run("scene.interiorId"), target.placeId, "멀리서 출구를 눌러 퇴장했습니다.");
 

@@ -14,9 +14,9 @@ function renderInspection() {
   const { mode, object, item, back } = inspectionUiState;
   const collected = mode === "album" && gameState.photoCollected;
   inspectionTitle.textContent = mode === "photo" ? item.name : object.name;
-  inspectionMessage.textContent = mode === "dialogue" ? object.messages.dialogue :
+  inspectionMessage.textContent = mode === "board" ? schoolBoardText() : mode === "dialogue" ? object.messages.dialogue :
     mode === "photo" ? STUDIO_TEXT.flip : collected ? STUDIO_TEXT.emptyAlbum : STUDIO_TEXT.albumPrompt;
-  photoButton.hidden = mode === "dialogue" || collected;
+  photoButton.hidden = mode === "dialogue" || mode === "board" || collected;
   emptyPhoto.hidden = !collected;
   emptyPhoto.textContent = STUDIO_TEXT.emptyAlbum;
   photoFront.hidden = mode === "photo" && back;
