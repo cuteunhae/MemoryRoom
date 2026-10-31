@@ -7,7 +7,9 @@ const movementKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]
 
 // 월드 배율은 논리 좌표 1칸에 대응하는 픽셀 수, 이동 속도는 초당 픽셀 수다.
 const settings = {
-  worldScale: 3,
+  worldScale: 9,
+  locationScale: 15, // 원본 장소 크기 대비 배율. 이전 배율 3의 5배다.
+  cameraZoom: 1,
   playerSpeed: 630,
 };
 
@@ -75,6 +77,15 @@ document.addEventListener("visibilitychange", () => {
 });
 canvas.addEventListener("pointerdown", () => canvas.focus());
 
+// 창 크기에 맞춰 실제 그리기 영역을 바꿔 화면이 늘어나거나 찌그러지는 것을 막는다.
+function resizeCanvas() {
+  canvas.width = Math.max(1, window.innerWidth);
+  canvas.height = Math.max(1, window.innerHeight);
+  updateCamera();
+  draw();
+}
+window.addEventListener("resize", resizeCanvas);
+
 function update(deltaSeconds) {
   let dx = Number(pressedKeys.has("ArrowRight")) - Number(pressedKeys.has("ArrowLeft"));
   let dy = Number(pressedKeys.has("ArrowDown")) - Number(pressedKeys.has("ArrowUp"));
@@ -131,16 +142,26 @@ function canStand(x, y) {
   }
   for (const place of city.locations) {
     if (!place.solid) continue;
-    const nearestX = Math.max(place.x - place.width / 2, Math.min(place.x + place.width / 2, logicalX));
-    const nearestY = Math.max(place.y - place.height / 2, Math.min(place.y + place.height / 2, footY));
+    const { width, height } = locationSize(place);
+    const nearestX = Math.max(place.x - width / 2, Math.min(place.x + width / 2, logicalX));
+    const nearestY = Math.max(place.y - height / 2, Math.min(place.y + height / 2, footY));
     if (Math.hypot(logicalX - nearestX, footY - nearestY) < radius) return false;
   }
   return true;
 }
 
 function updateCamera() {
-  camera.x = Math.max(0, Math.min(world.width - canvas.width, player.x - canvas.width / 2));
-  camera.y = Math.max(0, Math.min(world.height - canvas.height, player.y - canvas.height / 2));
+  // 줌인 후 화면에 보이는 월드 범위로 추적과 경계를 계산한다.
+  const viewWidth = canvas.width / settings.cameraZoom;
+  const viewHeight = canvas.height / settings.cameraZoom;
+  camera.x = Math.max(0, Math.min(world.width - viewWidth, player.x - viewWidth / 2));
+  camera.y = Math.max(0, Math.min(world.height - viewHeight, player.y - viewHeight / 2));
+}
+
+function locationSize(place) {
+  // 장소 크기를 월드 배율과 별도로 정하고 충돌용 논리 좌표로 환산한다.
+  const scale = settings.locationScale / settings.worldScale;
+  return { width: place.width * scale, height: place.height * scale };
 }
 
 function tracePath(points, close = false) {
@@ -177,6 +198,12 @@ function drawCity() {
   ctx.restore();
 
   for (const place of city.locations) {
+    // 중심 위치는 유지하면서 건물과 내부 임시 도형을 함께 확대한다.
+    const scale = settings.locationScale / settings.worldScale;
+    ctx.save();
+    ctx.translate(place.x, place.y);
+    ctx.scale(scale, scale);
+    ctx.translate(-place.x, -place.y);
     const left = place.x - place.width / 2;
     const top = place.y - place.height / 2;
     ctx.fillStyle = place.color;
@@ -197,6 +224,7 @@ function drawCity() {
       ctx.arc(place.x, place.y, place.id === "C03" ? 32 : 22, 0, Math.PI * 2);
       ctx.stroke();
     }
+    ctx.restore();
   }
 }
 
@@ -206,7 +234,7 @@ function drawDebug() {
   ctx.textAlign = "center";
   for (const place of city.locations) {
     ctx.fillStyle = "#292f35";
-    ctx.fillText(`${place.id} ${place.name} (${place.x}, ${place.y})`, place.x, place.y - place.height / 2 - 10);
+    ctx.fillText(`${place.id} ${place.name} (${place.x}, ${place.y})`, place.x, place.y - locationSize(place).height / 2 - 10);
     ctx.fillRect(place.x - 2, place.y - 2, 4, 4);
   }
 }
@@ -248,6 +276,7 @@ function draw() {
   ctx.fillStyle = "#a9cdd4";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.save();
+  ctx.scale(settings.cameraZoom, settings.cameraZoom);
   ctx.translate(-camera.x, -camera.y);
   ctx.save();
   ctx.scale(settings.worldScale, settings.worldScale);
@@ -271,4 +300,5 @@ function frame(time) {
   requestAnimationFrame(frame);
 }
 
+resizeCanvas();
 requestAnimationFrame(frame);
