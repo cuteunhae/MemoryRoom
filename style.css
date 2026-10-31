@@ -17,7 +17,7 @@ canvas {
   outline: none;
 }
 
-#inventory-dialog {
+#inventory-dialog, #inspection-dialog {
   width: min(560px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   padding: 24px;
@@ -27,7 +27,7 @@ canvas {
   background: #f8f1e4;
   font: 16px "Malgun Gothic", sans-serif;
 }
-#inventory-dialog::backdrop { background: #18231cb3; }
+#inventory-dialog::backdrop, #inspection-dialog::backdrop { background: #18231cb3; }
 .inventory-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .inventory-header h1 { margin: 0; font-size: 24px; }
 .inventory-header button { padding: 10px 14px; cursor: pointer; }
@@ -38,3 +38,12 @@ canvas {
 .inventory-item:focus-visible, #inventory-close:focus-visible { outline: 3px solid #45675c; outline-offset: 2px; }
 .item-icon { width: 36px; height: 36px; flex-shrink: 0; border: 5px solid #c9b792; background: #8ca49a; }
 .selection-badge { margin-left: auto; font-size: 13px; color: #36594c; }
+
+#inspection-message { line-height: 1.8; white-space: pre-line; }
+#studio-photo { display: block; width: 100%; padding: 12px; border: 1px solid #b5a38c; background: #fffaf1; color: #403a32; cursor: pointer; font: inherit; box-shadow: 0 4px 12px #403a3226; }
+#studio-photo svg { display: block; width: 100%; max-height: 42dvh; }
+#photo-date, #photo-back-label { display: block; padding-top: 14px; }
+#photo-date { font-size: 22px; letter-spacing: 3px; }
+#empty-photo { padding: 70px 16px; text-align: center; border: 2px dashed #b5a38c; color: #756856; }
+#studio-photo:focus-visible, #inspection-close:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
+[hidden] { display: none !important; }

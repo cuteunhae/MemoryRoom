@@ -4,14 +4,23 @@
 const gameState = {
   inventory: { itemIds: [], selectedItemId: null },
   acquiredItems: {},
+  photoCollected: false,
 };
 const inventoryUiState = { open: false };
+// 창 상태와 사진의 앞뒷면은 저장하지 않는 임시 화면 상태다.
+const inspectionUiState = { mode: null, object: null, item: null, back: false };
+
+function isGameInputBlocked() {
+  return inventoryUiState.open || inspectionUiState.mode !== null;
+}
 
 function acquireItem(itemId) {
-  if (!ITEM_DATA.some(item => item.id === itemId) ||
+  const item = ITEM_DATA.find(item => item.id === itemId);
+  if (!item || (item.acquisitionFlag && gameState[item.acquisitionFlag]) ||
       gameState.acquiredItems[itemId] || gameState.inventory.itemIds.includes(itemId)) return false;
   gameState.inventory.itemIds.push(itemId);
   gameState.acquiredItems[itemId] = true;
+  if (item.acquisitionFlag) gameState[item.acquisitionFlag] = true;
   return true;
 }
 

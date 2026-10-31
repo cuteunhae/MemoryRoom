@@ -12,6 +12,7 @@
     <script src="game.js" defer></script>
     <script src="inventory-list.js" defer></script>
     <script src="inventory-ui.js" defer></script>
+    <script src="studio-ui.js" defer></script>
   </head>
   <body>
     <main>
@@ -24,8 +25,40 @@
         <h1 id="inventory-title">인벤토리</h1>
         <button id="inventory-close" type="button">닫기 (I)</button>
       </header>
-      <p class="inventory-help">아이템을 클릭하면 선택됩니다.</p>
+      <p class="inventory-help">아이템을 클릭하면 선택됩니다. 사진은 확대해서 볼 수 있습니다.</p>
       <div id="inventory-list" aria-label="보유 아이템"></div>
+    </dialog>
+    <dialog id="inspection-dialog" aria-labelledby="inspection-title">
+      <header class="inventory-header">
+        <h1 id="inspection-title"></h1>
+        <button id="inspection-close" type="button">닫기</button>
+      </header>
+      <p id="inspection-message" aria-live="polite"></p>
+      <button id="studio-photo" type="button">
+        <span id="photo-front">
+          <!-- TODO: 돌잔치 사진의 최종 앞면 이미지로 교체한다. -->
+          <svg viewBox="0 0 400 240" aria-hidden="true">
+            <rect width="400" height="240" fill="#e7d4b4"/>
+            <path d="M0 30 Q100 95 200 30 Q300 95 400 30" fill="none" stroke="#b88979" stroke-width="6"/>
+            <circle cx="200" cy="104" r="32" fill="#efc8a0"/>
+            <path d="M167 98 Q165 50 200 65 Q235 50 233 98" fill="#655044"/>
+            <path d="M147 192 Q145 133 200 135 Q255 133 253 192" fill="#8aa39b"/>
+            <rect x="52" y="190" width="296" height="40" fill="#aa8062"/>
+            <rect x="174" y="166" width="52" height="24" rx="4" fill="#fff2de"/>
+            <path d="M200 166 V151" stroke="#bc7160" stroke-width="5"/>
+          </svg>
+          <span id="photo-date"></span>
+        </span>
+        <span id="photo-back" hidden>
+          <!-- TODO: 학교 인근 비대칭 도로 분기를 반영한 최종 뒷면 이미지로 교체한다. 현재는 자리표시다. -->
+          <svg viewBox="0 0 400 240" aria-hidden="true">
+            <rect width="400" height="240" fill="#f2e9d4"/>
+            <path d="M45 185 L140 120 L245 125 L355 65 M140 120 L115 45 M245 125 L280 205" fill="none" stroke="#77766c" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span id="photo-back-label"></span>
+        </span>
+      </button>
+      <div id="empty-photo" hidden></div>
     </dialog>
   </body>
 </html>

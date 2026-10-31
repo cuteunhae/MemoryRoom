@@ -41,7 +41,7 @@ const player = {
 window.addEventListener("keydown", (event) => {
   if (!movementKeys.has(event.key)) return;
   event.preventDefault();
-  if (inventoryUiState.open) return;
+  if (isGameInputBlocked()) return;
   pressedKeys.add(event.key);
 });
 
@@ -159,7 +159,7 @@ function finishMapTransition() {
 }
 
 function handleDoorClick(event) {
-  if (inventoryUiState.open) return;
+  if (isGameInputBlocked()) return;
   canvas.focus();
   if (event.button !== 0 || Date.now() < scene.nextTransitionAt) return;
   const rectangle = canvas.getBoundingClientRect();
@@ -177,7 +177,7 @@ function handleDoorClick(event) {
       if (Math.hypot(player.x - object.x, player.y + player.footOffset - object.y) > object.interactDistance) {
         showDoorMessage(object.messages.tooFar);
       } else {
-        showDoorMessage(acquireItem(object.rewardId) ? object.messages.acquired : object.messages.alreadyAcquired);
+        openInspection(object);
       }
       return;
     }
@@ -202,7 +202,7 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 
 function update(deltaSeconds) {
-  if (inventoryUiState.open) return;
+  if (isGameInputBlocked()) return;
   let dx = Number(pressedKeys.has("ArrowRight")) - Number(pressedKeys.has("ArrowLeft"));
   let dy = Number(pressedKeys.has("ArrowDown")) - Number(pressedKeys.has("ArrowUp"));
   const length = Math.hypot(dx, dy);
