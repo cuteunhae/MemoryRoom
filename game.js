@@ -13,35 +13,8 @@ const settings = {
   playerSpeed: 630,
 };
 
-// TODO: 사용자가 허용한 임시 크기·색·도로·해안선·시작 위치. 최종 아트와 동선 확정 시 교체한다.
-// 기획서의 논리 좌표를 유지한다. 그리기와 충돌 판정에서 같은 배율을 사용한다.
-const city = {
-  width: 1000,
-  height: 900,
-  spawn: { x: 500, y: 450 },
-  debug: false, // true로 바꿀 때만 장소명·ID·대표점을 표시한다.
-  coast: [[500, 35], [650, 85], [780, 120], [900, 220], [955, 370],
-    [930, 510], [940, 650], [830, 750], [710, 810], [580, 865],
-    [410, 850], [280, 810], [160, 715], [70, 620], [55, 470],
-    [85, 320], [170, 220], [300, 125]],
-  roads: [
-    [[260, 390], [350, 245], [520, 200], [680, 235], [755, 295],
-      [820, 430], [760, 650], [610, 730], [420, 700], [245, 605], [260, 390]],
-    [[500, 450], [520, 200]], [[500, 450], [260, 390]],
-    [[500, 450], [820, 430]], [[500, 450], [610, 730]],
-    [[245, 605], [170, 615], [170, 600]],
-    [[260, 390], [265, 345]], [[755, 295], [774, 345]],
-    [[760, 650], [765, 605], [809, 571]],
-    [[610, 730], [610, 790], [585, 820], [533, 820]],
-  ],
-  locations: [
-    { id: "C01", name: "사진관", x: 170, y: 565, width: 86, height: 64, color: "#c68f79", solid: true },
-    { id: "C02", name: "학교", x: 265, y: 305, width: 126, height: 78, color: "#d4b572", solid: true },
-    { id: "C03", name: "놀이공원", x: 774, y: 345, width: 134, height: 112, color: "#e9c9b1", solid: false },
-    { id: "C04", name: "놀이터", x: 809, y: 571, width: 112, height: 94, color: "#e6d5a0", solid: false },
-    { id: "C05", name: "집", x: 533, y: 778, width: 82, height: 62, color: "#a6b7bd", solid: true },
-  ],
-};
+// 지도 데이터는 그리기와 이동 판정에서 함께 참조한다.
+const city = CITY_DATA;
 const world = {
   width: city.width * settings.worldScale,
   height: city.height * settings.worldScale,
@@ -109,9 +82,8 @@ function update(deltaSeconds) {
   }
 }
 
-function pointInIsland(x, y) {
+function pointInPolygon(x, y, points) {
   let inside = false;
-  const points = city.coast;
   for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
     const [ax, ay] = points[i];
     const [bx, by] = points[j];
@@ -120,11 +92,50 @@ function pointInIsland(x, y) {
   return inside;
 }
 
+function pointInIsland(x, y) {
+  return pointInPolygon(x, y, city.coast);
+}
+
 function distanceToSegment(x, y, a, b) {
   const dx = b[0] - a[0];
   const dy = b[1] - a[1];
+  if (dx === 0 && dy === 0) return Math.hypot(x - a[0], y - a[1]);
   const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy)));
   return Math.hypot(x - (a[0] + t * dx), y - (a[1] + t * dy));
+}
+
+function circleInsidePolygon(x, y, radius, points) {
+  if (!pointInPolygon(x, y, points)) return false;
+  return points.every((point, i) => distanceToSegment(x, y, point, points[(i + 1) % points.length]) >= radius);
+}
+
+function circleHitsRectangle(x, y, radius, rectangle) {
+  const nearestX = Math.max(rectangle.x - rectangle.width / 2, Math.min(rectangle.x + rectangle.width / 2, x));
+  const nearestY = Math.max(rectangle.y - rectangle.height / 2, Math.min(rectangle.y + rectangle.height / 2, y));
+  return Math.hypot(x - nearestX, y - nearestY) < radius;
+}
+
+function isWalkableSurface(x, y, radius) {
+  // 놀이공원·놀이터 바닥은 사용자의 요청에 따라 전체를 보행 구역으로 취급한다.
+  for (const place of city.locations) {
+    if (place.solid) continue;
+    const size = locationSize(place);
+    if (Math.abs(x - place.x) <= size.width / 2 - radius &&
+        Math.abs(y - place.y) <= size.height / 2 - radius) return true;
+  }
+  // 둥근 도로 끝과 교차로도 도로 중심선·폭으로 판정한다.
+  return city.roads.some(road => road.points.some((point, i) =>
+    i > 0 && distanceToSegment(x, y, road.points[i - 1], point) <= road.width / 2 - radius));
+}
+
+function hitsLandmark(x, y, radius, landmark) {
+  if (landmark.type === "clock") return circleHitsRectangle(x, y, radius, landmark);
+  if (landmark.type === "pond") {
+    return ((x - landmark.x) / (landmark.radiusX + radius)) ** 2 +
+      ((y - landmark.y) / (landmark.radiusY + radius)) ** 2 < 1;
+  }
+  const obstacleRadius = landmark.type === "tree" ? landmark.trunkRadius : landmark.radius;
+  return Math.hypot(x - landmark.x, y - landmark.y) < obstacleRadius + radius;
 }
 
 function canStand(x, y) {
@@ -136,17 +147,15 @@ function canStand(x, y) {
   const logicalX = x / settings.worldScale;
   const footY = (y + player.footOffset) / settings.worldScale;
   const radius = player.collisionRadius / settings.worldScale;
-  if (!pointInIsland(logicalX, footY)) return false;
-  for (let i = 0; i < city.coast.length; i += 1) {
-    if (distanceToSegment(logicalX, footY, city.coast[i], city.coast[(i + 1) % city.coast.length]) < radius) return false;
-  }
+  if (!circleInsidePolygon(logicalX, footY, radius, city.frame) ||
+      !circleInsidePolygon(logicalX, footY, radius, city.coast)) return false;
+  if (!isWalkableSurface(logicalX, footY, radius)) return false;
   for (const place of city.locations) {
     if (!place.solid) continue;
-    const { width, height } = locationSize(place);
-    const nearestX = Math.max(place.x - width / 2, Math.min(place.x + width / 2, logicalX));
-    const nearestY = Math.max(place.y - height / 2, Math.min(place.y + height / 2, footY));
-    if (Math.hypot(logicalX - nearestX, footY - nearestY) < radius) return false;
+    if (circleHitsRectangle(logicalX, footY, radius, { ...place, ...locationSize(place) })) return false;
   }
+  if (city.buildings.some(building => circleHitsRectangle(logicalX, footY, radius, building))) return false;
+  if (city.landmarks.some(landmark => hitsLandmark(logicalX, footY, radius, landmark))) return false;
   return true;
 }
 
@@ -172,11 +181,18 @@ function tracePath(points, close = false) {
 }
 
 function drawCity() {
+  tracePath(city.frame, true);
+  ctx.fillStyle = "#a9cdd4";
+  ctx.fill();
+  ctx.strokeStyle = "#668c93";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
   tracePath(city.coast, true);
   ctx.fillStyle = "#dbe3ce";
   ctx.fill();
   ctx.strokeStyle = "#eee0b9";
-  ctx.lineWidth = 12;
+  ctx.lineWidth = 8;
   ctx.stroke();
 
   ctx.save();
@@ -187,44 +203,138 @@ function drawCity() {
   for (let x = 32; x < city.width; x += 48) {
     for (let y = 32; y < city.height; y += 48) ctx.fillRect(x, y, 3, 3);
   }
-  ctx.strokeStyle = "#f1e6cd";
-  ctx.lineWidth = 28;
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
+  // 모든 도로의 테두리를 먼저 그려 교차로 가운데에 테두리가 남지 않게 한다.
   for (const road of city.roads) {
-    tracePath(road);
+    tracePath(road.points);
+    ctx.strokeStyle = "#e7deca";
+    ctx.lineWidth = road.width + 3;
     ctx.stroke();
   }
+  for (const road of city.roads) {
+    tracePath(road.points);
+    ctx.strokeStyle = road.kind === "alley" ? "#a69f8e" : "#92948c";
+    ctx.lineWidth = road.width;
+    ctx.stroke();
+  }
+  ctx.setLineDash([5, 5]);
+  ctx.strokeStyle = "#eee2b0";
+  ctx.lineWidth = 0.8;
+  for (const road of city.roads.filter(road => road.kind === "ring")) {
+    tracePath(road.points);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
   ctx.restore();
 
+  // 야외 장소의 바닥을 먼저 깔고 일반 건물과 주요 건물을 그린다.
   for (const place of city.locations) {
-    // 중심 위치는 유지하면서 건물과 내부 임시 도형을 함께 확대한다.
-    const scale = settings.locationScale / settings.worldScale;
-    ctx.save();
-    ctx.translate(place.x, place.y);
-    ctx.scale(scale, scale);
-    ctx.translate(-place.x, -place.y);
-    const left = place.x - place.width / 2;
-    const top = place.y - place.height / 2;
+    if (place.solid) continue;
+    const { width, height } = locationSize(place);
+    const left = place.x - width / 2;
+    const top = place.y - height / 2;
     ctx.fillStyle = place.color;
-    ctx.fillRect(left, top, place.width, place.height);
-    ctx.strokeStyle = place.solid ? "#746e60" : "#b5aa83";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(left, top, place.width, place.height);
-    if (place.solid) {
-      ctx.fillStyle = "#ffffff45";
-      ctx.fillRect(left + 8, top + 8, place.width - 16, 12);
-      ctx.fillStyle = "#f7e9c8";
-      ctx.fillRect(left + 12, top + 32, 14, 14);
-      ctx.fillRect(left + place.width - 26, top + 32, 14, 14);
-    } else {
-      // 야외 장소는 테두리까지 모두 보행 가능하다.
-      ctx.strokeStyle = "#ffffff88";
-      ctx.beginPath();
-      ctx.arc(place.x, place.y, place.id === "C03" ? 32 : 22, 0, Math.PI * 2);
+    ctx.fillRect(left, top, width, height);
+    ctx.strokeStyle = "#ffffff35";
+    ctx.lineWidth = 0.6;
+    for (let x = left + 10; x < left + width; x += 10) {
+      tracePath([[x, top], [x, top + height]]);
       ctx.stroke();
     }
-    ctx.restore();
+    for (let y = top + 10; y < top + height; y += 10) {
+      tracePath([[left, y], [left + width, y]]);
+      ctx.stroke();
+    }
+  }
+  for (const building of city.buildings) drawBuilding(building);
+  for (const place of city.locations) {
+    if (place.solid) drawBuilding({ ...place, ...locationSize(place) });
+  }
+  for (const landmark of city.landmarks) drawLandmark(landmark);
+}
+
+function drawBuilding(building) {
+  const { x, y, width, height } = building;
+  const left = x - width / 2;
+  const top = y - height / 2;
+  ctx.fillStyle = "#45503a24";
+  ctx.fillRect(left + 3, top + 3, width, height);
+  ctx.fillStyle = building.color;
+  ctx.fillRect(left, top, width, height);
+  ctx.strokeStyle = "#746e60";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(left, top, width, height);
+  ctx.fillStyle = "#ffffff30";
+  ctx.fillRect(left + 2, top + 2, width - 4, Math.max(3, height * 0.14));
+  ctx.strokeStyle = "#746e6040";
+  tracePath([[left + 3, y], [left + width - 3, y]]);
+  ctx.stroke();
+  ctx.fillStyle = "#f5e8be";
+  for (let wx = left + 5; wx < left + width - 5; wx += 14) {
+    ctx.fillRect(wx, top + height * 0.68, 5, Math.min(6, height * 0.16));
+  }
+  for (const door of building.doors || []) {
+    const doorX = x + width * door.offset;
+    const doorY = door.side === "north" ? top : top + height;
+    ctx.fillStyle = door.kind === "locked" ? "#6e5547" : "#45675c";
+    ctx.fillRect(doorX - 5, doorY - 2, 10, 4);
+    ctx.fillStyle = "#f2db9d";
+    ctx.fillRect(doorX + 2, doorY - 0.5, 1, 1);
+    if (door.kind === "locked") {
+      ctx.strokeStyle = "#d7c3a0";
+      ctx.lineWidth = 0.8;
+      tracePath([[doorX - 4, doorY - 1], [doorX + 4, doorY + 1]]);
+      ctx.stroke();
+    }
+  }
+}
+
+function fillEllipse(x, y, radiusX, radiusY, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawLandmark(landmark) {
+  const { x, y, type } = landmark;
+  if (type === "fountain") {
+    fillEllipse(x, y, landmark.radius, landmark.radius, "#9caaab");
+    fillEllipse(x, y, landmark.radius - 2, landmark.radius - 2, "#8fc6d6");
+    fillEllipse(x, y, 4, 4, "#d8e5df");
+    ctx.strokeStyle = "#effcff";
+    ctx.lineWidth = 1;
+    for (const [dx, dy] of [[-6, 0], [6, 0], [0, -6], [0, 6]]) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(x + dx, y + dy - 5, x + dx, y + dy);
+      ctx.stroke();
+    }
+  } else if (type === "clock") {
+    ctx.fillStyle = "#9c8066";
+    ctx.fillRect(x - landmark.width / 2, y - landmark.height / 2, landmark.width, landmark.height);
+    ctx.fillStyle = "#6d7770";
+    ctx.fillRect(x - 9, y - 11, 18, 4);
+    fillEllipse(x, y - 1, 6, 6, "#f8efd7");
+    ctx.strokeStyle = "#665b4d";
+    ctx.lineWidth = 1;
+    tracePath([[x, y - 5], [x, y - 1], [x + 3, y + 1]]);
+    ctx.stroke();
+  } else if (type === "pond") {
+    fillEllipse(x, y, landmark.radiusX + 2, landmark.radiusY + 2, "#bdcda7");
+    fillEllipse(x, y, landmark.radiusX, landmark.radiusY, "#82b5c4");
+    ctx.strokeStyle = "#c3e3e4";
+    ctx.lineWidth = 1;
+    for (const offset of [-6, 1, 8]) {
+      tracePath([[x - 9, y + offset], [x - 2, y + offset + 1], [x + 7, y + offset]]);
+      ctx.stroke();
+    }
+  } else if (type === "tree") {
+    fillEllipse(x + 3, y + 3, landmark.radius, landmark.radius * 0.8, "#45503a24");
+    fillEllipse(x, y, landmark.trunkRadius, landmark.trunkRadius, "#80634b");
+    fillEllipse(x, y - 5, landmark.radius, landmark.radius * 0.8, "#82a072");
+    fillEllipse(x - 5, y - 9, landmark.radius * 0.55, landmark.radius * 0.5, "#9bb789");
   }
 }
 
@@ -237,6 +347,11 @@ function drawDebug() {
     ctx.fillText(`${place.id} ${place.name} (${place.x}, ${place.y})`, place.x, place.y - locationSize(place).height / 2 - 10);
     ctx.fillRect(place.x - 2, place.y - 2, 4, 4);
   }
+  for (const landmark of city.landmarks) {
+    ctx.fillText(`${landmark.id} ${landmark.name}`, landmark.x, landmark.y - 25);
+  }
+  ctx.fillStyle = "#b93d4e";
+  for (const point of city.accessPoints) ctx.fillRect(point.x - 1, point.y - 1, 2, 2);
 }
 
 function drawPlayer() {
@@ -273,7 +388,7 @@ function drawPlayer() {
 }
 
 function draw() {
-  ctx.fillStyle = "#a9cdd4";
+  ctx.fillStyle = "#6f8e93";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.save();
   ctx.scale(settings.cameraZoom, settings.cameraZoom);
