@@ -46,7 +46,7 @@ const CITY_DATA = {
     { id: "R13", kind: "alley", width: 14, points: [[390, 405], [345, 435], [345, 475], [380, 490], [420, 490], [445, 510], [500, 510]] },
     { id: "R14", kind: "alley", width: 14, points: [[500, 585], [550, 585], [575, 615], [625, 615], [670, 625]] },
     { id: "R15", kind: "alley", width: 14, points: [[275, 485], [220, 470], [200, 440], [140, 440], [125, 410]] },
-    // 북쪽 쪽문은 이 골목을 통해서만 접근한다. 실내 진입 기능은 이후 단계에서 연결한다.
+    // 북쪽 쪽문은 이 골목을 통해서만 접근한다.
     { id: "R16", kind: "alley", width: 8, points: [[570, 710], [570, 720], [525, 720], [525, 722.667]] },
     // 남쪽 정문은 접근만 가능하며 잠금 상태를 유지한다.
     { id: "R17", kind: "street", width: 8, points: [[533, 842], [525, 842], [525, 824]] },
@@ -111,5 +111,33 @@ const CITY_DATA = {
     { placeId: "C04", x: 740, y: 640 },
     { placeId: "C05", door: "north", x: 525, y: 725.5 },
     { placeId: "C05", door: "south", x: 525, y: 822 },
+  ],
+  // TODO: 허용된 임시 실내와 출입 판정 값이다. 실내 좌표는 월드 픽셀 단위이며 도시 배율을 적용하지 않는다.
+  entrances: {
+    interactDistance: 100,
+    clickPadding: 12,
+    cooldownMs: 250,
+    messageDurationMs: 1800,
+  },
+  interiorUi: {
+    enter: "문을 클릭해 들어가기",
+    exit: "출구를 클릭해 나가기",
+    exitLabel: "나가기",
+    locked: "잠긴 문입니다.",
+    tooFar: "문 가까이 이동하세요.",
+  },
+  interiors: [
+    { placeId: "C01", name: "사진관", width: 1100, height: 800, wall: 32,
+      floorColor: "#e4d8c8", wallColor: "#a38774", tileSize: 64,
+      exit: { x: 550, y: 784, width: 96, height: 32, side: "south" },
+      spawn: { x: 550, footY: 688, facing: "up" } },
+    { placeId: "C02", name: "학교 1층", width: 1600, height: 1000, wall: 32,
+      floorColor: "#e6dfc6", wallColor: "#a59c7d", tileSize: 64,
+      exit: { x: 800, y: 984, width: 96, height: 32, side: "south" },
+      spawn: { x: 800, footY: 888, facing: "up" } },
+    { placeId: "C05", name: "집", width: 1200, height: 900, wall: 32,
+      floorColor: "#d7c5ac", wallColor: "#998674", tileSize: 64,
+      exit: { x: 600, y: 16, width: 96, height: 32, side: "north" },
+      spawn: { x: 600, footY: 112, facing: "down" } },
   ],
 };

@@ -20,6 +20,13 @@ const world = {
   height: city.height * settings.worldScale,
 };
 const camera = { x: 0, y: 0 };
+const scene = {
+  interiorId: null,
+  returnPoint: null,
+  nextTransitionAt: 0,
+  message: "",
+  messageUntil: 0,
+};
 const player = {
   x: city.spawn.x * settings.worldScale,
   y: city.spawn.y * settings.worldScale,
@@ -48,7 +55,130 @@ window.addEventListener("blur", () => pressedKeys.clear());
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) pressedKeys.clear();
 });
-canvas.addEventListener("pointerdown", () => canvas.focus());
+canvas.addEventListener("pointerdown", handleDoorClick);
+
+function currentInterior() {
+  return city.interiors.find(interior => interior.placeId === scene.interiorId) || null;
+}
+
+function doorRectangle(building, door) {
+  return {
+    x: building.x + building.width * door.offset,
+    y: building.y + (door.side === "north" ? -1 : 1) * building.height / 2,
+    width: 10,
+    height: 4,
+  };
+}
+
+function outdoorDoors() {
+  return city.locations.flatMap(place => (place.doors || []).map(door => {
+    const rectangle = doorRectangle(locationBounds(place), door);
+    const approach = city.accessPoints.find(point => point.placeId === place.id && (!point.door || point.door === door.side));
+    return {
+      placeId: place.id,
+      kind: door.kind,
+      side: door.side,
+      x: rectangle.x * settings.worldScale,
+      y: rectangle.y * settings.worldScale,
+      width: rectangle.width * settings.worldScale,
+      height: rectangle.height * settings.worldScale,
+      approach: approach ? { x: approach.x * settings.worldScale, footY: approach.y * settings.worldScale } : null,
+    };
+  }));
+}
+
+function nearOutdoorDoor(target) {
+  if (!target.approach) return false;
+  const footY = player.y + player.footOffset;
+  if (Math.hypot(player.x - target.approach.x, footY - target.approach.footY) > city.entrances.interactDistance) return false;
+  if (target.side === "north" ? footY > target.y : footY < target.y) return false;
+  // 문 가까이에 있어도 벽이나 잔디를 가로질러 출입하지 않도록 접근 지점까지 검사한다.
+  const steps = Math.max(1, Math.ceil(Math.hypot(player.x - target.approach.x, footY - target.approach.footY) / 5));
+  for (let i = 0; i <= steps; i++) {
+    const x = player.x + (target.approach.x - player.x) * i / steps;
+    const y = footY + (target.approach.footY - footY) * i / steps - player.footOffset;
+    if (!canStandCity(x, y)) return false;
+  }
+  return true;
+}
+
+function nearInteriorExit(interior) {
+  return Math.hypot(player.x - interior.exit.x, player.y + player.footOffset - interior.exit.y) <= city.entrances.interactDistance;
+}
+
+function showDoorMessage(message) {
+  scene.message = message;
+  scene.messageUntil = Date.now() + city.entrances.messageDurationMs;
+}
+
+function enterInterior(target) {
+  if (scene.interiorId || Date.now() < scene.nextTransitionAt || !nearOutdoorDoor(target)) return false;
+  if (target.kind === "locked" || (target.placeId === "C05" && target.kind !== "side")) {
+    showDoorMessage(city.interiorUi.locked);
+    return false;
+  }
+  const interior = city.interiors.find(room => room.placeId === target.placeId);
+  if (!interior) return false;
+  const returnPoint = {
+    x: target.approach.x,
+    y: target.approach.footY - player.footOffset,
+    facing: target.side === "north" ? "up" : "down",
+  };
+  if (!canStandCity(returnPoint.x, returnPoint.y) ||
+      !canStandInterior(interior.spawn.x, interior.spawn.footY - player.footOffset, interior)) return false;
+  scene.returnPoint = returnPoint;
+  scene.interiorId = interior.placeId;
+  player.x = interior.spawn.x;
+  player.y = interior.spawn.footY - player.footOffset;
+  player.facing = interior.spawn.facing;
+  finishMapTransition();
+  return true;
+}
+
+function exitInterior() {
+  const interior = currentInterior();
+  if (!interior || Date.now() < scene.nextTransitionAt || !nearInteriorExit(interior)) return false;
+  const returnPoint = scene.returnPoint;
+  if (!returnPoint || !canStandCity(returnPoint.x, returnPoint.y)) return false;
+  scene.interiorId = null;
+  scene.returnPoint = null;
+  Object.assign(player, returnPoint);
+  finishMapTransition();
+  return true;
+}
+
+function finishMapTransition() {
+  // 누르고 있던 방향키와 이전 화면의 시간 차가 새 맵에 남지 않게 한다.
+  pressedKeys.clear();
+  previousTime = null;
+  scene.message = "";
+  scene.nextTransitionAt = Date.now() + city.entrances.cooldownMs;
+  updateCamera();
+  draw();
+}
+
+function handleDoorClick(event) {
+  canvas.focus();
+  if (event.button !== 0 || Date.now() < scene.nextTransitionAt) return;
+  const rectangle = canvas.getBoundingClientRect();
+  if (!rectangle.width || !rectangle.height) return;
+  // 화면 크기·카메라 위치·줌을 반영해 클릭을 현재 맵의 좌표로 바꾼다.
+  const x = (event.clientX - rectangle.left) * canvas.width / rectangle.width / settings.cameraZoom + camera.x;
+  const y = (event.clientY - rectangle.top) * canvas.height / rectangle.height / settings.cameraZoom + camera.y;
+  const hit = target => Math.abs(x - target.x) <= target.width / 2 + city.entrances.clickPadding &&
+    Math.abs(y - target.y) <= target.height / 2 + city.entrances.clickPadding;
+  const interior = currentInterior();
+  if (interior) {
+    if (!hit(interior.exit)) return;
+    if (!nearInteriorExit(interior)) showDoorMessage(city.interiorUi.tooFar);
+    else exitInterior();
+    return;
+  }
+  const target = outdoorDoors().find(hit);
+  if (!target) return;
+  if (!nearOutdoorDoor(target)) showDoorMessage(city.interiorUi.tooFar);
+  else enterInterior(target);
+}
 
 // 창 크기에 맞춰 실제 그리기 영역을 바꿔 화면이 늘어나거나 찌그러지는 것을 막는다.
 function resizeCanvas() {
@@ -139,6 +269,18 @@ function hitsLandmark(x, y, radius, landmark) {
 }
 
 function canStand(x, y) {
+  const interior = currentInterior();
+  return interior ? canStandInterior(x, y, interior) : canStandCity(x, y);
+}
+
+function canStandInterior(x, y, interior) {
+  const footY = y + player.footOffset;
+  return x - player.width / 2 >= interior.wall && x + player.width / 2 <= interior.width - interior.wall &&
+    y - player.height / 2 >= interior.wall && y + player.height / 2 <= interior.height - interior.wall &&
+    footY - player.collisionRadius >= interior.wall && footY + player.collisionRadius <= interior.height - interior.wall;
+}
+
+function canStandCity(x, y) {
   // 캐릭터 전체가 픽셀 기준 월드 경계를 넘지 못하게 한다.
   if (x < player.width / 2 || x > world.width - player.width / 2 ||
       y < player.height / 2 || y > world.height - player.height / 2) return false;
@@ -163,8 +305,10 @@ function updateCamera() {
   // 줌인 후 화면에 보이는 월드 범위로 추적과 경계를 계산한다.
   const viewWidth = canvas.width / settings.cameraZoom;
   const viewHeight = canvas.height / settings.cameraZoom;
-  camera.x = Math.max(0, Math.min(world.width - viewWidth, player.x - viewWidth / 2));
-  camera.y = Math.max(0, Math.min(world.height - viewHeight, player.y - viewHeight / 2));
+  const bounds = currentInterior() || world;
+  // 화면보다 작은 실내는 가운데에 두고, 큰 실내에서는 플레이어를 따라간다.
+  camera.x = viewWidth >= bounds.width ? (bounds.width - viewWidth) / 2 : Math.max(0, Math.min(bounds.width - viewWidth, player.x - viewWidth / 2));
+  camera.y = viewHeight >= bounds.height ? (bounds.height - viewHeight) / 2 : Math.max(0, Math.min(bounds.height - viewHeight, player.y - viewHeight / 2));
 }
 
 function locationSize(place) {
@@ -285,8 +429,7 @@ function drawBuilding(building) {
     ctx.fillRect(wx, top + height * 0.68, 5, Math.min(6, height * 0.16));
   }
   for (const door of building.doors || []) {
-    const doorX = x + width * door.offset;
-    const doorY = door.side === "north" ? top : top + height;
+    const { x: doorX, y: doorY } = doorRectangle(building, door);
     ctx.fillStyle = door.kind === "locked" ? "#6e5547" : "#45675c";
     ctx.fillRect(doorX - 5, doorY - 2, 10, 4);
     ctx.fillStyle = "#f2db9d";
@@ -398,22 +541,85 @@ function drawPlayer() {
   }
 }
 
+function drawInterior(interior) {
+  ctx.fillStyle = interior.wallColor;
+  ctx.fillRect(0, 0, interior.width, interior.height);
+  ctx.fillStyle = interior.floorColor;
+  ctx.fillRect(interior.wall, interior.wall, interior.width - interior.wall * 2, interior.height - interior.wall * 2);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(interior.wall, interior.wall, interior.width - interior.wall * 2, interior.height - interior.wall * 2);
+  ctx.clip();
+  ctx.strokeStyle = "#ffffff30";
+  ctx.lineWidth = 1;
+  for (let x = interior.wall; x < interior.width; x += interior.tileSize) {
+    tracePath([[x, interior.wall], [x, interior.height - interior.wall]]);
+    ctx.stroke();
+  }
+  for (let y = interior.wall; y < interior.height; y += interior.tileSize) {
+    tracePath([[interior.wall, y], [interior.width - interior.wall, y]]);
+    ctx.stroke();
+  }
+  ctx.restore();
+  ctx.fillStyle = "#f5eee3";
+  ctx.font = "16px 'Malgun Gothic', sans-serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.fillText(interior.name, interior.wall + 12, interior.wall / 2);
+  const exit = interior.exit;
+  ctx.fillStyle = "#45675c";
+  ctx.fillRect(exit.x - exit.width / 2, exit.y - exit.height / 2, exit.width, exit.height);
+  ctx.fillStyle = "#f5eee3";
+  ctx.textAlign = "center";
+  ctx.fillText(city.interiorUi.exitLabel, exit.x, exit.y);
+}
+
+function drawDoorHint() {
+  const interior = currentInterior();
+  let message = scene.messageUntil > Date.now() ? scene.message : "";
+  if (!message && interior && nearInteriorExit(interior)) message = city.interiorUi.exit;
+  if (!message && !interior) {
+    const target = outdoorDoors().find(nearOutdoorDoor);
+    if (target) message = target.kind === "locked" ? city.interiorUi.locked : city.interiorUi.enter;
+  }
+  if (!message) return;
+  ctx.save();
+  const width = Math.min(340, canvas.width - 24);
+  // 남쪽 출구의 글자를 가리지 않도록 안내는 화면 위쪽에 표시한다.
+  const top = interior?.exit.side === "south" ? 16 : canvas.height - 62;
+  ctx.fillStyle = "#26342de6";
+  ctx.fillRect((canvas.width - width) / 2, top, width, 42);
+  ctx.font = "15px 'Malgun Gothic', sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#fff8e9";
+  ctx.fillText(message, canvas.width / 2, top + 21, width - 20);
+  ctx.restore();
+}
+
 function draw() {
-  ctx.fillStyle = "#6f8e93";
+  const interior = currentInterior();
+  ctx.fillStyle = interior ? "#434640" : "#6f8e93";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.save();
   ctx.scale(settings.cameraZoom, settings.cameraZoom);
   ctx.translate(-camera.x, -camera.y);
-  ctx.save();
-  ctx.scale(settings.worldScale, settings.worldScale);
-  drawCity();
-  ctx.restore();
+  if (interior) drawInterior(interior);
+  else {
+    ctx.save();
+    ctx.scale(settings.worldScale, settings.worldScale);
+    drawCity();
+    ctx.restore();
+  }
   drawPlayer();
-  ctx.save();
-  ctx.scale(settings.worldScale, settings.worldScale);
-  drawDebug();
+  if (!interior) {
+    ctx.save();
+    ctx.scale(settings.worldScale, settings.worldScale);
+    drawDebug();
+    ctx.restore();
+  }
   ctx.restore();
-  ctx.restore();
+  drawDoorHint();
 }
 
 let previousTime = null;
