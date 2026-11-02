@@ -26,6 +26,7 @@ function renderInspection() {
   document.getElementById("photo-back-label").textContent = STUDIO_TEXT.temporaryBack;
   renderClassroomPanel();
   renderRegistry();
+  renderCarouselPanel();
 }
 
 function showInspection() {

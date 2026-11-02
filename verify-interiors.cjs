@@ -24,7 +24,7 @@ const sandbox = {
   requestAnimationFrame() {},
 };
 vm.createContext(sandbox);
-for (const file of ["city-data.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "game-state.js", "game.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
+for (const file of ["city-data.js", "data/park.js", "park.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "game-state.js", "game.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 const run = code => vm.runInContext(code, sandbox);
 const read = code => JSON.parse(run(`JSON.stringify(${code})`));
 const advance = () => { now += 300; };
@@ -105,7 +105,9 @@ for (const target of doors.filter(door => door.kind !== "locked")) {
 
 run("settings.cameraZoom = 1");
 for (const place of read("city.locations.filter(place => !place.solid)")) {
-  run(`player.x = ${place.x} * settings.worldScale; player.y = ${place.y} * settings.worldScale - player.footOffset; updateCamera()`);
+  // 시설이 있는 야외 장소는 중앙 대신 실제 진입 지점에서 맵 유지 여부를 확인한다.
+  const approach = read(`city.accessPoints.find(point => point.placeId === ${JSON.stringify(place.id)})`);
+  run(`player.x = ${approach.x} * settings.worldScale; player.y = ${approach.y} * settings.worldScale - player.footOffset; updateCamera()`);
   advance(); click({ x: place.x * 9, y: place.y * 9 });
   assert.equal(run("scene.interiorId"), null);
   assert.ok(run("canStand(player.x, player.y)"));

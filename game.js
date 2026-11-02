@@ -191,6 +191,7 @@ function handleDoorClick(event) {
     else exitInterior();
     return;
   }
+  if (handleParkClick(x, y)) return;
   const target = outdoorDoors().find(hit);
   if (!target) return;
   if (!nearOutdoorDoor(target)) showDoorMessage(city.interiorUi.tooFar);
@@ -319,6 +320,7 @@ function canStandCity(x, y) {
   if (!circleInsidePolygon(logicalX, footY, radius, city.frame) ||
       !circleInsidePolygon(logicalX, footY, radius, city.coast)) return false;
   if (!isWalkableSurface(logicalX, footY, radius)) return false;
+  if (hitsPark(x, y + player.footOffset, player.collisionRadius)) return false;
   for (const place of city.locations) {
     if (!place.solid) continue;
     if (circleHitsRectangle(logicalX, footY, radius, locationBounds(place))) return false;
@@ -656,6 +658,7 @@ function draw() {
     drawCity();
     ctx.restore();
   }
+  if (!interior) drawPark();
   drawPlayer();
   if (!interior) {
     ctx.save();

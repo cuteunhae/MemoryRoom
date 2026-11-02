@@ -47,6 +47,9 @@ canvas {
 #empty-photo { padding: 70px 16px; text-align: center; border: 2px dashed #b5a38c; color: #756856; }
 #studio-photo:focus-visible, #inspection-close:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
 [hidden] { display: none !important; }
+#carousel-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: center; }
+#carousel-panel input { width: 100%; min-width: 0; padding: 12px; font: inherit; }
+#carousel-confirm { grid-column: 1 / -1; padding: 12px; font: inherit; cursor: pointer; }
 .desk-item { display: block; width: 100%; padding: 18px; margin: 10px 0; font: inherit; cursor: pointer; }
 #registry-panel { position: relative; width: 100%; min-height: 320px; aspect-ratio: 600 / 320; background: #f3ebd8; border: 1px solid #a59c7d; overflow: hidden; }
 #registry-clue { margin: 0; padding: 24px; min-height: 320px; display: flex; align-items: center; white-space: pre-line; line-height: 1.9; color: #403a32; user-select: none; }

@@ -6,6 +6,7 @@ const gameState = {
   acquiredItems: {},
   photoCollected: false,
   registrySolved: false,
+  carouselSolved: false,
   achievementConditions: {},
 };
 const inventoryUiState = { open: false };

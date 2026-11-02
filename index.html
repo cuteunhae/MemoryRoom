@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="style.css" />
     <script src="city-data.js" defer></script>
     <script src="data/school.js" defer></script>
+    <script src="data/park.js" defer></script>
+    <script src="park.js" defer></script>
     <script src="school.js" defer></script>
     <script src="data/items.js" defer></script>
     <script src="data/ordinary-items.js" defer></script>
@@ -21,6 +23,7 @@
     <script src="inventory-ui.js" defer></script>
     <script src="studio-ui.js" defer></script>
     <script src="registry.js" defer></script>
+    <script src="park-ui.js" defer></script>
   </head>
   <body>
     <main>
@@ -68,6 +71,13 @@
       </button>
       <div id="empty-photo" hidden></div>
       <div id="classroom-panel" hidden></div>
+      <form id="carousel-panel" hidden novalidate>
+        <label for="carousel-horses" id="carousel-horse-label"></label>
+        <input id="carousel-horses" type="text" inputmode="numeric" autocomplete="off" maxlength="3" />
+        <label for="carousel-carriages" id="carousel-carriage-label"></label>
+        <input id="carousel-carriages" type="text" inputmode="numeric" autocomplete="off" maxlength="3" />
+        <button id="carousel-confirm" type="submit"></button>
+      </form>
       <div id="registry-panel" hidden>
         <p id="registry-clue"></p>
         <canvas id="registry-cover" aria-label="문질러서 지우는 명부 가림층"></canvas>

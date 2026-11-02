@@ -44,7 +44,7 @@ const sandbox = {
   segmentRectangleDistance,
 };
 vm.createContext(sandbox);
-for (const file of ["city-data.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "game-state.js", "game.js"]) {
+for (const file of ["city-data.js", "data/park.js", "park.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "game-state.js", "game.js"]) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 }
 vm.runInContext(`
@@ -88,7 +88,8 @@ vm.runInContext(`
   assert.equal(canWalk(10, 10), false, "바다에 진입할 수 있습니다.");
   for (const building of city.buildings) assert.equal(canWalk(building.x, building.y), false);
   for (const landmark of city.landmarks) assert.equal(canWalk(landmark.x, landmark.y), false);
-  for (const place of city.locations) assert.equal(canWalk(place.x, place.y), !place.solid);
+  // 놀이공원 중심에는 새로 배치한 회전목마가 있어 보행할 수 없다.
+  for (const place of city.locations) assert.equal(canWalk(place.x, place.y), !place.solid && place.id !== PARK_DATA.placeId);
   for (const road of city.roads.filter(r => r.kind === "ring")) {
     for (let i = 1; i < road.points.length; i++) {
       const a = road.points[i-1], b = road.points[i];
@@ -99,7 +100,8 @@ vm.runInContext(`
     }
   }
   // 두 야외 장소는 중심선에서 떨어진 바닥도 이동 가능해야 한다.
-  for (const place of city.locations.filter(p => !p.solid)) {
+  // 놀이공원은 울타리·시설 접근을 verify-park.cjs에서 별도로 검사한다.
+  for (const place of city.locations.filter(p => !p.solid && p.id !== PARK_DATA.placeId)) {
     const size = locationBounds(place);
     for (const dx of [-1, 1]) for (const dy of [-1, 1]) {
       assert.ok(canWalk(size.x + dx * (size.width / 2 - 5), size.y + dy * (size.height / 2 - 5)));
