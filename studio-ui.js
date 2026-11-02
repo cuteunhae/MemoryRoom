@@ -25,6 +25,7 @@ function renderInspection() {
   photoButton.setAttribute("aria-label", mode === "album" ? STUDIO_TEXT.collect : back ? STUDIO_TEXT.back : STUDIO_TEXT.front);
   document.getElementById("photo-back-label").textContent = STUDIO_TEXT.temporaryBack;
   renderClassroomPanel();
+  renderRegistry();
 }
 
 function showInspection() {
@@ -53,6 +54,7 @@ function openPhotoViewer(item) {
 }
 
 function closeInspection() {
+  resetRegistryProgress();
   inspectionUiState.mode = null;
   inspectionUiState.object = null;
   inspectionUiState.item = null;

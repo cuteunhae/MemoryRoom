@@ -25,7 +25,8 @@ function classroomObjects() {
 
 function canInspectSchoolObject(object) {
   if (!object.roomName) return true;
-  const room = classroomRoom();
+  const room = SCHOOL_DATA.floors.find(floor => floor.number === object.floor)?.rooms.find(room => room.name === object.roomName);
+  if (!room) return false;
   const footY = player.y + player.footOffset;
   return player.x > room.x && player.x < room.x + room.width && footY > room.y && footY < room.y + room.height;
 }

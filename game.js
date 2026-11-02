@@ -300,7 +300,7 @@ function canStandInterior(x, y, interior) {
   }
   if (inspectionObjectsFor(interior).some(object => object.solid && circleHitsRectangle(x, footY, player.collisionRadius, object))) return false;
   if (interior.placeId === SCHOOL_DATA.placeId && schoolWalls().some(wall => circleHitsRectangle(x, footY, player.collisionRadius, wall))) return false;
-  if (INSPECTION_OBJECTS.some(object => object.placeId === interior.placeId && object.table &&
+  if (inspectionObjectsFor(interior).some(object => object.table &&
       circleHitsRectangle(x, footY, player.collisionRadius, object.table))) return false;
   return x - player.width / 2 >= interior.wall && x + player.width / 2 <= interior.width - interior.wall &&
     y - player.height / 2 >= interior.wall && y + player.height / 2 <= interior.height - interior.wall &&

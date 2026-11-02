@@ -13,11 +13,14 @@
     <script src="data/classroom.js" defer></script>
     <script src="classroom.js" defer></script>
     <script src="data/objects.js" defer></script>
+    <script src="data/registry.js" defer></script>
+    <script src="data/achievement-conditions.js" defer></script>
     <script src="game-state.js" defer></script>
     <script src="game.js" defer></script>
     <script src="inventory-list.js" defer></script>
     <script src="inventory-ui.js" defer></script>
     <script src="studio-ui.js" defer></script>
+    <script src="registry.js" defer></script>
   </head>
   <body>
     <main>
@@ -65,6 +68,10 @@
       </button>
       <div id="empty-photo" hidden></div>
       <div id="classroom-panel" hidden></div>
+      <div id="registry-panel" hidden>
+        <p id="registry-clue"></p>
+        <canvas id="registry-cover" aria-label="문질러서 지우는 명부 가림층"></canvas>
+      </div>
     </dialog>
   </body>
 </html>
