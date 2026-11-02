@@ -176,10 +176,10 @@ function handleDoorClick(event) {
   const interior = currentInterior();
   if (interior) {
     if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolStairs(x, y)) return;
-    const object = inspectionObjectsFor(interior).find(object =>
-      Math.abs(x - object.x) <= object.width / 2 && Math.abs(y - object.y) <= object.height / 2);
+    const object = inspectionObjectsFor(interior).sort((a, b) => Math.hypot(x - a.x, y - a.y) - Math.hypot(x - b.x, y - b.y)).find(object =>
+      Math.abs(x - object.x) <= object.width / 2 + (object.clickPadding || 0) && Math.abs(y - object.y) <= object.height / 2 + (object.clickPadding || 0));
     if (object) {
-      if (Math.hypot(player.x - object.x, player.y + player.footOffset - object.y) > object.interactDistance) {
+      if (!canInspectSchoolObject(object) || Math.hypot(Math.max(0, Math.abs(player.x - object.x) - object.width / 2), Math.max(0, Math.abs(player.y + player.footOffset - object.y) - object.height / 2)) > object.interactDistance) {
         showDoorMessage(object.messages.tooFar);
       } else {
         openInspection(object);
@@ -293,6 +293,12 @@ function canStand(x, y) {
 
 function canStandInterior(x, y, interior) {
   const footY = y + player.footOffset;
+  if (interior.placeId === SCHOOL_DATA.placeId) {
+    const corridor = SCHOOL_DATA.corridor;
+    if (footY + player.collisionRadius > corridor.y &&
+        (x - player.collisionRadius < corridor.x || x + player.collisionRadius > corridor.x + corridor.length)) return false;
+  }
+  if (inspectionObjectsFor(interior).some(object => object.solid && circleHitsRectangle(x, footY, player.collisionRadius, object))) return false;
   if (interior.placeId === SCHOOL_DATA.placeId && schoolWalls().some(wall => circleHitsRectangle(x, footY, player.collisionRadius, wall))) return false;
   if (INSPECTION_OBJECTS.some(object => object.placeId === interior.placeId && object.table &&
       circleHitsRectangle(x, footY, player.collisionRadius, object.table))) return false;

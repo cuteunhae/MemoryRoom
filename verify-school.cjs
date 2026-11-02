@@ -34,7 +34,7 @@ const sandbox = {
   requestAnimationFrame() {},
 };
 vm.createContext(sandbox);
-for (const file of ["city-data.js", "data/school.js", "school.js", "data/items.js", "data/objects.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "studio-ui.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
+for (const file of ["city-data.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/classroom.js", "classroom.js", "data/objects.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "studio-ui.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 const run = code => vm.runInContext(code, sandbox);
 const read = code => JSON.parse(run(`JSON.stringify(${code})`));
 const advance = () => { now += 300; };
@@ -50,6 +50,30 @@ const entrance = read('outdoorDoors().find(door => door.placeId === SCHOOL_DATA.
 positionAt(entrance); advance(); click(entrance); advance();
 const savedReturn = read('scene.returnPoint');
 const stairs = read('SCHOOL_DATA.stairs');
+// 축소 복도에서 방 문·계단·게시판으로 이어지는 선을 실제 충돌 판정으로 검사한다.
+assert.equal(run(`(() => {
+  const corridor = SCHOOL_DATA.corridor;
+  const footY = corridor.y + corridor.width / 2;
+  for (const floor of SCHOOL_DATA.floors) {
+    scene.schoolFloor = floor.number;
+    for (let x = corridor.x + 20; x < corridor.x + corridor.length - 20; x += 20) {
+      if (!canStand(x, footY - player.footOffset)) return false;
+    }
+    for (const room of floor.rooms) {
+      for (let y = footY; y >= room.y + room.height - 60; y -= 10) {
+        if (!canStand(room.doorX, y - player.footOffset)) return false;
+      }
+    }
+    if (!canStand(SCHOOL_DATA.stairs.arrival.x, SCHOOL_DATA.stairs.arrival.footY - player.footOffset)) return false;
+    if (canStand(corridor.x - 20, footY - player.footOffset)) return false;
+  }
+  scene.schoolFloor = 1;
+  return true;
+})()`), true);
+assert.deepEqual(read('({x:classroomRoom().x,y:classroomRoom().y,width:classroomRoom().width,height:classroomRoom().height})'), {x:10400,y:2000,width:1600,height:2400});
+assert.equal(run('CLASSROOM_DATA.pairAisle'), 240);
+assert.equal(run('CLASSROOM_DATA.rowAisle'), 220);
+assert.equal(run('Math.abs(SCHOOL_DATA.objects[0].x-SCHOOL_DATA.objects[1].x)'), 260);
 click(stairs); assert.equal(run('scene.schoolFloor'), 1);
 const board = read('SCHOOL_DATA.objects[0]');
 const teacher = read('SCHOOL_DATA.objects[1]');
@@ -73,18 +97,18 @@ for (const zoom of [1, 1.5, 3]) {
   for (const floorNumber of [1, 2]) {
     assert.equal(run('scene.schoolFloor'), floorNumber);
     for (const room of read('schoolFloor().rooms')) {
-      run(`player.x = ${room.doorX}; player.y = 620 - player.footOffset; pressedKeys.add('ArrowUp'); update(0.5); pressedKeys.clear()`);
+      run(`player.x = ${room.doorX}; player.y = ${room.y + room.height + 70} - player.footOffset; pressedKeys.add('ArrowUp'); update(0.5); pressedKeys.clear()`);
       assert.ok(run('canStand(player.x, player.y)'));
       assert.ok(run('player.y + player.footOffset') < room.y + room.height - 30, room.name);
       run("pressedKeys.add('ArrowDown'); update(0.5); pressedKeys.clear()");
       assert.ok(run('player.y + player.footOffset') > room.y + room.height + 30);
-      run(`player.x = ${room.x + 40}; player.y = 620 - player.footOffset; pressedKeys.add('ArrowUp'); update(1); pressedKeys.clear()`);
+      run(`player.x = ${room.x + 40}; player.y = ${room.y + room.height + 70} - player.footOffset; pressedKeys.add('ArrowUp'); update(1); pressedKeys.clear()`);
       assert.ok(run('player.y + player.footOffset') >= room.y + room.height);
     }
     if (floorNumber === 2) {
       assert.equal(run('currentInterior().exit'), null);
       assert.equal(run('exitInterior()'), false);
-      assert.equal(run('inspectionObjectsFor(currentInterior()).length'), 0);
+      assert.equal(run('inspectionObjectsFor(currentInterior()).filter(object => object.floor === 1).length'), 0);
     }
     run('player.x = SCHOOL_DATA.stairs.arrival.x; player.y = SCHOOL_DATA.stairs.arrival.footY - player.footOffset; updateCamera()');
     advance(); click(stairs, 2); assert.equal(run('scene.schoolFloor'), floorNumber);

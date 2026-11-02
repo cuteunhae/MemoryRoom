@@ -13,10 +13,10 @@ const emptyPhoto = document.getElementById("empty-photo");
 function renderInspection() {
   const { mode, object, item, back } = inspectionUiState;
   const collected = mode === "album" && gameState.photoCollected;
-  inspectionTitle.textContent = mode === "photo" ? item.name : object.name;
+  inspectionTitle.textContent = ["photo", "infirmary"].includes(mode) ? item.name : object.name;
   inspectionMessage.textContent = mode === "board" ? schoolBoardText() : mode === "dialogue" ? object.messages.dialogue :
     mode === "photo" ? STUDIO_TEXT.flip : collected ? STUDIO_TEXT.emptyAlbum : STUDIO_TEXT.albumPrompt;
-  photoButton.hidden = mode === "dialogue" || mode === "board" || collected;
+  photoButton.hidden = !["photo", "album"].includes(mode) || collected;
   emptyPhoto.hidden = !collected;
   emptyPhoto.textContent = STUDIO_TEXT.emptyAlbum;
   photoFront.hidden = mode === "photo" && back;
@@ -24,6 +24,7 @@ function renderInspection() {
   photoDate.textContent = item?.date || "";
   photoButton.setAttribute("aria-label", mode === "album" ? STUDIO_TEXT.collect : back ? STUDIO_TEXT.back : STUDIO_TEXT.front);
   document.getElementById("photo-back-label").textContent = STUDIO_TEXT.temporaryBack;
+  renderClassroomPanel();
 }
 
 function showInspection() {
@@ -44,7 +45,7 @@ function openInspection(object) {
 
 function openPhotoViewer(item) {
   if (!inventoryUiState.open || inspectionUiState.mode || !gameState.inventory.itemIds.includes(item.id)) return;
-  inspectionUiState.mode = "photo";
+  inspectionUiState.mode = item.viewer;
   inspectionUiState.object = null;
   inspectionUiState.item = item;
   inspectionUiState.back = false;

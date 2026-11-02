@@ -10,12 +10,12 @@ function refreshInventoryList() {
     refreshInventoryList();
     Array.from(inventoryList.children).find(button => button.dataset.itemId === id)?.focus();
     const item = ITEM_DATA.find(item => item.id === id);
-    if (item.viewer === "photo") openPhotoViewer(item);
+    if (["photo", "infirmary"].includes(item.viewer)) openPhotoViewer(item);
   });
 }
 
 function closeInventory() {
-  if (inspectionUiState.mode === "photo") closeInspection();
+  if (["photo", "infirmary"].includes(inspectionUiState.mode)) closeInspection();
   inventoryUiState.open = false;
   pressedKeys.clear();
   inventoryDialog.close();
@@ -23,7 +23,7 @@ function closeInventory() {
 }
 
 function toggleInventory() {
-  if (inspectionUiState.mode && inspectionUiState.mode !== "photo") return;
+  if (inspectionUiState.mode && !["photo", "infirmary"].includes(inspectionUiState.mode)) return;
   if (inventoryUiState.open) return closeInventory();
   pressedKeys.clear();
   refreshInventoryList();

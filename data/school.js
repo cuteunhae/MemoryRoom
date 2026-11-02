@@ -2,6 +2,11 @@
 
 // TODO: 교실 수, 방 크기, 문·계단·게시판·NPC 좌표와 조사 거리는 임시 배치다.
 const SCHOOL_DATA = {
+  scale: 8, doorWidth: 240,
+  classroomScale: 2 / 3,
+  // TODO: 복도만 조절하는 픽셀 설정. 모든 교실 문을 포함하도록 길이를 유지한다.
+  corridor: { x: 1160, y: 4400, length: 10480, width: 480 },
+  noticeArea: { boardOffsetX: -220, npcOffsetX: 40, offsetY: 150 },
   placeId: "C02", wallThickness: 14, interactDistance: 140,
   floors: [
     { number: 1, name: "학교 1층", rooms: [
@@ -30,3 +35,54 @@ const SCHOOL_DATA = {
     } },
   ],
 };
+
+// TODO: 원래 배치 비율을 유지하는 임시 확대 배율. 캐릭터와 이동 속도는 확대하지 않는다.
+for (const floor of SCHOOL_DATA.floors) for (const room of floor.rooms) {
+  for (const key of ["x", "y", "width", "height", "doorX"]) room[key] *= SCHOOL_DATA.scale;
+  room.doorWidth = SCHOOL_DATA.doorWidth;
+  // 반 교실만 축소한다. 복도에 맞닿은 문 중심과 아래쪽 벽은 유지한다.
+  if (/^\d/.test(room.name)) {
+    const bottom = room.y + room.height;
+    room.width *= SCHOOL_DATA.classroomScale;
+    room.height *= SCHOOL_DATA.classroomScale;
+    room.x = room.doorX - room.width / 2;
+    room.y = bottom - room.height;
+  }
+}
+for (const object of SCHOOL_DATA.objects) {
+  object.x *= SCHOOL_DATA.scale;
+  object.y *= SCHOOL_DATA.scale;
+}
+SCHOOL_DATA.stairs.x *= SCHOOL_DATA.scale;
+SCHOOL_DATA.stairs.y *= SCHOOL_DATA.scale;
+SCHOOL_DATA.stairs.width = 240;
+SCHOOL_DATA.stairs.height = 160;
+SCHOOL_DATA.stairs.arrival = { x: SCHOOL_DATA.stairs.x, footY: SCHOOL_DATA.stairs.y + 100 };
+const schoolInterior = CITY_DATA.interiors.find(room => room.placeId === SCHOOL_DATA.placeId);
+schoolInterior.width *= SCHOOL_DATA.scale;
+schoolInterior.height *= SCHOOL_DATA.scale;
+schoolInterior.exit.x *= SCHOOL_DATA.scale;
+schoolInterior.exit.y = schoolInterior.height - schoolInterior.wall / 2;
+schoolInterior.exit.width = SCHOOL_DATA.doorWidth;
+schoolInterior.spawn.x = schoolInterior.exit.x;
+schoolInterior.spawn.footY = schoolInterior.exit.y - 96;
+
+// 방·책상 좌표를 바꾸지 않고 복도 끝의 여분 공간과 깊이만 줄인다.
+const corridor = SCHOOL_DATA.corridor;
+schoolInterior.height = corridor.y + corridor.width + schoolInterior.wall;
+schoolInterior.exit.x = corridor.x + corridor.length / 2;
+schoolInterior.exit.y = schoolInterior.height - schoolInterior.wall / 2;
+schoolInterior.spawn.x = schoolInterior.exit.x;
+schoolInterior.spawn.footY = schoolInterior.exit.y - 96;
+SCHOOL_DATA.stairs.x = corridor.x + corridor.length - 140;
+SCHOOL_DATA.stairs.y = corridor.y + corridor.width / 2;
+SCHOOL_DATA.stairs.arrival = { x: SCHOOL_DATA.stairs.x, footY: SCHOOL_DATA.stairs.y + 100 };
+for (const object of SCHOOL_DATA.objects) {
+  object.x = schoolInterior.exit.x + (object.type === "board" ? SCHOOL_DATA.noticeArea.boardOffsetX : SCHOOL_DATA.noticeArea.npcOffsetX);
+  object.y = corridor.y + SCHOOL_DATA.noticeArea.offsetY;
+  if (object.type === "board") {
+    object.width = 200;
+    object.height = 80;
+    object.color = "#97744b";
+  }
+}

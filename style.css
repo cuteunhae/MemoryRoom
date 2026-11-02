@@ -47,3 +47,11 @@ canvas {
 #empty-photo { padding: 70px 16px; text-align: center; border: 2px dashed #b5a38c; color: #756856; }
 #studio-photo:focus-visible, #inspection-close:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
 [hidden] { display: none !important; }
+.desk-item { display: block; width: 100%; padding: 18px; margin: 10px 0; font: inherit; cursor: pointer; }
+.desk-item:disabled { cursor: default; color: #635d53; }
+.seat-row { display: flex; gap: 24px; margin: 16px 0; }
+.seat-pair { display: flex; flex: 1; }
+.seat-pair span { flex: 1; text-align: center; background: #ddc3a0; border: 1px solid #8e7657; padding: 12px 0; }
+.infirmary-map { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.infirmary-map span { padding: 30px 2px; text-align: center; border: 2px solid #a59c7d; background: #e6dfc6; }
+.infirmary-map span:last-child { background: #d2e5d7; border-color: #45675c; }

@@ -34,7 +34,7 @@ const sandbox = {
   requestAnimationFrame() {},
 };
 vm.createContext(sandbox);
-for (const file of ["city-data.js", "data/school.js", "school.js", "data/items.js", "data/objects.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "studio-ui.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
+for (const file of ["city-data.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/classroom.js", "classroom.js", "data/objects.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "studio-ui.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 const run = code => vm.runInContext(code, sandbox);
 const read = code => JSON.parse(run(`JSON.stringify(${code})`));
 const advance = () => { now += 300; };
@@ -142,9 +142,9 @@ assert.equal(run('inspectionUiState.mode'), 'dialogue');
 elements['inspection-close'].handlers.click();
 assert.equal(run('acquireItem("unknown")'), false);
 run("ITEM_DATA.forEach(item => acquireItem(item.id))");
-assert.equal(run("gameState.inventory.itemIds.length"), 10);
-assert.equal(Object.keys(read("gameState.acquiredItems")).length, 10);
+assert.equal(run("gameState.inventory.itemIds.length"), 16);
+assert.equal(Object.keys(read("gameState.acquiredItems")).length, 16);
 key("KeyI", "i");
-assert.equal(elements["inventory-list"].children.length, 10);
-console.log("통과: 직원 확정 대사·선택적 대화, 사진첩 열기→사진 획득, photoCollected·중복 방지·빈 자리, 날짜·앞뒤 전환·앞면 초기화, 모달 입력 차단·I 닫기, 선택 유지·재입장·아이템 10종");
+assert.equal(elements["inventory-list"].children.length, 16);
+console.log("통과: 직원 확정 대사·선택적 대화, 사진첩 열기→사진 획득, photoCollected·중복 방지·빈 자리, 날짜·앞뒤 전환·앞면 초기화, 모달 입력 차단·I 닫기, 선택 유지·재입장·아이템 16종");
 

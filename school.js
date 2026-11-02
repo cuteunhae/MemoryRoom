@@ -10,7 +10,7 @@ function schoolBoardText() {
 }
 
 function inspectionObjectsFor(interior) {
-  return [...INSPECTION_OBJECTS, ...SCHOOL_DATA.objects].filter(object =>
+  return [...INSPECTION_OBJECTS, ...SCHOOL_DATA.objects, ...classroomObjects()].filter(object =>
     object.placeId === interior.placeId && (!object.floor || object.floor === scene.schoolFloor));
 }
 
@@ -46,6 +46,11 @@ function handleSchoolStairs(x, y) {
 
 function drawSchool() {
   ctx.save();
+  const corridor = SCHOOL_DATA.corridor;
+  // 복도 양끝의 막힌 공간을 벽색으로 표시한다. 충돌도 같은 경계를 사용한다.
+  ctx.fillStyle = "#8c897b";
+  ctx.fillRect(0, corridor.y, corridor.x, corridor.width);
+  ctx.fillRect(corridor.x + corridor.length, corridor.y, currentInterior().width - corridor.x - corridor.length, corridor.width);
   for (const room of schoolFloor().rooms) {
     ctx.fillStyle = "#efe8d5";
     ctx.fillRect(room.x, room.y, room.width, room.height);
@@ -64,7 +69,7 @@ function drawSchool() {
     ctx.fillStyle = "#403a32";
     ctx.fillText(room.name, room.doorX, doorY - 41);
   }
-  ctx.fillText(SCHOOL_DATA.text.corridor, 800, 650);
+  ctx.fillText(SCHOOL_DATA.text.corridor, corridor.x + corridor.length / 2, corridor.y + 55);
   const stairs = SCHOOL_DATA.stairs;
   ctx.fillStyle = "#b5b6ad";
   ctx.fillRect(stairs.x - stairs.width / 2, stairs.y - stairs.height / 2, stairs.width, stairs.height);
@@ -76,5 +81,12 @@ function drawSchool() {
   ctx.fillStyle = "#403a32";
   ctx.font = "15px 'Malgun Gothic', sans-serif";
   ctx.fillText(scene.schoolFloor === 1 ? SCHOOL_DATA.text.up : SCHOOL_DATA.text.down, stairs.x, stairs.y - stairs.height / 2 - 20);
+  if (scene.schoolFloor === CLASSROOM_DATA.floor) {
+    const room = classroomRoom();
+    ctx.fillStyle = '#416553';
+    ctx.fillRect(room.x + room.width / 2 - 300, room.y + 70, 600, 90);
+    ctx.fillStyle = '#fff8e9';
+    ctx.fillText(CLASSROOM_DATA.text.front, room.x + room.width / 2, room.y + 115);
+  }
   ctx.restore();
 }
