@@ -27,6 +27,7 @@
     <script src="data/objects.js" defer></script>
     <script src="data/registry.js" defer></script>
     <script src="data/achievement-conditions.js" defer></script>
+    <script src="data/hints.js" defer></script>
     <script src="game-state.js" defer></script>
     <script src="achievements.js" defer></script>
     <script src="game.js" defer></script>
@@ -35,6 +36,7 @@
     <script src="studio-ui.js" defer></script>
     <script src="registry.js" defer></script>
     <script src="park-ui.js" defer></script>
+    <script src="hints.js" defer></script>
     <script src="data/save.js" defer></script>
     <script src="save.js" defer></script>
   </head>
@@ -45,6 +47,16 @@
       </canvas>
     </main>
     <button id="new-game" type="button"></button>
+    <aside id="hint-controls">
+      <button id="hint-gift" type="button" hidden></button>
+      <button id="hint-history" type="button"></button>
+    </aside>
+    <dialog id="hint-dialog" aria-labelledby="hint-title">
+      <header class="inventory-header"><h1 id="hint-title"></h1><button id="hint-close" type="button"></button></header>
+      <p id="hint-current" aria-live="polite"></p>
+      <h2 id="hint-previous"></h2>
+      <ul id="hint-list"></ul>
+    </dialog>
     <p id="save-message" role="status" hidden></p>
     <div id="achievement-toast" class="achievement-toast" role="status" hidden></div>
     <dialog id="achievement-dialog" aria-labelledby="achievement-title">

@@ -18,6 +18,7 @@ function emitBearBubble() {
   });
   bubbleEffect.particles = bubbleEffect.particles.slice(-BUBBLE_DATA.maxCount);
   bubbleEffect.lastCreatedAt = Date.now();
+  if (typeof markHintClue === "function") markHintClue("bear-bubble");
   return true;
 }
 

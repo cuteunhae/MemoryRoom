@@ -19,6 +19,7 @@ const gameState = {
   cabinetSolved: false,
   cabinetKeyGranted: false,
   achievementConditions: {},
+  hints: createHintState(),
   achievements: Object.fromEntries(ACHIEVEMENT_CONDITIONS.map(entry => [entry.id, entry.order === 1 ? "active" : "hidden"])),
 };
 const achievementUi = { open: false, queue: [], current: null, until: 0 };
@@ -27,7 +28,7 @@ const inventoryUiState = { open: false };
 const inspectionUiState = { mode: null, object: null, item: null, back: false };
 
 function isGameInputBlocked() {
-  return achievementUi.open || inventoryUiState.open || inspectionUiState.mode !== null;
+  return (typeof hintUi !== "undefined" && hintUi.open) || achievementUi.open || inventoryUiState.open || inspectionUiState.mode !== null;
 }
 
 function acquireItem(itemId) {
@@ -59,6 +60,7 @@ function updateAchievementConditions() {
     gameState.achievements[condition.id] = activeAssigned ? "hidden" : "active";
     activeAssigned = true;
   }
+  if (typeof syncHintProgress === "function") syncHintProgress();
   if (typeof saveProgress === "function") saveProgress();
 }
 

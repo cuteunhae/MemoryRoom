@@ -1,0 +1,34 @@
+"use strict";
+
+const HINT_DATA = {
+  waitMs: 10 * 60 * 1000, debugWaitMs: 10 * 1000, checkpointMs: 1000,
+  text: { gift: "🎁", available: "지금 받을 수 있는 힌트", history: "힌트 기록", title: "힌트", close: "닫기", empty: "아직 확인한 힌트가 없습니다.", current: "현재 힌트", previous: "이전에 본 힌트" },
+  progressFlags: ["photoCollected", "registrySolved", "carouselSolved", "playgroundMemoViewed", "swingUsed", "seesawUsed", "slideUsed", "cabinetSolved", "childRoomUnlocked", "diaryDiscovered", "endingReached"],
+  clueModes: { board: "school-board", seating: "seating", infirmary: "infirmary-map", playgroundMemo: "playground-map", slideGraffiti: "graffiti", registry: "registry", diary: "diary" },
+  clueIds: ["school-board", "seating", "infirmary-map", "playground-map", "graffiti", "registry", "diary", "photo-front", "photo-back", "class-nine", "desk-one", "bear-bubble"],
+  items: { photo: "ITM-01", notebook: "ITM-02", crayon: "ITM-03", headband: "ITM-04", balloon: "ITM-05", memo: "ITM-06", toy: "ITM-07", bear: "ITM-08" },
+  entries: [
+    // 사용자가 제공한 기획서 6.4 표의 확정 문장을 그대로 사용한다.
+    { id: "HNT-01", placeId: "C01", text: "촬영구역의 테이블 위를 살펴보세요." },
+    { id: "HNT-02", placeId: "C02", text: "복도 게시판에는 각 반의 위치가 표시되어 있어요." },
+    { id: "HNT-03", placeId: "C02", text: "교실 뒤쪽 게시판의 자리 배치도를 확인해 보세요." },
+    { id: "HNT-04", placeId: "C02", text: "흐릿한 명부에 크레파스를 사용해 보세요." },
+    { id: "HNT-05", placeId: "C03", text: "회전목마의 반대편에서도 말과 마차를 세어 보세요." },
+    { id: "HNT-06", placeId: "C04", text: "그네와 시소를 모두 움직여 보세요." },
+    { id: "HNT-07", placeId: "C05", text: "집의 앞문만 보지 말고 옆으로 이어지는 길도 살펴보세요." },
+    { id: "HNT-08", placeId: "C05", text: "다섯 장소에서 얻은 추억의 물건을 순서에 맞게 놓아보세요." },
+    // TODO: 표에 없는 상황의 임시 문장이다. 최종 기획 문구로 교체한다.
+    { id: "HNT-09", placeId: "C03", text: "입구의 매표소에 남겨진 물건을 살펴보세요." },
+    { id: "HNT-10", placeId: "C03", text: "기념품 판매대 옆에 달라진 것이 있는지 살펴보세요." },
+    { id: "HNT-11", placeId: "C03", text: "풍선과 함께 발견한 메모를 인벤토리에서 확인해 보세요." },
+    { id: "HNT-12", placeId: "C04", text: "놀이시설을 움직인 뒤 놀이터 안에 달라진 것이 있는지 살펴보세요." },
+    { id: "HNT-13", placeId: "C04", text: "아직 타 보지 않은 미끄럼틀에도 올라가 보세요." },
+    { id: "HNT-14", placeId: "C05", text: "안방의 인형들을 비눗방울 속 모습과 비교해 보세요." },
+    { id: "HNT-15", placeId: "C05", text: "새로 얻은 열쇠로 열 수 있는 문을 찾아보세요." },
+    { id: "HNT-16", placeId: "C05", text: "아이 방 침대 위에 남겨진 이야기를 끝까지 읽어 보세요." },
+  ],
+};
+
+function createHintState() {
+  return { history: [], clues: [], lastProgressAt: Date.now(), idleMs: 0 };
+}

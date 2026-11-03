@@ -20,7 +20,7 @@ canvas {
   outline: none;
 }
 
-#inventory-dialog, #inspection-dialog, #achievement-dialog {
+#inventory-dialog, #inspection-dialog, #achievement-dialog, #hint-dialog {
   width: min(560px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   padding: 24px;
@@ -30,7 +30,15 @@ canvas {
   background: #f8f1e4;
   font: 16px "Malgun Gothic", sans-serif;
 }
-#inventory-dialog::backdrop, #inspection-dialog::backdrop, #achievement-dialog::backdrop { background: #18231cb3; }
+#inventory-dialog::backdrop, #inspection-dialog::backdrop, #achievement-dialog::backdrop, #hint-dialog::backdrop { background: #18231cb3; }
+#hint-controls { position: fixed; left: 16px; top: 80px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+#hint-controls button { padding: 10px 14px; border: 1px solid #96856d; border-radius: 8px; background: #fff4db; color: #403a32; font: 15px "Malgun Gothic", sans-serif; cursor: pointer; }
+#hint-controls #hint-gift { font-size: 34px; }
+#hint-controls button:focus-visible, #hint-close:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
+#hint-current { padding: 16px; background: #e5eee0; border-radius: 8px; line-height: 1.8; }
+#hint-list { padding-left: 24px; line-height: 1.8; }
+#hint-list li { margin-bottom: 14px; }
+#hint-previous { font-size: 18px; }
 .achievement-toast { position: fixed; top: 16px; right: 16px; z-index: 10; max-width: min(340px, calc(100vw - 32px)); padding: 16px 20px; border: 2px solid #b9c8a6; border-radius: 10px; background: #29473f; color: #fff8e9; font: 16px/1.6 "Malgun Gothic", sans-serif; pointer-events: none; box-shadow: 0 4px 16px #18231c33; }
 #achievement-list { list-style: none; padding: 0; display: grid; gap: 14px; }
 #achievement-list li { padding: 18px; border: 2px solid #c5b79f; border-radius: 8px; }

@@ -32,6 +32,7 @@ function renderInspection() {
   renderSlideGraffiti();
   renderCabinetPanel();
   renderDiaryPanel();
+  if (typeof recordInspectionHint === "function") recordInspectionHint();
 }
 
 function showInspection() {

@@ -694,6 +694,7 @@ function frame(time) {
   const deltaSeconds = previousTime === null ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
   update(deltaSeconds);
+  if (typeof updateHints === "function") updateHints();
   if (typeof updatePositionSave === "function") updatePositionSave();
   updateCamera();
   draw();

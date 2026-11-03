@@ -24,6 +24,7 @@ function closeInventory() {
 }
 
 function toggleInventory() {
+  if (typeof hintUi !== "undefined" && hintUi.open) return;
   if (achievementUi.open) return;
   stopBubbleDrag();
   if (inspectionUiState.mode && (!inventoryUiState.open || !["photo", "infirmary", "playgroundMemo", "diary"].includes(inspectionUiState.mode))) return;

@@ -31,11 +31,13 @@ function createProgressSnapshot() {
     acquiredItems: state.acquiredItems,
     puzzles: Object.fromEntries(savedFlagNames.map(key => [key, state[key]])),
     cabinet: state.cabinet, achievements: state.achievements,
-    achievementConditions: state.achievementConditions, position: capturePosition() };
+    achievementConditions: state.achievementConditions, hints: state.hints, position: capturePosition() };
 }
 
 function saveProgress() {
   if (!saveRuntime.ready || saveRuntime.restoring) return false;
+  updateHintClock();
+  syncHintProgress();
   try {
     const snapshot = createProgressSnapshot();
     localStorage.setItem(SAVE_DATA.progressKey, JSON.stringify(snapshot));
@@ -61,7 +63,7 @@ function decodeProgress(raw) {
   const facing = value => ["up", "down", "left", "right"].includes(value);
   const point = value => object(value) && Number.isFinite(value.x) && Number.isFinite(value.y) && facing(value.facing);
   const check = value => { if (!value) throw new Error("Invalid save"); };
-  check(object(data) && data.saveVersion === SAVE_DATA.saveVersion);
+  check(object(data) && [1, SAVE_DATA.saveVersion].includes(data.saveVersion));
   check(object(data.inventory) && Array.isArray(data.inventory.itemIds) && data.inventory.itemIds.every(validItem));
   check(data.inventory.selectedItemId === null || validItem(data.inventory.selectedItemId));
   check(object(data.acquiredItems) && Object.entries(data.acquiredItems).every(([id,value]) => validItem(id) && typeof value === "boolean"));
@@ -75,6 +77,15 @@ function decodeProgress(raw) {
   check(SCHOOL_DATA.floors.some(floor => floor.number === position.schoolFloor));
   check(position.interiorId === null ? position.returnPoint === null : point(position.returnPoint));
   const state = cloneSaveValue(initialGameState);
+  if (data.saveVersion === 1) {
+    // 기존 진행을 유지하면서 이번에 추가한 힌트 상태만 새로 시작한다.
+    state.hints = createHintState();
+  } else {
+    check(object(data.hints) && Array.isArray(data.hints.history) && Array.isArray(data.hints.clues));
+    check(data.hints.history.every(id => HINT_DATA.entries.some(entry => entry.id === id)) && data.hints.clues.every(id => HINT_DATA.clueIds.includes(id)));
+    check(Number.isFinite(data.hints.lastProgressAt) && data.hints.lastProgressAt >= 0 && Number.isFinite(data.hints.idleMs) && data.hints.idleMs >= 0);
+    state.hints = { history: [...new Set(data.hints.history)], clues: [...new Set(data.hints.clues)], lastProgressAt: data.hints.lastProgressAt, idleMs: data.hints.idleMs };
+  }
   for (const name of savedFlagNames) state[name] = data.puzzles[name];
   state.acquiredItems = Object.fromEntries(Object.entries(data.acquiredItems).filter(([,value]) => value));
   let held = [...data.inventory.itemIds];
@@ -105,8 +116,9 @@ function decodeProgress(raw) {
 
 function resetSession() {
   // 창 닫기의 보상 처리를 호출하지 않고 새 게임 상태로 한 번에 교체한다.
-  for (const id of ["inventory-dialog", "inspection-dialog", "achievement-dialog"]) document.getElementById(id).close();
+  for (const id of ["inventory-dialog", "inspection-dialog", "achievement-dialog", "hint-dialog"]) document.getElementById(id).close();
   Object.assign(gameState, cloneSaveValue(initialGameState));
+  gameState.hints = createHintState();
   Object.assign(scene, cloneSaveValue(initialScene));
   Object.assign(player, cloneSaveValue(initialPlayer));
   inventoryUiState.open = false;
@@ -119,6 +131,7 @@ function resetSession() {
   clearBubbleEffects();
   pressedKeys.clear();
   previousTime = null;
+  initializeHintSession();
 }
 
 function restoreProgress() {
@@ -132,6 +145,7 @@ function restoreProgress() {
       Object.assign(scene, { interiorId: position.interiorId, schoolFloor: position.schoolFloor, returnPoint: position.returnPoint });
       Object.assign(player, { x: position.x, y: position.y, facing: position.facing });
       if (!canStand(player.x, player.y) || (scene.returnPoint && !canStandCity(scene.returnPoint.x, scene.returnPoint.y))) throw new Error("Invalid position");
+      initializeHintSession();
       updateAchievementConditions();
       achievementUi.queue = [];
       success = true;
@@ -142,6 +156,7 @@ function restoreProgress() {
   } finally {
     saveRuntime.restoring = false;
     saveRuntime.ready = true;
+    initializeHintSession();
     updateCamera();
     draw();
   }
