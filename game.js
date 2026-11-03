@@ -161,6 +161,7 @@ function finishMapTransition() {
   previousTime = null;
   scene.message = "";
   scene.nextTransitionAt = Date.now() + city.entrances.cooldownMs;
+  if (typeof saveProgress === "function") saveProgress();
   updateCamera();
   draw();
 }
@@ -693,6 +694,7 @@ function frame(time) {
   const deltaSeconds = previousTime === null ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
   update(deltaSeconds);
+  if (typeof updatePositionSave === "function") updatePositionSave();
   updateCamera();
   draw();
   requestAnimationFrame(frame);

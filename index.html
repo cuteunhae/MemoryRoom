@@ -35,6 +35,8 @@
     <script src="studio-ui.js" defer></script>
     <script src="registry.js" defer></script>
     <script src="park-ui.js" defer></script>
+    <script src="data/save.js" defer></script>
+    <script src="save.js" defer></script>
   </head>
   <body>
     <main>
@@ -42,6 +44,8 @@
         이 게임은 Canvas를 지원하는 PC 브라우저에서 실행할 수 있습니다.
       </canvas>
     </main>
+    <button id="new-game" type="button"></button>
+    <p id="save-message" role="status" hidden></p>
     <div id="achievement-toast" class="achievement-toast" role="status" hidden></div>
     <dialog id="achievement-dialog" aria-labelledby="achievement-title">
       <header class="inventory-header">

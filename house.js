@@ -56,6 +56,7 @@ function handleHouseClick(x,y) {
     if(!gameState.childRoomUnlocked) {
       if(gameState.inventory.itemIds.includes(HOUSE_DATA.keyId)) {
         gameState.childRoomUnlocked=true;showDoorMessage(HOUSE_DATA.text.unlocked);
+        if (typeof saveProgress === "function") saveProgress();
       } else showDoorMessage(HOUSE_DATA.text.locked);
     }
   } else {

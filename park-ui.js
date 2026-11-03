@@ -41,6 +41,7 @@ function finishPlaygroundMemo() {
   acquireItem(PARK_DATA.memoId);
   // 지급 확인 후에만 대기 기록을 지운다. 여러 번 호출해도 중복 지급되지 않는다.
   if (gameState.inventory.itemIds.includes(PARK_DATA.memoId)) gameState.playgroundMemoPending = false;
+  if (typeof saveProgress === "function") saveProgress();
 }
 
 function renderPlaygroundMemo() {

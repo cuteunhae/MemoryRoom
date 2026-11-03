@@ -19,7 +19,7 @@ files["/inventory-ui.js"] = ["inventory-ui.js", "text/javascript; charset=utf-8"
 files["/studio-ui.js"] = ["studio-ui.js", "text/javascript; charset=utf-8"];
 files["/school.js"] = ["school.js", "text/javascript; charset=utf-8"];
 files["/data/school.js"] = ["data/school.js", "text/javascript; charset=utf-8"];
-for (const file of ["data/classroom.js", "data/ordinary-items.js", "classroom.js", "data/registry.js", "data/achievement-conditions.js", "registry.js", "data/park.js", "park.js", "park-ui.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/cabinet.js", "cabinet.js", "achievements.js", "data/diary.js", "diary.js", "data/house.js", "house.js"]) {
+for (const file of ["data/classroom.js", "data/ordinary-items.js", "classroom.js", "data/registry.js", "data/achievement-conditions.js", "registry.js", "data/park.js", "park.js", "park-ui.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/cabinet.js", "cabinet.js", "data/save.js", "save.js", "achievements.js", "data/diary.js", "diary.js", "data/house.js", "house.js"]) {
   files[`/${file}`] = [file, "text/javascript; charset=utf-8"];
 }
 const server = http.createServer((request, response) => {

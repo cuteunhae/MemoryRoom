@@ -1,6 +1,6 @@
 "use strict";
 
-// 저장 대상은 이 객체에 모은다. 실제 자동 저장·복원은 구현 순서 5에서 연결한다.
+// 영구 진행 상태를 모은다. save.js에서 임시 조작을 제외하여 저장한다.
 const gameState = {
   inventory: { itemIds: [], selectedItemId: null },
   acquiredItems: {},
@@ -59,6 +59,7 @@ function updateAchievementConditions() {
     gameState.achievements[condition.id] = activeAssigned ? "hidden" : "active";
     activeAssigned = true;
   }
+  if (typeof saveProgress === "function") saveProgress();
 }
 
 function selectInventoryItem(itemId) {

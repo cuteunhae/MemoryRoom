@@ -9,6 +9,9 @@ html, body {
 }
 
 main { width: 100%; height: 100%; }
+#new-game { position: fixed; left: 16px; top: 16px; padding: 10px 16px; border: 1px solid #96856d; border-radius: 8px; background: #f8f1e4; color: #403a32; font: 15px "Malgun Gothic", sans-serif; cursor: pointer; }
+#new-game:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
+#save-message { position: fixed; left: 16px; bottom: 16px; max-width: calc(100vw - 32px); margin: 0; padding: 12px; background: #fff0d7; color: #643c20; border: 1px solid #ad8252; font: 15px/1.5 "Malgun Gothic", sans-serif; }
 
 canvas {
   display: block;

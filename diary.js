@@ -37,6 +37,7 @@ function finishDiaryReading() {
   if (diaryUi.page === DIARY_DATA.pages.length - 1) {
     // TODO: 구현 순서 6에서 이 완료 지점에 엔딩 회상 연출을 연결한다.
     gameState.endingReached = true;
+    if (typeof saveProgress === "function") saveProgress();
   }
   diaryUi.page = 0;
 }
