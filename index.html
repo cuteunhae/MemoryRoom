@@ -18,6 +18,8 @@
     <script src="data/ordinary-items.js" defer></script>
     <script src="data/cabinet.js" defer></script>
     <script src="cabinet.js" defer></script>
+    <script src="data/diary.js" defer></script>
+    <script src="diary.js" defer></script>
     <script src="data/house.js" defer></script>
     <script src="house.js" defer></script>
     <script src="data/classroom.js" defer></script>
@@ -79,6 +81,11 @@
       </button>
       <div id="empty-photo" hidden></div>
       <div id="classroom-panel" hidden></div>
+      <section id="diary-panel" hidden>
+        <p id="diary-page-number" aria-live="polite"></p>
+        <article class="diary-paper" aria-live="polite"><h2 id="diary-heading"></h2><p id="diary-body"></p></article>
+        <button id="diary-next" type="button"></button>
+      </section>
       <section id="cabinet-panel" hidden>
         <div class="cabinet-layout">
           <div id="cabinet-slots"></div>

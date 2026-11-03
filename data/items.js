@@ -10,7 +10,7 @@ const ITEM_DATA = [
   { id: "ITM-07", name: "비눗방울 장난감", purpose: "곰 인형 단서, 장식장" },
   { id: "ITM-08", name: "곰 인형", purpose: "장식장" },
   { id: "ITM-09", name: "아이 방 열쇠", purpose: "아이 방문" },
-  { id: "ITM-10", name: "일기장", purpose: "3페이지 읽기" },
+  { id: "ITM-10", name: "일기장", purpose: "3페이지 읽기", viewer: "diary" },
 ];
 
 const INVENTORY_TEXT = {

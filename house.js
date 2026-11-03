@@ -26,12 +26,21 @@ function houseWalls() {
 }
 
 function houseObstacles() {
-  return [...houseWalls(),HOUSE_DATA.cabinet,...HOUSE_DATA.dolls.filter(doll=>!gameState.acquiredItems[doll.itemId])];
+  return [...houseWalls(),HOUSE_DATA.cabinet,DIARY_DATA.bed,...HOUSE_DATA.dolls.filter(doll=>!gameState.acquiredItems[doll.itemId])];
 }
 
 function handleHouseClick(x,y) {
   const hit=rect=>Math.abs(x-rect.x)<=rect.width/2+8&&Math.abs(y-rect.y)<=rect.height/2+8;
   const child=HOUSE_DATA.rooms.find(room=>room.id==="child"),door=houseDoor(child);
+  const book=DIARY_DATA.book;
+  if(Math.abs(x-book.x)<=book.width/2+DIARY_DATA.clickPadding&&Math.abs(y-book.y)<=book.height/2+DIARY_DATA.clickPadding) {
+    const footY=player.y+player.footOffset;
+    const inside=player.x>child.x+HOUSE_DATA.wallThickness&&player.x<child.x+child.width-HOUSE_DATA.wallThickness&&footY>child.y+HOUSE_DATA.wallThickness&&footY<child.y+child.height-HOUSE_DATA.wallThickness;
+    const distance=Math.hypot(Math.max(0,Math.abs(player.x-book.x)-book.width/2),Math.max(0,Math.abs(footY-book.y)-book.height/2));
+    if(gameState.childRoomUnlocked&&inside&&distance<=DIARY_DATA.interactDistance) investigateDiary();
+    else showDoorMessage(HOUSE_DATA.text.near);
+    return true;
+  }
   const doll=HOUSE_DATA.dolls.find(hit);
   const target=hit(door)?door:doll || (hit(HOUSE_DATA.cabinet)?HOUSE_DATA.cabinet:null);
   if(!target)return false;
@@ -87,6 +96,7 @@ function drawHouse() {
   ctx.fillStyle="#998674";
   for(const wall of houseWalls())ctx.fillRect(wall.x-wall.width/2,wall.y-wall.height/2,wall.width,wall.height);
   const door=houseDoor(HOUSE_DATA.rooms.find(room=>room.id==="child"));
+  drawChildRoomFurniture();
   if(!gameState.childRoomUnlocked){ctx.fillStyle="#705346";ctx.fillRect(door.x-door.width/2,door.y-door.height/2,door.width,door.height);}
   ctx.fillStyle="#5b4b3b";ctx.fillText(HOUSE_DATA.text.hall,600,180);
   const cabinet=HOUSE_DATA.cabinet;

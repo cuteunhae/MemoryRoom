@@ -13,6 +13,8 @@ const gameState = {
   seesawUsed: false,
   slideUsed: false,
   childRoomUnlocked: false,
+  diaryDiscovered: false,
+  endingReached: false,
   cabinet: { slots: Array(CABINET_DATA.rules.slotCount).fill(null) },
   cabinetSolved: false,
   cabinetKeyGranted: false,

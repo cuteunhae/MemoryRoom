@@ -14,7 +14,7 @@ function renderInspection() {
   const { mode, object, item, back } = inspectionUiState;
   inspectionDialog.dataset.mode = mode;
   const collected = mode === "album" && gameState.photoCollected;
-  inspectionTitle.textContent = item && ["photo", "infirmary", "playgroundMemo"].includes(mode) ? item.name : object.name;
+  inspectionTitle.textContent = item && ["photo", "infirmary", "playgroundMemo", "diary"].includes(mode) ? item.name : object.name;
   inspectionMessage.textContent = mode === "board" ? schoolBoardText() : mode === "dialogue" ? object.messages.dialogue :
     mode === "photo" ? STUDIO_TEXT.flip : collected ? STUDIO_TEXT.emptyAlbum : STUDIO_TEXT.albumPrompt;
   photoButton.hidden = !["photo", "album"].includes(mode) || collected;
@@ -31,9 +31,11 @@ function renderInspection() {
   renderPlaygroundMemo();
   renderSlideGraffiti();
   renderCabinetPanel();
+  renderDiaryPanel();
 }
 
 function showInspection() {
+  if (inspectionUiState.mode === "diary") diaryUi.page = 0;
   stopBubbleDrag();
   pressedKeys.clear();
   renderInspection();
@@ -64,6 +66,7 @@ function openPhotoViewer(item) {
 }
 
 function closeInspection() {
+  if (inspectionUiState.mode === "diary") finishDiaryReading();
   if (inspectionUiState.mode === "cabinet") restoreUnsolvedCabinet();
   if (inspectionUiState.mode === "playgroundMemo") finishPlaygroundMemo();
   resetRegistryProgress();

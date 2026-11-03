@@ -75,4 +75,11 @@ canvas {
 #cabinet-inventory button:disabled { opacity: .5; cursor: default; }
 .cabinet-slot:disabled { cursor: default; opacity: 1; }
 #cabinet-reset-notice { font-size: 14px; }
+/* TODO: 일기장 글씨체와 종이 표현은 임시이며 최종 손글씨 디자인으로 교체한다. */
+.diary-paper { padding: 24px; background: #fff9e9; border: 1px solid #d0bfa2; font-family: "Malgun Gothic", sans-serif; line-height: 2; font-size: 19px; word-break: keep-all; overflow-wrap: anywhere; }
+.diary-paper h2 { margin: 0 0 16px; font-size: 24px; }
+.diary-paper p { margin: 0; }
+#diary-page-number { color: #6b6050; }
+#diary-next { margin-top: 16px; padding: 12px 20px; font: inherit; cursor: pointer; }
+#diary-next:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
 @media (max-width: 600px) { .cabinet-layout { grid-template-columns: 1fr; } }
