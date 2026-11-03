@@ -12,6 +12,7 @@ const gameState = {
   swingUsed: false,
   seesawUsed: false,
   slideUsed: false,
+  childRoomUnlocked: false,
   achievementConditions: {},
 };
 const inventoryUiState = { open: false };

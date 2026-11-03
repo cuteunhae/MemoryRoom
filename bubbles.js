@@ -65,11 +65,18 @@ function drawBearBubbles() {
     ctx.translate(bubble.x, Math.max(BUBBLE_DATA.radius, bubble.y - age * BUBBLE_DATA.riseSpeed));
     ctx.scale(BUBBLE_DATA.radius / 52, BUBBLE_DATA.radius / 52);
     const x = 0, y = 0;
-    const bear = BUBBLE_DATA.bear;
     ctx.globalAlpha = Math.min(1,(BUBBLE_DATA.lifetimeMs/1000-age)*2);
     // TODO: 둥근 귀·갈색 털·파란 리본을 가진 곰 인형 임시 그림.
     fillEllipse(x,y,52,52,"#d3eff34d");
     ctx.strokeStyle = "#d8f5ff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,52,0,Math.PI*2);ctx.stroke();
+    drawBearDoll();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawBearDoll() {
+  const x=0,y=0,bear=BUBBLE_DATA.bear;
     fillEllipse(x,y+15,22,25,bear.fur);
     for(const side of [-1,1]) {
       fillEllipse(x+side*21,y-25,11,11,bear.fur);
@@ -84,7 +91,4 @@ function drawBearBubbles() {
     tracePath([[x,y+13],[x-15,y+5],[x-15,y+21]],true);ctx.fill();
     tracePath([[x,y+13],[x+15,y+5],[x+15,y+21]],true);ctx.fill();
     fillEllipse(x,y+13,4,4,bear.ribbon);
-    ctx.restore();
-  }
-  ctx.restore();
 }

@@ -177,6 +177,7 @@ function handleDoorClick(event) {
     Math.abs(y - target.y) <= target.height / 2 + city.entrances.clickPadding;
   const interior = currentInterior();
   if (interior) {
+    if (interior.placeId === HOUSE_DATA.placeId && handleHouseClick(x, y)) return;
     if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolStairs(x, y)) return;
     const object = inspectionObjectsFor(interior).sort((a, b) => Math.hypot(x - a.x, y - a.y) - Math.hypot(x - b.x, y - b.y)).find(object =>
       Math.abs(x - object.x) <= object.width / 2 + (object.clickPadding || 0) && Math.abs(y - object.y) <= object.height / 2 + (object.clickPadding || 0));
@@ -303,6 +304,7 @@ function canStand(x, y) {
 
 function canStandInterior(x, y, interior) {
   const footY = y + player.footOffset;
+  if (interior.placeId === HOUSE_DATA.placeId && houseObstacles().some(rectangle => circleHitsRectangle(x, footY, player.collisionRadius, rectangle))) return false;
   if (interior.placeId === SCHOOL_DATA.placeId) {
     const corridor = SCHOOL_DATA.corridor;
     if (footY + player.collisionRadius > corridor.y &&
@@ -606,6 +608,7 @@ function drawInterior(interior) {
   ctx.textBaseline = "middle";
   ctx.fillText(interior.name, interior.wall + 12, interior.wall / 2);
   if (interior.placeId === SCHOOL_DATA.placeId) drawSchool();
+  if (interior.placeId === HOUSE_DATA.placeId) drawHouse();
   const exit = interior.exit;
   if (exit) {
   ctx.fillStyle = "#45675c";
