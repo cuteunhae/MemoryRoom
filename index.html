@@ -28,6 +28,7 @@
     <script src="data/registry.js" defer></script>
     <script src="data/achievement-conditions.js" defer></script>
     <script src="game-state.js" defer></script>
+    <script src="achievements.js" defer></script>
     <script src="game.js" defer></script>
     <script src="inventory-list.js" defer></script>
     <script src="inventory-ui.js" defer></script>
@@ -41,7 +42,17 @@
         이 게임은 Canvas를 지원하는 PC 브라우저에서 실행할 수 있습니다.
       </canvas>
     </main>
+    <div id="achievement-toast" class="achievement-toast" role="status" hidden></div>
+    <dialog id="achievement-dialog" aria-labelledby="achievement-title">
+      <header class="inventory-header">
+        <h1 id="achievement-title"></h1>
+        <button id="achievement-close" type="button"></button>
+      </header>
+      <ul id="achievement-list"></ul>
+      <div id="achievement-toast-list" class="achievement-toast" role="status" hidden></div>
+    </dialog>
     <dialog id="inventory-dialog" aria-labelledby="inventory-title">
+      <div id="achievement-toast-inventory" class="achievement-toast" role="status" hidden></div>
       <header class="inventory-header">
         <h1 id="inventory-title">인벤토리</h1>
         <button id="inventory-close" type="button">닫기 (I)</button>
@@ -50,6 +61,7 @@
       <div id="inventory-list" aria-label="보유 아이템"></div>
     </dialog>
     <dialog id="inspection-dialog" aria-labelledby="inspection-title">
+      <div id="achievement-toast-inspection" class="achievement-toast" role="status" hidden></div>
       <header class="inventory-header">
         <h1 id="inspection-title"></h1>
         <button id="inspection-close" type="button">닫기</button>

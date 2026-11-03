@@ -17,7 +17,7 @@ canvas {
   outline: none;
 }
 
-#inventory-dialog, #inspection-dialog {
+#inventory-dialog, #inspection-dialog, #achievement-dialog {
   width: min(560px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   padding: 24px;
@@ -27,7 +27,15 @@ canvas {
   background: #f8f1e4;
   font: 16px "Malgun Gothic", sans-serif;
 }
-#inventory-dialog::backdrop, #inspection-dialog::backdrop { background: #18231cb3; }
+#inventory-dialog::backdrop, #inspection-dialog::backdrop, #achievement-dialog::backdrop { background: #18231cb3; }
+.achievement-toast { position: fixed; top: 16px; right: 16px; z-index: 10; max-width: min(340px, calc(100vw - 32px)); padding: 16px 20px; border: 2px solid #b9c8a6; border-radius: 10px; background: #29473f; color: #fff8e9; font: 16px/1.6 "Malgun Gothic", sans-serif; pointer-events: none; box-shadow: 0 4px 16px #18231c33; }
+#achievement-list { list-style: none; padding: 0; display: grid; gap: 14px; }
+#achievement-list li { padding: 18px; border: 2px solid #c5b79f; border-radius: 8px; }
+#achievement-list li[data-status="active"] { background: #fff8e3; border-color: #b58f50; }
+#achievement-list li[data-status="completed"] { background: #e5eee0; border-color: #8fa48a; }
+#achievement-list h2 { margin: 0; font-size: 20px; }
+#achievement-list p { line-height: 1.7; }
+#achievement-close:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
 .inventory-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .inventory-header h1 { margin: 0; font-size: 24px; }
 .inventory-header button { padding: 10px 14px; cursor: pointer; }

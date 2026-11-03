@@ -689,6 +689,7 @@ function draw() {
 
 let previousTime = null;
 function frame(time) {
+  updateAchievementNotifications();
   const deltaSeconds = previousTime === null ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
   update(deltaSeconds);
