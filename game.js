@@ -153,6 +153,8 @@ function exitInterior() {
 }
 
 function finishMapTransition() {
+  if (inspectionUiState.mode === "cabinet") closeInspection();
+  else restoreUnsolvedCabinet();
   clearBubbleEffects();
   // 누르고 있던 방향키와 이전 화면의 시간 차가 새 맵에 남지 않게 한다.
   pressedKeys.clear();

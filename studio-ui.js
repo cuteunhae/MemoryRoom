@@ -12,6 +12,7 @@ const emptyPhoto = document.getElementById("empty-photo");
 
 function renderInspection() {
   const { mode, object, item, back } = inspectionUiState;
+  inspectionDialog.dataset.mode = mode;
   const collected = mode === "album" && gameState.photoCollected;
   inspectionTitle.textContent = item && ["photo", "infirmary", "playgroundMemo"].includes(mode) ? item.name : object.name;
   inspectionMessage.textContent = mode === "board" ? schoolBoardText() : mode === "dialogue" ? object.messages.dialogue :
@@ -29,6 +30,7 @@ function renderInspection() {
   renderCarouselPanel();
   renderPlaygroundMemo();
   renderSlideGraffiti();
+  renderCabinetPanel();
 }
 
 function showInspection() {
@@ -62,6 +64,7 @@ function openPhotoViewer(item) {
 }
 
 function closeInspection() {
+  if (inspectionUiState.mode === "cabinet") restoreUnsolvedCabinet();
   if (inspectionUiState.mode === "playgroundMemo") finishPlaygroundMemo();
   resetRegistryProgress();
   inspectionUiState.mode = null;

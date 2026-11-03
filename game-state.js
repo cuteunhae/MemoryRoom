@@ -13,6 +13,9 @@ const gameState = {
   seesawUsed: false,
   slideUsed: false,
   childRoomUnlocked: false,
+  cabinet: { slots: Array(CABINET_DATA.rules.slotCount).fill(null) },
+  cabinetSolved: false,
+  cabinetKeyGranted: false,
   achievementConditions: {},
 };
 const inventoryUiState = { open: false };

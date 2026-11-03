@@ -5,4 +5,5 @@ const ACHIEVEMENT_CONDITIONS = [
   { id: "ACH-02", items: ["ITM-02", "ITM-03"], flag: "registrySolved" },
   { id: "ACH-03", items: ["ITM-04"], flags: ["carouselSolved", "playgroundMemoViewed"] },
   { id: "ACH-04", items: [], flags: ["swingUsed", "seesawUsed", "slideUsed"] },
+  { id: "ACH-05", items: [], flag: "cabinetSolved" },
 ];

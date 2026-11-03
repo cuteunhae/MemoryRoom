@@ -19,7 +19,7 @@ const HOUSE_DATA = {
   ],
 };
 // 장식장에서는 허용된 아이템 ID와 속성을 함께 검사할 수 있도록 명시한다.
-for (const item of ITEM_DATA) item.cabinetUsable = ["ITM-01", "ITM-03", "ITM-04", "ITM-07", "ITM-08"].includes(item.id);
+for (const item of ITEM_DATA) item.cabinetUsable = CABINET_DATA.allowedItemIds.includes(item.id);
 ITEM_DATA.push(...HOUSE_DATA.dolls.filter(doll => doll.kind !== "bear").map(doll => ({
   id: doll.itemId, name: doll.name, purpose: "장식장 사용 불가", cabinetUsable: false, puzzleUse: false,
 })));

@@ -16,6 +16,8 @@
     <script src="school.js" defer></script>
     <script src="data/items.js" defer></script>
     <script src="data/ordinary-items.js" defer></script>
+    <script src="data/cabinet.js" defer></script>
+    <script src="cabinet.js" defer></script>
     <script src="data/house.js" defer></script>
     <script src="house.js" defer></script>
     <script src="data/classroom.js" defer></script>
@@ -77,6 +79,13 @@
       </button>
       <div id="empty-photo" hidden></div>
       <div id="classroom-panel" hidden></div>
+      <section id="cabinet-panel" hidden>
+        <div class="cabinet-layout">
+          <div id="cabinet-slots"></div>
+          <div><h2 id="cabinet-inventory-title"></h2><div id="cabinet-inventory"></div></div>
+        </div>
+        <p id="cabinet-reset-notice"></p>
+      </section>
       <div id="slide-graffiti" hidden>
         <canvas id="slide-graffiti-picture" width="640" height="400" aria-label="집 방향과 잠긴 정문 대신 쪽문 골목을 암시하는 임시 낙서"></canvas>
       </div>

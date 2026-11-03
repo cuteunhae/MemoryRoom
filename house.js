@@ -33,14 +33,17 @@ function handleHouseClick(x,y) {
   const hit=rect=>Math.abs(x-rect.x)<=rect.width/2+8&&Math.abs(y-rect.y)<=rect.height/2+8;
   const child=HOUSE_DATA.rooms.find(room=>room.id==="child"),door=houseDoor(child);
   const doll=HOUSE_DATA.dolls.find(hit);
-  const target=hit(door)?door:doll;
-  if(!target)return hit(HOUSE_DATA.cabinet);
+  const target=hit(door)?door:doll || (hit(HOUSE_DATA.cabinet)?HOUSE_DATA.cabinet:null);
+  if(!target)return false;
   const footY=player.y+player.footOffset;
   const distance=Math.hypot(Math.max(0,Math.abs(player.x-target.x)-target.width/2),Math.max(0,Math.abs(footY-target.y)-target.height/2));
   const bedroom=HOUSE_DATA.rooms.find(room=>room.id==="bedroom");
   const inBedroom=player.x>bedroom.x&&player.x<bedroom.x+bedroom.width&&footY>bedroom.y&&footY<bedroom.y+bedroom.height;
   if(distance>HOUSE_DATA.interactDistance||(doll&&!inBedroom))showDoorMessage(HOUSE_DATA.text.near);
-  else if(target===door) {
+  else if(target===HOUSE_DATA.cabinet) {
+    cabinetUi.selectedSlot=null;
+    openInspection({ type:"cabinet",name:CABINET_DATA.text.title });
+  } else if(target===door) {
     if(!gameState.childRoomUnlocked) {
       if(gameState.inventory.itemIds.includes(HOUSE_DATA.keyId)) {
         gameState.childRoomUnlocked=true;showDoorMessage(HOUSE_DATA.text.unlocked);
