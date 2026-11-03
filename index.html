@@ -8,6 +8,10 @@
     <script src="city-data.js" defer></script>
     <script src="data/school.js" defer></script>
     <script src="data/park.js" defer></script>
+    <script src="data/playground.js" defer></script>
+    <script src="playground.js" defer></script>
+    <script src="slide.js" defer></script>
+    <script src="bubbles.js" defer></script>
     <script src="park.js" defer></script>
     <script src="school.js" defer></script>
     <script src="data/items.js" defer></script>
@@ -71,6 +75,27 @@
       </button>
       <div id="empty-photo" hidden></div>
       <div id="classroom-panel" hidden></div>
+      <div id="slide-graffiti" hidden>
+        <canvas id="slide-graffiti-picture" width="640" height="400" aria-label="집 방향과 잠긴 정문 대신 쪽문 골목을 암시하는 임시 낙서"></canvas>
+      </div>
+      <div id="playground-memo" hidden>
+        <!-- TODO: 시설의 상대 위치만 표현한 임시 약도. 최종 그림으로 교체한다. 방향 표식·회전 기능은 넣지 않는다. -->
+        <svg viewBox="0 0 480 320" role="img" aria-label="놀이터 시설 배치 약도">
+          <rect x="4" y="4" width="472" height="312" rx="8" fill="#f3e8cb"/>
+          <g stroke="#6c705b" stroke-width="5" fill="none">
+            <path d="M55 120 L75 40 L135 40 L155 120 M90 42 V95 M120 42 V95 M85 96 H125"/>
+            <path d="M325 105 V40 H355 L410 105 M326 62 H343 M326 84 H343"/>
+            <path d="M305 195 L425 165 M365 181 L350 210 H380 Z"/>
+            <path d="M60 265 V235 M145 265 V235"/>
+          </g>
+          <g fill="#403a32" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="18">
+            <text id="memo-swing" x="105" y="145"></text>
+            <text id="memo-slide" x="367" y="132"></text>
+            <text id="memo-seesaw" x="365" y="237"></text>
+            <text id="memo-entrance" x="103" y="292"></text>
+          </g>
+        </svg>
+      </div>
       <form id="carousel-panel" hidden novalidate>
         <label for="carousel-horses" id="carousel-horse-label"></label>
         <input id="carousel-horses" type="text" inputmode="numeric" autocomplete="off" maxlength="3" />

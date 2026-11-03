@@ -153,6 +153,7 @@ function exitInterior() {
 }
 
 function finishMapTransition() {
+  clearBubbleEffects();
   // 누르고 있던 방향키와 이전 화면의 시간 차가 새 맵에 남지 않게 한다.
   pressedKeys.clear();
   previousTime = null;
@@ -163,6 +164,7 @@ function finishMapTransition() {
 }
 
 function handleDoorClick(event) {
+  stopBubbleDrag();
   if (isGameInputBlocked()) return;
   canvas.focus();
   if (event.button !== 0 || Date.now() < scene.nextTransitionAt) return;
@@ -186,14 +188,21 @@ function handleDoorClick(event) {
       }
       return;
     }
-    if (!interior.exit || !hit(interior.exit)) return;
+    if (!interior.exit || !hit(interior.exit)) {
+      startBubbleDrag(event, x, y);
+      return;
+    }
     if (!nearInteriorExit(interior)) showDoorMessage(city.interiorUi.tooFar);
     else exitInterior();
     return;
   }
   if (handleParkClick(x, y)) return;
+  if (handlePlaygroundClick(x, y)) return;
   const target = outdoorDoors().find(hit);
-  if (!target) return;
+  if (!target) {
+    startBubbleDrag(event, x, y);
+    return;
+  }
   if (!nearOutdoorDoor(target)) showDoorMessage(city.interiorUi.tooFar);
   else enterInterior(target);
 }
@@ -321,6 +330,7 @@ function canStandCity(x, y) {
       !circleInsidePolygon(logicalX, footY, radius, city.coast)) return false;
   if (!isWalkableSurface(logicalX, footY, radius)) return false;
   if (hitsPark(x, y + player.footOffset, player.collisionRadius)) return false;
+  if (hitsPlayground(x, y + player.footOffset, player.collisionRadius)) return false;
   for (const place of city.locations) {
     if (!place.solid) continue;
     if (circleHitsRectangle(logicalX, footY, radius, locationBounds(place))) return false;
@@ -659,7 +669,9 @@ function draw() {
     ctx.restore();
   }
   if (!interior) drawPark();
+  if (!interior) drawPlayground();
   drawPlayer();
+  drawBearBubbles();
   if (!interior) {
     ctx.save();
     ctx.scale(settings.worldScale, settings.worldScale);
@@ -680,5 +692,6 @@ function frame(time) {
   requestAnimationFrame(frame);
 }
 
+initBubbleInput();
 resizeCanvas();
 requestAnimationFrame(frame);

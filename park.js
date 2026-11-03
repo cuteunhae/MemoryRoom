@@ -65,12 +65,17 @@ function handleParkClick(x, y) {
   const layout = parkLayout();
   const headband = { x: layout.ticket.x, y: layout.ticket.y, width: 80, height: 60 };
   const hit = rectangle => Math.abs(x - rectangle.x) <= rectangle.width / 2 && Math.abs(y - rectangle.y) <= rectangle.height / 2;
-  const target = hit(headband) ? headband : hit(layout.shop) ? layout.shop : null;
+  const balloon = PARK_DATA.balloon;
+  const balloonHit = { x: layout.stand.x, y: layout.stand.y + balloon.offsetY, width: 2 * (balloon.radiusX + balloon.clickPadding), height: 2 * (balloon.radiusY + balloon.clickPadding) };
+  const balloonAvailable = gameState.carouselSolved && !gameState.acquiredItems[PARK_DATA.balloonId];
+  const isBalloon = (balloonAvailable && hit(balloonHit)) || (gameState.playgroundMemoPending && hit(layout.stand));
+  const target = isBalloon ? layout.stand : hit(headband) ? headband : hit(layout.shop) ? layout.shop : null;
   if (!target) return false;
   const distance = Math.hypot(Math.max(0, Math.abs(player.x - target.x) - target.width / 2), Math.max(0, Math.abs(player.y + player.footOffset - target.y) - target.height / 2));
   // 울타리 밖에서 조사하지 못하도록 현재 위치가 공원 안인지도 검사한다.
   const inside = player.x > layout.left && player.x < layout.right && player.y + player.footOffset > layout.top && player.y + player.footOffset < layout.bottom;
   if (!inside || distance > PARK_DATA.interactDistance) showDoorMessage(PARK_DATA.text.near);
+  else if (isBalloon) collectParkBalloon();
   else if (target === headband) showDoorMessage(acquireItem(PARK_DATA.headbandId) ? PARK_DATA.text.acquired : PARK_DATA.text.already);
   else openInspection({ type: "carousel", name: PARK_DATA.text.lock });
   return true;
@@ -103,9 +108,9 @@ function drawPark() {
   }
   for (const obstacle of carouselOccluders()) fillEllipse(obstacle.x, obstacle.y, obstacle.radius, obstacle.radius, "#9c7d72");
   ctx.fillStyle = "#fff4df"; ctx.fillText(PARK_DATA.text.carousel, layout.center.x, layout.center.y);
-  if (gameState.carouselSolved) {
+  if (gameState.carouselSolved && !gameState.acquiredItems[PARK_DATA.balloonId]) {
     ctx.strokeStyle = "#61584c"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(layout.stand.x, layout.stand.y); ctx.lineTo(layout.stand.x, layout.stand.y - 90); ctx.stroke();
-    fillEllipse(layout.stand.x, layout.stand.y - 110, 26, 34, "#d88b8b");
+    fillEllipse(layout.stand.x, layout.stand.y + PARK_DATA.balloon.offsetY, PARK_DATA.balloon.radiusX, PARK_DATA.balloon.radiusY, "#d88b8b");
   }
   ctx.restore();
 }

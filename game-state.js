@@ -7,6 +7,11 @@ const gameState = {
   photoCollected: false,
   registrySolved: false,
   carouselSolved: false,
+  playgroundMemoPending: false,
+  playgroundMemoViewed: false,
+  swingUsed: false,
+  seesawUsed: false,
+  slideUsed: false,
   achievementConditions: {},
 };
 const inventoryUiState = { open: false };
@@ -30,7 +35,8 @@ function acquireItem(itemId) {
 
 function updateAchievementConditions() {
   for (const condition of ACHIEVEMENT_CONDITIONS) {
-    if (gameState[condition.flag] && condition.items.every(id => gameState.acquiredItems[id])) {
+    const flags = condition.flags || [condition.flag];
+    if (flags.every(flag => gameState[flag]) && condition.items.every(id => gameState.acquiredItems[id])) {
       gameState.achievementConditions[condition.id] = true;
     }
   }

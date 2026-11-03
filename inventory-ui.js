@@ -10,12 +10,13 @@ function refreshInventoryList() {
     refreshInventoryList();
     Array.from(inventoryList.children).find(button => button.dataset.itemId === id)?.focus();
     const item = ITEM_DATA.find(item => item.id === id);
-    if (["photo", "infirmary"].includes(item.viewer)) openPhotoViewer(item);
+    if (id === PLAYGROUND_DATA.toyId) showDoorMessage(PLAYGROUND_DATA.text.toyHelp);
+    if (["photo", "infirmary", "playgroundMemo"].includes(item.viewer)) openPhotoViewer(item);
   });
 }
 
 function closeInventory() {
-  if (["photo", "infirmary"].includes(inspectionUiState.mode)) closeInspection();
+  if (["photo", "infirmary", "playgroundMemo"].includes(inspectionUiState.mode)) closeInspection();
   inventoryUiState.open = false;
   pressedKeys.clear();
   inventoryDialog.close();
@@ -23,7 +24,12 @@ function closeInventory() {
 }
 
 function toggleInventory() {
-  if (inspectionUiState.mode && !["photo", "infirmary"].includes(inspectionUiState.mode)) return;
+  stopBubbleDrag();
+  if (inspectionUiState.mode && (!inventoryUiState.open || !["photo", "infirmary", "playgroundMemo"].includes(inspectionUiState.mode))) return;
+  if (gameState.playgroundMemoPending && !inspectionUiState.mode) {
+    openInspection({ type: "playgroundMemo", name: PARK_DATA.text.memo });
+    return;
+  }
   if (inventoryUiState.open) return closeInventory();
   pressedKeys.clear();
   refreshInventoryList();

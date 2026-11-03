@@ -47,6 +47,8 @@ canvas {
 #empty-photo { padding: 70px 16px; text-align: center; border: 2px dashed #b5a38c; color: #756856; }
 #studio-photo:focus-visible, #inspection-close:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
 [hidden] { display: none !important; }
+#slide-graffiti-picture { display: block; width: 100%; height: auto; }
+#playground-memo svg { display: block; width: 100%; height: auto; }
 #carousel-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: center; }
 #carousel-panel input { width: 100%; min-width: 0; padding: 12px; font: inherit; }
 #carousel-confirm { grid-column: 1 / -1; padding: 12px; font: inherit; cursor: pointer; }

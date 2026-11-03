@@ -13,7 +13,7 @@ const emptyPhoto = document.getElementById("empty-photo");
 function renderInspection() {
   const { mode, object, item, back } = inspectionUiState;
   const collected = mode === "album" && gameState.photoCollected;
-  inspectionTitle.textContent = ["photo", "infirmary"].includes(mode) ? item.name : object.name;
+  inspectionTitle.textContent = item && ["photo", "infirmary", "playgroundMemo"].includes(mode) ? item.name : object.name;
   inspectionMessage.textContent = mode === "board" ? schoolBoardText() : mode === "dialogue" ? object.messages.dialogue :
     mode === "photo" ? STUDIO_TEXT.flip : collected ? STUDIO_TEXT.emptyAlbum : STUDIO_TEXT.albumPrompt;
   photoButton.hidden = !["photo", "album"].includes(mode) || collected;
@@ -27,12 +27,19 @@ function renderInspection() {
   renderClassroomPanel();
   renderRegistry();
   renderCarouselPanel();
+  renderPlaygroundMemo();
+  renderSlideGraffiti();
 }
 
 function showInspection() {
+  stopBubbleDrag();
   pressedKeys.clear();
   renderInspection();
   inspectionDialog.showModal();
+  if (inspectionUiState.mode === "playgroundMemo") {
+    gameState.playgroundMemoViewed = true;
+    updateAchievementConditions();
+  }
   inspectionClose.focus();
 }
 
@@ -55,6 +62,7 @@ function openPhotoViewer(item) {
 }
 
 function closeInspection() {
+  if (inspectionUiState.mode === "playgroundMemo") finishPlaygroundMemo();
   resetRegistryProgress();
   inspectionUiState.mode = null;
   inspectionUiState.object = null;

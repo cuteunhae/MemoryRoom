@@ -34,7 +34,7 @@ const sandbox = {
   requestAnimationFrame() {},
 };
 vm.createContext(sandbox);
-for (const file of ["city-data.js", "data/park.js", "park.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "studio-ui.js", "registry.js", "park-ui.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
+for (const file of ["city-data.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/park.js", "park.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "studio-ui.js", "registry.js", "park-ui.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 const run = code => vm.runInContext(code, sandbox);
 const read = code => JSON.parse(run(`JSON.stringify(${code})`));
 const advance = () => { now += 300; };
@@ -124,5 +124,5 @@ standAt(layout.shop);click(layout.shop);
 assert.equal(elements['carousel-confirm'].disabled,true);
 assert.equal(elements['inspection-message'].textContent,run('PARK_DATA.text.solved'));
 assert.equal(run('scene.interiorId'),null);
-console.log('통과: 단일 입구·시설 접근·회전목마 가림과 전체 관찰 가능, 머리띠 중복 방지, 오답 유지·정답 선입력·해결 재방문·풍선 획득 없음');
+console.log('통과: 단일 입구·시설 접근·회전목마 가림과 전체 관찰 가능, 머리띠 중복 방지, 오답 유지·정답 선입력·해결 재방문·거치대만 클릭하면 미획득');
 
