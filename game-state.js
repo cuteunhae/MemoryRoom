@@ -15,6 +15,7 @@ const gameState = {
   childRoomUnlocked: false,
   diaryDiscovered: false,
   endingReached: false,
+  endingCompleted: false,
   cabinet: { slots: Array(CABINET_DATA.rules.slotCount).fill(null) },
   cabinetSolved: false,
   cabinetKeyGranted: false,

@@ -78,7 +78,7 @@ elements['diary-next'].onclick();elements['diary-next'].onclick();
 assert.equal(run('diaryUi.page'),2);assert.equal(elements['diary-next'].hidden,true);assert.equal(run('gameState.endingReached'),false);
 assert.equal(elements['diary-body'].attributes['aria-label'],run('DIARY_DATA.pages[2].body'));
 elements['inspection-close'].handlers.click();assert.equal(run('gameState.endingReached'),true);assert.equal(run('inspectionUiState.mode'),null);assert.equal(run('inventoryUiState.open'),false);
-now+=9000;run('updateEnding();showEndingMenu(true)');elements['ending-continue'].handlers.click();click(book);assert.equal(run('diaryUi.page'),0);assert.equal(run('gameState.endingReached'),true);
+now+=9000;run('updateEnding();endingUi.mode=null;document.getElementById("ending-dialog").close()');click(book);assert.equal(run('diaryUi.page'),0);assert.equal(run('gameState.endingReached'),true);
 assert.equal(read('gameState.inventory.itemIds').filter(id=>id==='ITM-10').length,1);assert.equal(run('acquireItem(DIARY_DATA.itemId)'),false);
 run('closeInspection();toggleInventory()');elements['inventory-list'].children.find(b=>b.dataset.itemId==='ITM-10').handlers.click();
 elements['diary-next'].onclick();elements['diary-next'].onclick();run('toggleInventory()');assert.equal(run('inspectionUiState.mode'),null);assert.equal(run('inventoryUiState.open'),false);

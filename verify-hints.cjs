@@ -82,7 +82,7 @@ b.advanceMs(1000);b.run('updateHints()');assert.equal(b.run('gameState.hints.idl
 a=session();a.run('city.debug=true');tick(9999);assert.equal(a.elements['hint-gift'].hidden,true);tick(1);assert.equal(a.elements['hint-gift'].hidden,false);
 // 기존 1버전 저장을 읽어도 인벤토리와 완료 기록을 잃지 않는다.
 a.run('acquireItem("ITM-01")');let old=saved();old.saveVersion=1;delete old.hints;a.storage.set(progress,JSON.stringify(old));b=session(a.storage);
-assert.equal(b.run('gameState.photoCollected'),true);assert.equal(b.run('gameState.hints.history.length'),0);assert.equal(saved().saveVersion,2);
+assert.equal(b.run('gameState.photoCollected'),true);assert.equal(b.run('gameState.hints.history.length'),0);assert.equal(saved().saveVersion,3);
 // 현재 실내·층과 필수 아이템을 우선하고, 야외에서는 실제 거리를 비교한다.
 a=session();a.run('scene.interiorId="C01"');assert.equal(a.run('chooseHint().id'),'HNT-01');
 a.run('scene.interiorId=SCHOOL_DATA.placeId;scene.schoolFloor=1');assert.equal(a.run('chooseHint().id'),'HNT-02');

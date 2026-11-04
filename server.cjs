@@ -25,7 +25,17 @@ for (const file of ["data/classroom.js", "data/ordinary-items.js", "classroom.js
 files["/assets/Gaegu-Regular.ttf"] = ["assets/Gaegu-Regular.ttf", "font/ttf"];
 files["/assets/Gaegu-OFL.txt"] = ["assets/Gaegu-OFL.txt", "text/plain; charset=utf-8"];
 const server = http.createServer((request, response) => {
-  const file = files[request.url.split("?")[0]];
+  const pathname = request.url.split("?")[0];
+  let file = files[pathname];
+  // 엔딩 이미지 경로만 바꿔도 사용할 수 있도록 assets 내부 이미지 파일을 제공한다.
+  if (!file && /^\/assets\/[a-zA-Z0-9_./-]+\.(png|jpe?g|webp|svg)$/.test(pathname)) {
+    const candidate = path.resolve(__dirname, "." + pathname);
+    const assetRoot = path.resolve(__dirname, "assets") + path.sep;
+    if (candidate.startsWith(assetRoot)) {
+      const extension = path.extname(candidate).toLowerCase();
+      file = [path.relative(__dirname, candidate), extension === ".svg" ? "image/svg+xml" : extension === ".jpg" || extension === ".jpeg" ? "image/jpeg" : `image/${extension.slice(1)}`];
+    }
+  }
   if (!file || !["GET", "HEAD"].includes(request.method)) {
     response.writeHead(404);
     response.end();

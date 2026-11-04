@@ -1,13 +1,23 @@
 "use strict";
 const endingUi = { mode: null, startedAt: 0, scene: -1 };
+const endingImages = new Map();
 
 function startEnding() {
   if(endingUi.mode)return;
   gameState.endingReached=true;
+  gameState.endingCompleted=true;
   if(typeof saveProgress==="function")saveProgress();
   if(inventoryUiState.open)closeInventory();
   pressedKeys.clear();stopBubbleDrag();
   endingUi.mode="playing";endingUi.startedAt=Date.now();endingUi.scene=-1;
+  document.getElementById("ending-dialog").setAttribute("data-mode","playing");
+  document.getElementById("ending-title").hidden=false;
+  for(const [index,entry] of ENDING_DATA.scenes.entries()) {
+    if(!entry.image || endingImages.has(entry.image))continue;
+    const picture=new Image();endingImages.set(entry.image,picture);
+    picture.onload=()=>{if(endingUi.mode==="playing"&&endingUi.scene===index)drawEndingScene(index);};
+    picture.src=entry.image;
+  }
   document.getElementById("ending-title").textContent=ENDING_DATA.text.title;
   document.getElementById("ending-menu").hidden=true;
   document.getElementById("ending-art").hidden=false;
@@ -17,31 +27,54 @@ function startEnding() {
   updateEnding();
 }
 
-function showEndingMenu(title=false) {
-  endingUi.mode=title?"title":"menu";
+function showEndingMenu() {
+  endingUi.mode="menu";
+  document.getElementById("ending-dialog").setAttribute("data-mode","menu");
+  document.getElementById("ending-title").hidden=true;
   document.getElementById("ending-art").hidden=true;
   document.getElementById("ending-caption").hidden=true;
   document.getElementById("ending-menu").hidden=false;
-  document.getElementById("ending-message").textContent=title?"":ENDING_DATA.text.finished;
-  document.getElementById("ending-to-title").hidden=title;
-  document.getElementById("ending-continue").hidden=!title;
-  document.getElementById(title?"ending-continue":"ending-restart").focus();
+  document.getElementById("ending-message").hidden=true;
+  document.getElementById("ending-restart").hidden=false;
+  document.getElementById("ending-exit").hidden=false;
+  document.getElementById("ending-restart").focus();
+}
+
+function exitEndingGame() {
+  if(endingUi.mode!=="menu")return;
+  if(typeof saveProgress==="function")saveProgress();
+  endingUi.mode="exited";pressedKeys.clear();
+  document.getElementById("ending-dialog").setAttribute("data-mode","exited");
+  document.getElementById("ending-message").textContent=ENDING_DATA.text.exitMessage;
+  document.getElementById("ending-message").hidden=false;
+  document.getElementById("ending-restart").hidden=true;
+  document.getElementById("ending-exit").hidden=true;
+  document.getElementById("ending-dialog").focus();
 }
 
 function updateEnding() {
   if(endingUi.mode!=="playing")return;
-  const elapsed=Math.max(0,Date.now()-endingUi.startedAt), total=ENDING_DATA.sceneMs*ENDING_DATA.scenes.length;
+  const elapsed=Math.max(0,Date.now()-endingUi.startedAt), total=ENDING_DATA.scenes.reduce((sum,entry)=>sum+entry.durationMs,0);
   if(elapsed>=total){showEndingMenu();return;}
-  const scene=Math.floor(elapsed/ENDING_DATA.sceneMs), within=elapsed%ENDING_DATA.sceneMs;
-  if(scene!==endingUi.scene){endingUi.scene=scene;drawEndingScene(scene);document.getElementById("ending-caption").textContent=ENDING_DATA.scenes[scene];}
-  const opacity=Math.min(1,within/ENDING_DATA.fadeMs,(ENDING_DATA.sceneMs-within)/ENDING_DATA.fadeMs);
+  let scene=0,within=elapsed;
+  while(within>=ENDING_DATA.scenes[scene].durationMs){within-=ENDING_DATA.scenes[scene].durationMs;scene++;}
+  const entry=ENDING_DATA.scenes[scene];
+  if(scene!==endingUi.scene){endingUi.scene=scene;drawEndingScene(scene);document.getElementById("ending-caption").textContent=entry.title;}
+  const opacity=Math.min(1,within/ENDING_DATA.fadeMs,(entry.durationMs-within)/ENDING_DATA.fadeMs);
   document.getElementById("ending-art").setAttribute("style",`opacity:${Math.max(0,opacity)}`);
+  document.getElementById("ending-caption").setAttribute("style",`opacity:${Math.max(0,opacity)}`);
 }
 
 function drawEndingScene(scene) {
   // TODO: 기획서 순서에 맞춘 임시 회상 그림이다. 최종 일러스트로 교체한다.
   const c=document.getElementById("ending-art").getContext("2d");
-  c.clearRect(0,0,900,500);c.fillStyle="#efe0c0";c.fillRect(0,0,900,500);
+  const entry=ENDING_DATA.scenes[scene];
+  c.clearRect(0,0,900,500);c.fillStyle=entry.background;c.fillRect(0,0,900,500);
+  const picture=entry.image&&endingImages.get(entry.image);
+  if(picture?.complete&&picture.naturalWidth) {
+    const scale=Math.min(900/picture.naturalWidth,500/picture.naturalHeight),w=picture.naturalWidth*scale,h=picture.naturalHeight*scale;
+    c.drawImage(picture,(900-w)/2,(500-h)/2,w,h);return;
+  }
   const rect=(x,y,w,h,color)=>{c.fillStyle=color;c.fillRect(x,y,w,h);};
   const ellipse=(x,y,rx,ry,color)=>{c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=color;c.fill();};
   const line=(points,color,width=5)=>{c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.strokeStyle=color;c.lineWidth=width;c.stroke();};
@@ -55,9 +88,7 @@ function drawEndingScene(scene) {
 }
 
 document.getElementById("ending-restart").textContent=ENDING_DATA.text.restart;
-document.getElementById("ending-to-title").textContent=ENDING_DATA.text.titleButton;
-document.getElementById("ending-continue").textContent=ENDING_DATA.text.continue;
+document.getElementById("ending-exit").textContent=ENDING_DATA.text.exit;
 document.getElementById("ending-restart").addEventListener("click",()=>requestNewGame());
-document.getElementById("ending-to-title").addEventListener("click",()=>showEndingMenu(true));
-document.getElementById("ending-continue").addEventListener("click",()=>{endingUi.mode=null;document.getElementById("ending-dialog").close();pressedKeys.clear();canvas.focus();});
+document.getElementById("ending-exit").addEventListener("click",exitEndingGame);
 document.getElementById("ending-dialog").addEventListener("cancel",event=>event.preventDefault());

@@ -63,11 +63,11 @@ function decodeProgress(raw) {
   const facing = value => ["up", "down", "left", "right"].includes(value);
   const point = value => object(value) && Number.isFinite(value.x) && Number.isFinite(value.y) && facing(value.facing);
   const check = value => { if (!value) throw new Error("Invalid save"); };
-  check(object(data) && [1, SAVE_DATA.saveVersion].includes(data.saveVersion));
+  check(object(data) && [1, 2, SAVE_DATA.saveVersion].includes(data.saveVersion));
   check(object(data.inventory) && Array.isArray(data.inventory.itemIds) && data.inventory.itemIds.every(validItem));
   check(data.inventory.selectedItemId === null || validItem(data.inventory.selectedItemId));
   check(object(data.acquiredItems) && Object.entries(data.acquiredItems).every(([id,value]) => validItem(id) && typeof value === "boolean"));
-  check(object(data.puzzles) && savedFlagNames.every(key => typeof data.puzzles[key] === "boolean"));
+  check(object(data.puzzles) && savedFlagNames.every(key => (key === "endingCompleted" && data.saveVersion < 3) || typeof data.puzzles[key] === "boolean"));
   check(object(data.cabinet) && Array.isArray(data.cabinet.slots) && data.cabinet.slots.length === CABINET_DATA.rules.slotCount);
   check(data.cabinet.slots.every(id => id === null || CABINET_DATA.allowedItemIds.includes(id)));
   check(object(data.achievements) && ACHIEVEMENT_CONDITIONS.every(entry => ["hidden","active","completed"].includes(data.achievements[entry.id])));
@@ -86,7 +86,7 @@ function decodeProgress(raw) {
     check(Number.isFinite(data.hints.lastProgressAt) && data.hints.lastProgressAt >= 0 && Number.isFinite(data.hints.idleMs) && data.hints.idleMs >= 0);
     state.hints = { history: [...new Set(data.hints.history)], clues: [...new Set(data.hints.clues)], lastProgressAt: data.hints.lastProgressAt, idleMs: data.hints.idleMs };
   }
-  for (const name of savedFlagNames) state[name] = data.puzzles[name];
+  for (const name of savedFlagNames) state[name] = name === "endingCompleted" && data.saveVersion < 3 ? data.puzzles.endingReached : data.puzzles[name];
   state.acquiredItems = Object.fromEntries(Object.entries(data.acquiredItems).filter(([,value]) => value));
   let held = [...data.inventory.itemIds];
   if (state.cabinetSolved) {
@@ -218,6 +218,7 @@ function requestNewGame() {
 document.getElementById("new-game").textContent = SAVE_DATA.text.restart;
 document.getElementById("new-game").addEventListener("click", requestNewGame);
 window.addEventListener("keydown", event => {
+  if (typeof endingUi !== "undefined" && endingUi.mode) return;
   if (!city.debug || !event.ctrlKey || !event.shiftKey || event.altKey || event.metaKey || event.code !== SAVE_DATA.debugResetCode) return;
   event.preventDefault();
   if (!event.repeat) requestNewGame();

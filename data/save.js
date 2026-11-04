@@ -1,7 +1,7 @@
 "use strict";
 
 const SAVE_DATA = {
-  saveVersion: 2,
+  saveVersion: 3,
   progressKey: "memoryRoom.progress",
   preferencesKey: "memoryRoom.preferences",
   positionIntervalMs: 1000,

@@ -58,7 +58,7 @@ return {storage,control,run,read,elements,windowHandlers,documentHandlers,canvas
 let a=session();
 const progress=a.run('SAVE_DATA.progressKey'), preferences=a.run('SAVE_DATA.preferencesKey');
 const snapshot=()=>JSON.parse(a.storage.get(progress));
-assert.equal(snapshot().saveVersion,2);
+assert.equal(snapshot().saveVersion,3);
 a.run('acquireItem("ITM-01")');assert.equal(snapshot().puzzles.photoCollected,true);
 assert.equal(snapshot().achievements['ACH-01'],'completed');
 let b=session(a.storage);assert.equal(b.run('gameState.photoCollected'),true);assert.equal(b.run('achievementUi.queue.length'),0);
@@ -92,7 +92,7 @@ b=session(a.storage);for(const flag of ['swingUsed','seesawUsed','slideUsed','re
 assert.equal(b.run('diaryUi.page'),0);assert.equal(b.run('inspectionUiState.mode'),null);
 assert.ok(!JSON.stringify(snapshot()).includes('registryProgress'));assert.ok(!JSON.stringify(snapshot()).includes('diaryUi'));
 // 풍선 획득 후 메모 창을 닫지 않고 재접속해도 메모 지급 예약이 남는다.
-a.advanceMs(9000);a.run('updateEnding();showEndingMenu(true)');a.elements['ending-continue'].handlers.click();a.run('collectParkBalloon()');b=session(a.storage);assert.equal(b.run('gameState.playgroundMemoPending'),true);
+a=session(a.storage);a.run('collectParkBalloon()');b=session(a.storage);assert.equal(b.run('gameState.playgroundMemoPending'),true);
 b.run('toggleInventory()');assert.equal(b.run('inspectionUiState.mode'),'playgroundMemo');b.run('closeInspection()');
 let c=session(a.storage);assert.ok(c.read('gameState.inventory.itemIds').includes(c.run('PARK_DATA.memoId')));assert.equal(c.run('gameState.playgroundMemoPending'),false);
 // 실내·학교 층·퇴장 좌표를 저장하고 실제 클릭으로 나올 수 있다.
