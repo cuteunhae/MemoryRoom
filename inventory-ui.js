@@ -25,6 +25,7 @@ function closeInventory() {
 }
 
 function toggleInventory() {
+  if (typeof endingUi !== "undefined" && endingUi.mode) return;
   if (settingsUi.open || mapUi.open) return;
   if (typeof hintUi !== "undefined" && hintUi.open) return;
   if (achievementUi.open) return;

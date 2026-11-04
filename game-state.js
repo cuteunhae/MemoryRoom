@@ -28,7 +28,7 @@ const inventoryUiState = { open: false };
 const inspectionUiState = { mode: null, object: null, item: null, back: false };
 
 function isGameInputBlocked() {
-  return settingsUi.open || mapUi.open || (typeof hintUi !== "undefined" && hintUi.open) || achievementUi.open || inventoryUiState.open || inspectionUiState.mode !== null;
+  return (typeof endingUi !== "undefined" && endingUi.mode !== null) || settingsUi.open || mapUi.open || (typeof hintUi !== "undefined" && hintUi.open) || achievementUi.open || inventoryUiState.open || inspectionUiState.mode !== null;
 }
 
 function acquireItem(itemId) {

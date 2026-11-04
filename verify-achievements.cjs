@@ -24,7 +24,7 @@ function element() {
   setAttribute(name, value) { this.attributes[name] = value; },
   append(...children) { this.children.push(...children); },
   replaceChildren() { this.children = []; }, focus() {},
-  showModal() { this.open = true; }, close() { this.open = false; }
+  getContext() { return canvas.getContext("2d"); }, showModal() { this.open = true; }, close() { this.open = false; }
  };
 }
 const sandbox = {
@@ -34,7 +34,7 @@ const sandbox = {
   requestAnimationFrame() {},
 };
 vm.createContext(sandbox);
-for (const file of ["city-data.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/park.js", "park.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/cabinet.js", "cabinet.js", "data/diary.js", "diary.js", "data/house.js", "house.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "data/hints.js", "data/settings.js", "input.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "achievements.js", "studio-ui.js", "registry.js", "park-ui.js", "hints.js", "map-ui.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
+for (const file of ["city-data.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/park.js", "park.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/cabinet.js", "cabinet.js", "data/diary.js", "diary.js", "data/house.js", "house.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "data/hints.js", "data/settings.js", "input.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "achievements.js", "studio-ui.js", "registry.js", "park-ui.js", "hints.js", "map-ui.js", "data/ending.js", "ending.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 const run = code => vm.runInContext(code, sandbox);
 const read = code => JSON.parse(run(`JSON.stringify(${code})`));
 const advance = () => { now += 300; };
@@ -79,5 +79,5 @@ for(const order of permutations(ids)){
  assert.equal(run('achievementUi.queue.length'),6);assert.equal(run('gameState.endingReached'),false);
 }
 run('updateAchievementNotifications()');assert.equal(run('achievementUi.queue.length'),5);const first=run('achievementUi.current');now+=3000;run('updateAchievementNotifications()');assert.notEqual(run('achievementUi.current'),first);assert.equal(run('achievementUi.queue.length'),4);
-reset();run('openInspection({type:"diary",name:DIARY_DATA.text.title});diaryUi.page=2;closeInspection()');assert.equal(run('gameState.endingReached'),true);assert.equal(read('Object.values(gameState.achievements)').filter(x=>x==='completed').length,0);
+reset();run('openInspection({type:"diary",name:DIARY_DATA.text.title});diaryUi.page=2;closeInspection({confirmDiary:true})');assert.equal(run('gameState.endingReached'),true);assert.equal(read('Object.values(gameState.achievements)').filter(x=>x==='completed').length,0);
 console.log('PASS: Tab/modal blocking, independent requirements, 720 completion orders, hidden/active/completed transitions, skip completed, notification timing/queue/deduplication, ending independence');

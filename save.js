@@ -118,6 +118,7 @@ function resetSession() {
   // 창 닫기의 보상 처리를 호출하지 않고 새 게임 상태로 한 번에 교체한다.
   for (const id of ["inventory-dialog", "inspection-dialog", "achievement-dialog", "hint-dialog", "settings-dialog", "map-dialog"]) document.getElementById(id).close();
   settingsUi.open=false;settingsUi.listening=null;mapUi.open=false;heldMovementCodes.clear();
+  if (typeof endingUi !== "undefined") { endingUi.mode=null;endingUi.scene=-1;document.getElementById("ending-dialog").close(); }
   Object.assign(gameState, cloneSaveValue(initialGameState));
   gameState.hints = createHintState();
   Object.assign(scene, cloneSaveValue(initialScene));

@@ -12,6 +12,7 @@ function validBindingCode(code) {
   return typeof code === "string" && /^(Key[A-Z]|Digit[0-9]|Numpad[0-9]|Arrow(Up|Down|Left|Right)|Escape|Tab|Space|Enter|Backspace|Home|End|PageUp|PageDown|Insert|Delete|Minus|Equal|BracketLeft|BracketRight|Backslash|Semicolon|Quote|Comma|Period|Slash|Backquote)$/.test(code);
 }
 window.addEventListener("keydown", event => {
+  if (typeof endingUi !== "undefined" && endingUi.mode) return;
   const code = event.code || event.key;
   if (event.isComposing) return;
   if (settingsUi.open && settingsUi.listening) {

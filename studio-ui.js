@@ -66,8 +66,8 @@ function openPhotoViewer(item) {
   showInspection();
 }
 
-function closeInspection() {
-  if (inspectionUiState.mode === "diary") finishDiaryReading();
+function closeInspection(options = {}) {
+  const diaryFinished = inspectionUiState.mode === "diary" && finishDiaryReading(options.confirmDiary === true);
   if (inspectionUiState.mode === "cabinet") restoreUnsolvedCabinet();
   if (inspectionUiState.mode === "playgroundMemo") finishPlaygroundMemo();
   resetRegistryProgress();
@@ -80,6 +80,7 @@ function closeInspection() {
   if (inventoryUiState.open) {
     Array.from(inventoryList.children).find(button => button.dataset.itemId === gameState.inventory.selectedItemId)?.focus();
   } else canvas.focus();
+  if (diaryFinished) startEnding();
 }
 
 photoButton.addEventListener("click", () => {
@@ -93,5 +94,5 @@ photoButton.addEventListener("click", () => {
   renderInspection();
   if (photoButton.hidden) inspectionClose.focus();
 });
-inspectionClose.addEventListener("click", closeInspection);
+inspectionClose.addEventListener("click", () => closeInspection({confirmDiary:true}));
 inspectionDialog.addEventListener("cancel", event => event.preventDefault());

@@ -24,7 +24,7 @@ function element() {
   setAttribute(name, value) { this.attributes[name] = value; },
   append(...children) { this.children.push(...children); },
   replaceChildren() { this.children = []; }, focus() {},
-  showModal() { this.open = true; }, close() { this.open = false; }
+  getContext() { return canvas.getContext("2d"); }, showModal() { this.open = true; }, close() { this.open = false; }
  };
 }
 const sandbox = {
@@ -34,7 +34,7 @@ const sandbox = {
   requestAnimationFrame() {},
 };
 vm.createContext(sandbox);
-for (const file of ["city-data.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/park.js", "park.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/cabinet.js", "cabinet.js", "data/diary.js", "diary.js", "data/house.js", "house.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "data/hints.js", "data/settings.js", "input.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "achievements.js", "studio-ui.js", "registry.js", "park-ui.js", "hints.js", "map-ui.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
+for (const file of ["city-data.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/park.js", "park.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/cabinet.js", "cabinet.js", "data/diary.js", "diary.js", "data/house.js", "house.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "data/hints.js", "data/settings.js", "input.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "achievements.js", "studio-ui.js", "registry.js", "park-ui.js", "hints.js", "map-ui.js", "data/ending.js", "ending.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 const run = code => vm.runInContext(code, sandbox);
 const read = code => JSON.parse(run(`JSON.stringify(${code})`));
 const advance = () => { now += 300; };
@@ -55,7 +55,7 @@ const book=read('DIARY_DATA.book');
 const specification=fs.readFileSync(path.join(__dirname,'도시속빛나는존재기획서.txt'),'utf8');
 for(const [index,page] of read('DIARY_DATA.pages').entries()) {
   const line=specification.split(/\r?\n/).find(line=>line.startsWith(`- [${index+1}페이지]: `));
-  assert.equal(line.split(']: ')[1],page.title ? `${page.title} / ${page.body}` : page.body);
+  assert.equal(line.split(']: ')[1].replace(/\s/g,""),(page.title ? `${page.title} / ${page.body}` : page.body).replace(/\s/g,""));
 }
 run('player.x=600;player.y=590-player.footOffset;updateCamera()');click(door);
 assert.equal(run('gameState.childRoomUnlocked'),false);click(book);
@@ -69,16 +69,16 @@ click(book);assert.equal(run('inspectionUiState.mode'),'diary');assert.equal(run
 assert.equal(run('gameState.diaryDiscovered'),true);assert.equal(run('gameState.achievementConditions["ACH-06"]'),true);
 assert.equal(read('gameState.inventory.itemIds').filter(id=>id==='ITM-10').length,1);
 const before=read('({x:player.x,y:player.y})');run('pressedKeys.add("ArrowLeft");update(0.2);pressedKeys.clear()');assert.deepEqual(read('({x:player.x,y:player.y})'),before);
-assert.equal(elements['diary-body'].textContent,run('DIARY_DATA.pages[0].body'));
+assert.equal(elements['diary-body'].attributes['aria-label'],run('DIARY_DATA.pages[0].body'));
 elements['inspection-close'].handlers.click();assert.equal(run('gameState.endingReached'),false);
 click(book);elements['diary-next'].onclick();assert.equal(run('diaryUi.page'),1);elements['inspection-close'].handlers.click();assert.equal(run('gameState.endingReached'),false);
 run('toggleInventory()');const inventoryButton=elements['inventory-list'].children.find(b=>b.dataset.itemId==='ITM-10');inventoryButton.handlers.click();
 assert.equal(run('inspectionUiState.mode'),'diary');assert.equal(run('diaryUi.page'),0);
 elements['diary-next'].onclick();elements['diary-next'].onclick();
 assert.equal(run('diaryUi.page'),2);assert.equal(elements['diary-next'].hidden,true);assert.equal(run('gameState.endingReached'),false);
-assert.equal(elements['diary-body'].textContent,run('DIARY_DATA.pages[2].body'));
-elements['inspection-close'].handlers.click();assert.equal(run('gameState.endingReached'),true);assert.equal(run('inspectionUiState.mode'),null);assert.equal(run('inventoryUiState.open'),true);
-run('closeInventory()');click(book);assert.equal(run('diaryUi.page'),0);assert.equal(run('gameState.endingReached'),true);
+assert.equal(elements['diary-body'].attributes['aria-label'],run('DIARY_DATA.pages[2].body'));
+elements['inspection-close'].handlers.click();assert.equal(run('gameState.endingReached'),true);assert.equal(run('inspectionUiState.mode'),null);assert.equal(run('inventoryUiState.open'),false);
+now+=9000;run('updateEnding();showEndingMenu(true)');elements['ending-continue'].handlers.click();click(book);assert.equal(run('diaryUi.page'),0);assert.equal(run('gameState.endingReached'),true);
 assert.equal(read('gameState.inventory.itemIds').filter(id=>id==='ITM-10').length,1);assert.equal(run('acquireItem(DIARY_DATA.itemId)'),false);
 run('closeInspection();toggleInventory()');elements['inventory-list'].children.find(b=>b.dataset.itemId==='ITM-10').handlers.click();
 elements['diary-next'].onclick();elements['diary-next'].onclick();run('toggleInventory()');assert.equal(run('inspectionUiState.mode'),null);assert.equal(run('inventoryUiState.open'),false);

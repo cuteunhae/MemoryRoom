@@ -3,6 +3,25 @@
 // 읽던 페이지는 저장하지 않는다. 조사 화면을 열 때마다 첫 페이지로 돌아간다.
 const diaryUi = { page: 0 };
 
+function renderHandwriting(element, text, seed) {
+  element.replaceChildren();
+  element.setAttribute("aria-label",text);
+  let index=seed;
+  for (const [lineIndex,line] of text.split("\n").entries()) {
+    if(lineIndex) { const br=document.createElement("br");br.setAttribute("aria-hidden","true");element.append(br); }
+    for(const word of line.split(/(\s+)/)) {
+      const group=document.createElement("span");group.className=/^\s+$/.test(word)?"diary-space":"diary-word";group.setAttribute("aria-hidden","true");
+      for(const letter of word) {
+        const character=document.createElement("span");character.className="diary-letter";character.textContent=letter;
+        const variation=DIARY_DATA.handwriting, offset=((index++*37)%17-8)/8;
+        character.setAttribute("style",`font-size:${1+offset*variation.scaleVariation}em;transform:rotate(${offset*variation.rotationDegrees}deg) translateY(${((index*13)%11-5)/5*variation.baselinePixels}px)`);
+        group.append(character);
+      }
+      element.append(group);
+    }
+  }
+}
+
 function investigateDiary() {
   if (isGameInputBlocked() || !gameState.childRoomUnlocked) return;
   acquireItem(DIARY_DATA.itemId);
@@ -19,9 +38,9 @@ function renderDiaryPanel() {
   const last = diaryUi.page === DIARY_DATA.pages.length - 1;
   inspectionMessage.textContent = last ? DIARY_DATA.text.last : "";
   document.getElementById("diary-page-number").textContent = `${diaryUi.page + 1} / ${DIARY_DATA.pages.length} ${DIARY_DATA.text.page}`;
-  document.getElementById("diary-heading").textContent = page.title;
+  renderHandwriting(document.getElementById("diary-heading"),page.title,0);
   document.getElementById("diary-heading").hidden = !page.title;
-  document.getElementById("diary-body").textContent = page.body;
+  renderHandwriting(document.getElementById("diary-body"),page.body,diaryUi.page*41);
   const next = document.getElementById("diary-next");
   next.textContent = DIARY_DATA.text.next;
   next.hidden = last;
@@ -33,14 +52,15 @@ function renderDiaryPanel() {
   };
 }
 
-function finishDiaryReading() {
-  if (diaryUi.page === DIARY_DATA.pages.length - 1) {
-    // TODO: 구현 순서 6에서 이 완료 지점에 엔딩 회상 연출을 연결한다.
-    gameState.endingReached = true;
-    if (typeof saveProgress === "function") saveProgress();
-  }
+function finishDiaryReading(confirmed = false) {
+  const finished=confirmed && diaryUi.page === DIARY_DATA.pages.length - 1;
   diaryUi.page = 0;
+  return finished;
 }
+
+document.getElementById("diary-paper").addEventListener("click",()=>{
+  if(inspectionUiState.mode==="diary" && !settingsUi.open && diaryUi.page===DIARY_DATA.pages.length-1)closeInspection({confirmDiary:true});
+});
 
 function drawChildRoomFurniture() {
   const bed = DIARY_DATA.bed, book = DIARY_DATA.book;

@@ -39,6 +39,8 @@
     <script src="registry.js" defer></script>
     <script src="park-ui.js" defer></script>
     <script src="hints.js" defer></script>
+    <script src="data/ending.js" defer></script>
+    <script src="ending.js" defer></script>
     <script src="data/save.js" defer></script>
     <script src="save.js" defer></script>
     <script src="map-ui.js" defer></script>
@@ -131,7 +133,7 @@
       <div id="classroom-panel" hidden></div>
       <section id="diary-panel" hidden>
         <p id="diary-page-number" aria-live="polite"></p>
-        <article class="diary-paper" aria-live="polite"><h2 id="diary-heading"></h2><p id="diary-body"></p></article>
+        <article id="diary-paper" class="diary-paper" aria-live="polite"><h2 id="diary-heading"></h2><p id="diary-body"></p></article>
         <button id="diary-next" type="button"></button>
       </section>
       <section id="cabinet-panel" hidden>
@@ -172,6 +174,17 @@
       <div id="registry-panel" hidden>
         <p id="registry-clue"></p>
         <canvas id="registry-cover" aria-label="문질러서 지우는 명부 가림층"></canvas>
+      </div>
+    </dialog>
+    <dialog id="ending-dialog" aria-labelledby="ending-title" tabindex="-1">
+      <h1 id="ending-title"></h1>
+      <canvas id="ending-art" width="900" height="500"></canvas>
+      <p id="ending-caption" aria-live="polite"></p>
+      <div id="ending-menu" hidden>
+        <p id="ending-message"></p>
+        <button id="ending-continue" type="button" hidden></button>
+        <button id="ending-restart" type="button"></button>
+        <button id="ending-to-title" type="button"></button>
       </div>
     </dialog>
   </body>

@@ -19,9 +19,11 @@ files["/inventory-ui.js"] = ["inventory-ui.js", "text/javascript; charset=utf-8"
 files["/studio-ui.js"] = ["studio-ui.js", "text/javascript; charset=utf-8"];
 files["/school.js"] = ["school.js", "text/javascript; charset=utf-8"];
 files["/data/school.js"] = ["data/school.js", "text/javascript; charset=utf-8"];
-for (const file of ["data/classroom.js", "data/ordinary-items.js", "classroom.js", "data/registry.js", "data/achievement-conditions.js", "registry.js", "data/park.js", "park.js", "park-ui.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/cabinet.js", "cabinet.js", "data/settings.js", "input.js", "map-ui.js", "settings-ui.js", "data/hints.js", "hints.js", "data/save.js", "save.js", "achievements.js", "data/diary.js", "diary.js", "data/house.js", "house.js"]) {
+for (const file of ["data/classroom.js", "data/ordinary-items.js", "classroom.js", "data/registry.js", "data/achievement-conditions.js", "registry.js", "data/park.js", "park.js", "park-ui.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/cabinet.js", "cabinet.js", "data/settings.js", "input.js", "map-ui.js", "settings-ui.js", "data/hints.js", "hints.js", "data/save.js", "save.js", "achievements.js", "data/ending.js", "ending.js", "data/diary.js", "diary.js", "data/house.js", "house.js"]) {
   files[`/${file}`] = [file, "text/javascript; charset=utf-8"];
 }
+files["/assets/Gaegu-Regular.ttf"] = ["assets/Gaegu-Regular.ttf", "font/ttf"];
+files["/assets/Gaegu-OFL.txt"] = ["assets/Gaegu-OFL.txt", "text/plain; charset=utf-8"];
 const server = http.createServer((request, response) => {
   const file = files[request.url.split("?")[0]];
   if (!file || !["GET", "HEAD"].includes(request.method)) {

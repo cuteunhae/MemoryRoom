@@ -26,7 +26,7 @@ function element() {
   setAttribute(name, value) { this.attributes[name] = value; },
   append(...children) { this.children.push(...children); },
   replaceChildren() { this.children = []; }, focus() {},
-  showModal() { this.open = true; }, close() { this.open = false; }
+  getContext() { return canvas.getContext("2d"); }, showModal() { this.open = true; }, close() { this.open = false; }
  };
 }
 const documentHandlers = {};
@@ -38,7 +38,7 @@ const sandbox = {
   requestAnimationFrame() {},
 };
 vm.createContext(sandbox);
-for (const file of ["city-data.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/park.js", "park.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/cabinet.js", "cabinet.js", "data/diary.js", "diary.js", "data/house.js", "house.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "data/hints.js", "data/settings.js", "input.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "achievements.js", "studio-ui.js", "registry.js", "park-ui.js", "hints.js", "map-ui.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
+for (const file of ["city-data.js", "data/playground.js", "playground.js", "slide.js", "bubbles.js", "data/park.js", "park.js", "data/school.js", "school.js", "data/items.js", "data/ordinary-items.js", "data/cabinet.js", "cabinet.js", "data/diary.js", "diary.js", "data/house.js", "house.js", "data/classroom.js", "classroom.js", "data/objects.js", "data/registry.js", "data/achievement-conditions.js", "data/hints.js", "data/settings.js", "input.js", "game-state.js", "game.js", "inventory-list.js", "inventory-ui.js", "achievements.js", "studio-ui.js", "registry.js", "park-ui.js", "hints.js", "map-ui.js", "data/ending.js", "ending.js"]) vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 const run = code => vm.runInContext(code, sandbox);
 const read = code => JSON.parse(run(`JSON.stringify(${code})`));
 const advance = () => { now += 300; };
@@ -87,12 +87,12 @@ assert.equal(b.run('acquireItem("ITM-09")'),false);
 assert.ok(b.read('CABINET_DATA.answer').every(id=>!b.read('gameState.inventory.itemIds').includes(id)));
 // 각 놀이시설과 명부·회전목마·발견·엔딩 결과는 영구 진행 상태다.
 a.run('closeInspection();gameState.swingUsed=true;updateAchievementConditions()');b=session(a.storage);assert.equal(b.run('gameState.swingUsed'),true);assert.equal(b.run('gameState.seesawUsed'),false);
-a.run('gameState.seesawUsed=true;gameState.slideUsed=true;gameState.registrySolved=true;gameState.carouselSolved=true;gameState.diaryDiscovered=true;updateAchievementConditions();openInspection({type:"diary",name:DIARY_DATA.text.title});diaryUi.page=2;closeInspection()');
+a.run('gameState.seesawUsed=true;gameState.slideUsed=true;gameState.registrySolved=true;gameState.carouselSolved=true;gameState.diaryDiscovered=true;updateAchievementConditions();openInspection({type:"diary",name:DIARY_DATA.text.title});diaryUi.page=2;closeInspection({confirmDiary:true})');
 b=session(a.storage);for(const flag of ['swingUsed','seesawUsed','slideUsed','registrySolved','carouselSolved','diaryDiscovered','endingReached'])assert.equal(b.run('gameState.'+flag),true);
 assert.equal(b.run('diaryUi.page'),0);assert.equal(b.run('inspectionUiState.mode'),null);
 assert.ok(!JSON.stringify(snapshot()).includes('registryProgress'));assert.ok(!JSON.stringify(snapshot()).includes('diaryUi'));
 // 풍선 획득 후 메모 창을 닫지 않고 재접속해도 메모 지급 예약이 남는다.
-a.run('collectParkBalloon()');b=session(a.storage);assert.equal(b.run('gameState.playgroundMemoPending'),true);
+a.advanceMs(9000);a.run('updateEnding();showEndingMenu(true)');a.elements['ending-continue'].handlers.click();a.run('collectParkBalloon()');b=session(a.storage);assert.equal(b.run('gameState.playgroundMemoPending'),true);
 b.run('toggleInventory()');assert.equal(b.run('inspectionUiState.mode'),'playgroundMemo');b.run('closeInspection()');
 let c=session(a.storage);assert.ok(c.read('gameState.inventory.itemIds').includes(c.run('PARK_DATA.memoId')));assert.equal(c.run('gameState.playgroundMemoPending'),false);
 // 실내·학교 층·퇴장 좌표를 저장하고 실제 클릭으로 나올 수 있다.

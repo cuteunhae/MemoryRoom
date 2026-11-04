@@ -104,11 +104,23 @@ dialog > .settings-open { margin-top: 16px; }
 #cabinet-inventory button:disabled { opacity: .5; cursor: default; }
 .cabinet-slot:disabled { cursor: default; opacity: 1; }
 #cabinet-reset-notice { font-size: 14px; }
-/* TODO: 일기장 글씨체와 종이 표현은 임시이며 최종 손글씨 디자인으로 교체한다. */
-.diary-paper { padding: 24px; background: #fff9e9; border: 1px solid #d0bfa2; font-family: "Malgun Gothic", sans-serif; line-height: 2; font-size: 19px; word-break: keep-all; overflow-wrap: anywhere; }
-.diary-paper h2 { margin: 0 0 16px; font-size: 24px; }
+@font-face { font-family: "GaeguDiary"; src: url("assets/Gaegu-Regular.ttf") format("truetype"); font-style: normal; font-weight: 400; font-display: swap; }
+#inspection-dialog[data-mode="diary"] { width: min(900px, calc(100vw - 24px)); }
+/* TODO: 줄 공책 배경은 임시 CSS 그림이다. 최종 종이 질감으로 교체한다. */
+.diary-paper { padding: 28px 24px 30px 54px; background: linear-gradient(90deg, transparent 38px, #d99f9f99 38px, #d99f9f99 40px, transparent 40px), repeating-linear-gradient(0deg, #d1d5c977 0, #d1d5c977 1px, transparent 1px, transparent 44px), #fff9e9; border: 1px solid #d0bfa2; box-shadow: 2px 4px 0 #dbcfb8, 4px 6px 14px #58452b22; font-family: "GaeguDiary", cursive; line-height: 44px; font-size: clamp(23px, 3vw, 28px); font-weight: 400; color: #575248; text-shadow: .3px .3px #57524833; overflow-wrap: anywhere; }
+.diary-paper h2 { margin: 0 0 20px; font: inherit; font-size: 38px; color: #75678b; }
+.diary-word { display: inline-block; white-space: nowrap; }
+.diary-letter { display: inline-block; transform-origin: 50% 80%; }
+.diary-space { white-space: pre; }
 .diary-paper p { margin: 0; }
 #diary-page-number { color: #6b6050; }
 #diary-next { margin-top: 16px; padding: 12px 20px; font: inherit; cursor: pointer; }
 #diary-next:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
+#ending-dialog { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 24px; border: 0; background: #171b24; color: #fff6e7; text-align: center; font: 18px/1.8 "Malgun Gothic", sans-serif; }
+#ending-dialog::backdrop { background: #171b24; }
+#ending-title { font-size: clamp(24px,4vw,36px); margin: 3vh 0 20px; }
+#ending-art { width: min(900px,100%); height: auto; max-height: 63dvh; object-fit: contain; margin: auto; border-radius: 10px; }
+#ending-caption { color: #e5d2ae; }
+#ending-menu { padding-top: 12vh; }
+#ending-menu button { display: block; min-width: min(280px,100%); margin: 16px auto; padding: 14px 22px; border: 1px solid #a4a4aa; border-radius: 8px; font: inherit; cursor: pointer; background: #f2ece2; color: #252a34; }
 @media (max-width: 600px) { .cabinet-layout { grid-template-columns: 1fr; } }
