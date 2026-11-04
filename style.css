@@ -71,7 +71,8 @@ dialog > .settings-open { margin-top: 16px; }
 #inspection-message { line-height: 1.8; white-space: pre-line; }
 #studio-photo { display: block; width: 100%; padding: 12px; border: 1px solid #b5a38c; background: #fffaf1; color: #403a32; cursor: pointer; font: inherit; box-shadow: 0 4px 12px #403a3226; }
 #studio-photo svg { display: block; width: 100%; max-height: 42dvh; }
-#photo-date, #photo-back-label { display: block; padding-top: 14px; }
+#photo-date { display: block; padding-top: 14px; }
+#photo-road-picture { display: block; width: 100%; height: auto; max-height: 42dvh; object-fit: contain; }
 #photo-date { font-size: 22px; letter-spacing: 3px; }
 #empty-photo { padding: 70px 16px; text-align: center; border: 2px dashed #b5a38c; color: #756856; }
 #studio-photo:focus-visible, #inspection-close:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }

@@ -57,6 +57,26 @@ vm.runInContext(`
   assert.deepEqual(JSON.stringify(city.locations.map(p => [p.x, p.y])),
     JSON.stringify([[170,565],[265,305],[774,345],[809,571],[533,778]]));
   const canWalk = (x, y) => canStand(x * settings.worldScale, y * settings.worldScale - player.footOffset);
+  const pond = city.landmarks.find(landmark => landmark.id === "L03");
+  assert.equal(pond.placeId, "C03");
+  assert.ok(canWalk(pond.approach.x, pond.approach.y), "연못 가장자리에 설 수 없습니다.");
+  for (const id of [pond.approachRoadId, pond.parkRoadId]) {
+    const road = city.roads.find(road => road.id === id);
+    for (let i = 1; i < road.points.length; i++) {
+      const a = road.points[i - 1], b = road.points[i];
+      const count = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) * 2);
+      for (let n = 0; n <= count; n++) {
+        assert.ok(canWalk(a[0] + (b[0] - a[0]) * n / count, a[1] + (b[1] - a[1]) * n / count), id + " 보행로가 막혔습니다.");
+      }
+    }
+  }
+  // 연못의 테두리를 포함하는 사각형으로 검사하여 건물·다른 랜드마크와의 겹침을 보수적으로 확인한다.
+  for (const obstacle of [...city.buildings, ...city.locations.filter(p => p.solid).map(locationBounds), ...city.landmarks.filter(l => l.id !== pond.id)]) {
+    const halfWidth = obstacle.width / 2 || obstacle.radiusX || obstacle.radius;
+    const halfHeight = obstacle.height / 2 || obstacle.radiusY || obstacle.radius;
+    assert.ok(Math.abs(pond.x - obstacle.x) > pond.radiusX + 2 + halfWidth ||
+      Math.abs(pond.y - obstacle.y) > pond.radiusY + 2 + halfHeight, "연못이 다른 구조물과 겹칩니다.");
+  }
   const buildings = [
     ...city.locations.filter(place => place.solid).map(locationBounds),
     ...city.buildings.map((building, i) => ({ ...building, id: "일반 건물 " + (i + 1) })),
@@ -131,7 +151,7 @@ vm.runInContext(`
       queue.push([nx, ny]);
     }
   }
-  for (const target of city.accessPoints) {
+  for (const target of [...city.accessPoints, { placeId: "L03", ...pond.approach }]) {
     const name = target.placeId + (target.door ? " " + target.door : "");
     assert.ok(canWalk(target.x, target.y), name + " 문 앞이 막혀 있습니다.");
     const gx = Math.round((target.x - start[0]) / step), gy = Math.round((target.y - start[1]) / step);

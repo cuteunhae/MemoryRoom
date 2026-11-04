@@ -50,6 +50,10 @@ const CITY_DATA = {
     { id: "R16", kind: "alley", width: 8, points: [[570, 710], [570, 720], [525, 720], [525, 722.667]] },
     // 남쪽 정문은 접근만 가능하며 잠금 상태를 유지한다.
     { id: "R17", kind: "street", width: 8, points: [[533, 842], [525, 842], [525, 824]] },
+    // 북쪽 순환도로 굴곡 안쪽의 연못 가장자리로 가는 짧은 보행로다.
+    { id: "R18", kind: "street", width: 10, points: [[630, 210], [621, 224]] },
+    // 같은 굴곡에서 갈라져 기존 놀이공원 진입로 R09와 합류한다. 기존 출입구는 유지한다.
+    { id: "R19", kind: "street", width: 18, points: [[630, 210], [690, 210], [650, 250], [650, 345]] },
   ],
   // 크기는 기존 원본 값이다. game.js의 locationScale을 적용한다.
   locations: [
@@ -99,7 +103,8 @@ const CITY_DATA = {
   landmarks: [
     { id: "L01", name: "분수대", type: "fountain", x: 210, y: 670, radius: 12 },
     { id: "L02", name: "시계탑", type: "clock", x: 335, y: 382, width: 16, height: 16 },
-    { id: "L03", name: "연못", type: "pond", x: 585, y: 260, radiusX: 24, radiusY: 18 },
+    { id: "L03", name: "연못", type: "pond", placeId: "C03", x: 600, y: 238, radiusX: 24, radiusY: 18,
+      approach: { x: 621, y: 224 }, approachRoadId: "R18", parkRoadId: "R19" },
     { id: "L04", name: "큰 나무", type: "tree", x: 698, y: 570, radius: 18, trunkRadius: 5 },
   ],
   // 실제 이동 판정으로 시작점에서 각 지점까지 이어지는지 검사할 때 사용한다.

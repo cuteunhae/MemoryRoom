@@ -121,12 +121,7 @@
           <span id="photo-date"></span>
         </span>
         <span id="photo-back" hidden>
-          <!-- TODO: 학교 인근 비대칭 도로 분기를 반영한 최종 뒷면 이미지로 교체한다. 현재는 자리표시다. -->
-          <svg viewBox="0 0 400 240" aria-hidden="true">
-            <rect width="400" height="240" fill="#f2e9d4"/>
-            <path d="M45 185 L140 120 L245 125 L355 65 M140 120 L115 45 M245 125 L280 205" fill="none" stroke="#77766c" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span id="photo-back-label"></span>
+          <canvas id="photo-road-picture" width="800" height="480" aria-hidden="true"></canvas>
         </span>
       </button>
       <div id="empty-photo" hidden></div>

@@ -8,7 +8,7 @@ const REGISTRY_DATA = {
   text: {
     name: "보건실 명부", near: "명부 가까이에서 클릭해 주세요.",
     instruction: "가려진 명부입니다.",
-    clue: "시계탑이 있는 길에서 큰 길을 따라 걸어가 보세요.\n길이 오른쪽으로 휘어지기 시작하면 연못을 찾아보세요.\n연못 근처에 즐거운 웃음소리가 기다리고 있을 거예요.",
+    clue: "시계탑이 있는 길에서 큰 길을 따라 도시 위쪽을 지나 오른쪽 끝까지 걸어가 보세요.\n길이 오른쪽 아래로 휘어지기 시작하면 연못을 찾아보세요.\n연못 근처에 즐거운 웃음소리가 기다리고 있을 거예요.",
   },
 };
 const registryRoom = SCHOOL_DATA.floors[0].rooms.find(room => room.name === REGISTRY_DATA.roomName);
