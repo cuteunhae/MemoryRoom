@@ -20,7 +20,7 @@ canvas {
   outline: none;
 }
 
-#inventory-dialog, #inspection-dialog, #achievement-dialog, #hint-dialog {
+#inventory-dialog, #inspection-dialog, #achievement-dialog, #hint-dialog, #settings-dialog, #map-dialog {
   width: min(560px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   padding: 24px;
@@ -30,7 +30,17 @@ canvas {
   background: #f8f1e4;
   font: 16px "Malgun Gothic", sans-serif;
 }
-#inventory-dialog::backdrop, #inspection-dialog::backdrop, #achievement-dialog::backdrop, #hint-dialog::backdrop { background: #18231cb3; }
+#inventory-dialog::backdrop, #inspection-dialog::backdrop, #achievement-dialog::backdrop, #hint-dialog::backdrop, #settings-dialog::backdrop, #map-dialog::backdrop { background: #18231cb3; }
+#settings-launcher { position: fixed; right: 16px; bottom: 16px; }
+.settings-open, #settings-dialog button { padding: 10px 14px; border: 1px solid #96856d; border-radius: 8px; background: #f8f1e4; color: #403a32; font: inherit; cursor: pointer; }
+dialog > .settings-open { margin-top: 16px; }
+#settings-keys { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+#settings-keys [aria-pressed="true"] { background: #d7e7d6; border: 2px solid #45675c; }
+.volume-row { display: grid; grid-template-columns: 90px 1fr 50px; gap: 8px; align-items: center; margin-top: 20px; }
+.volume-row input { width: 100%; }
+#settings-dialog button:focus-visible, .settings-open:focus-visible { outline: 3px solid #45675c; outline-offset: 2px; }
+#map-dialog { width: min(800px, calc(100vw - 32px)); }
+#map-picture { width: 100%; height: auto; max-height: 70dvh; object-fit: contain; margin-top: 14px; }
 #hint-controls { position: fixed; left: 16px; top: 80px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 #hint-controls button { padding: 10px 14px; border: 1px solid #96856d; border-radius: 8px; background: #fff4db; color: #403a32; font: 15px "Malgun Gothic", sans-serif; cursor: pointer; }
 #hint-controls #hint-gift { font-size: 34px; }

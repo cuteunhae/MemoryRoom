@@ -1,6 +1,7 @@
 "use strict";
 
 function renderAchievements() {
+  document.getElementById("achievement-close").textContent = bindingCloseLabel("achievements");
   const list = document.getElementById("achievement-list");
   list.replaceChildren();
   for (const entry of [...ACHIEVEMENT_CONDITIONS].sort((a,b) => a.order-b.order)) {
@@ -28,6 +29,7 @@ function closeAchievements() {
 }
 
 function toggleAchievements() {
+  if (settingsUi.open || mapUi.open) return;
   if (achievementUi.open) return closeAchievements();
   if (isGameInputBlocked()) return;
   stopBubbleDrag();
@@ -59,9 +61,3 @@ document.getElementById("achievement-title").textContent = ACHIEVEMENT_TEXT.titl
 document.getElementById("achievement-close").textContent = ACHIEVEMENT_TEXT.close;
 document.getElementById("achievement-close").addEventListener("click", closeAchievements);
 document.getElementById("achievement-dialog").addEventListener("cancel", event => event.preventDefault());
-window.addEventListener("keydown", event => {
-  if (event.code !== "Tab" || event.ctrlKey || event.altKey || event.metaKey || event.isComposing) return;
-  if (!achievementUi.open && isGameInputBlocked()) return;
-  event.preventDefault();
-  if (!event.repeat) toggleAchievements();
-});

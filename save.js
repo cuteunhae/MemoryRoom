@@ -116,7 +116,8 @@ function decodeProgress(raw) {
 
 function resetSession() {
   // 창 닫기의 보상 처리를 호출하지 않고 새 게임 상태로 한 번에 교체한다.
-  for (const id of ["inventory-dialog", "inspection-dialog", "achievement-dialog", "hint-dialog"]) document.getElementById(id).close();
+  for (const id of ["inventory-dialog", "inspection-dialog", "achievement-dialog", "hint-dialog", "settings-dialog", "map-dialog"]) document.getElementById(id).close();
+  settingsUi.open=false;settingsUi.listening=null;mapUi.open=false;heldMovementCodes.clear();
   Object.assign(gameState, cloneSaveValue(initialGameState));
   gameState.hints = createHintState();
   Object.assign(scene, cloneSaveValue(initialScene));
@@ -167,13 +168,22 @@ function restoreProgress() {
 
 function validPreferences(value) {
   if (!value || typeof value !== "object" || !value.keys || !value.sound) return false;
-  return Object.keys(SAVE_DATA.defaultPreferences.keys).every(action => value.keys[action] === null || typeof value.keys[action] === "string") &&
-    typeof value.sound.muted === "boolean" && Number.isFinite(value.sound.volume) && value.sound.volume >= 0 && value.sound.volume <= 1;
+  return Object.keys(SAVE_DATA.defaultPreferences.keys).every(action => value.keys[action] === null || validBindingCode(value.keys[action])) &&
+    typeof value.sound.muted === "boolean" && Number.isFinite(value.sound.volume) && value.sound.volume >= 0 && value.sound.volume <= 1 &&
+    ["bgmVolume","sfxVolume"].every(key=>value.sound[key]===undefined || (Number.isFinite(value.sound[key])&&value.sound[key]>=0&&value.sound[key]<=1));
+}
+
+function normalizePreferences(value) {
+  const seen=new Set(),keys={};
+  for(const action of Object.keys(SAVE_DATA.defaultPreferences.keys)) {
+    const code=value.keys[action];keys[action]=code&&!seen.has(code)?code:null;if(code)seen.add(code);
+  }
+  return {keys,sound:{muted:value.sound.muted,volume:value.sound.volume,bgmVolume:value.sound.bgmVolume??(value.sound.muted?0:value.sound.volume),sfxVolume:value.sound.sfxVolume??(value.sound.muted?0:value.sound.volume)}};
 }
 
 function savePreferences(value) {
   if (!validPreferences(value)) return false;
-  const next = { keys: Object.fromEntries(Object.keys(SAVE_DATA.defaultPreferences.keys).map(action => [action, value.keys[action]])), sound: { muted: value.sound.muted, volume: value.sound.volume } };
+  const next = normalizePreferences(value);
   try {
     localStorage.setItem(SAVE_DATA.preferencesKey, JSON.stringify(next));
     userPreferences = next;
@@ -184,7 +194,7 @@ function savePreferences(value) {
 function loadPreferences() {
   try {
     const value = JSON.parse(localStorage.getItem(SAVE_DATA.preferencesKey));
-    if (validPreferences(value)) userPreferences = value;
+    if (validPreferences(value)) userPreferences = normalizePreferences(value);
   } catch { /* 설정을 읽지 못하면 기본값으로 계속한다. */ }
 }
 

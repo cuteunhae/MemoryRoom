@@ -5,6 +5,7 @@ const inventoryList = document.getElementById("inventory-list");
 const inventoryClose = document.getElementById("inventory-close");
 
 function refreshInventoryList() {
+  inventoryClose.textContent = bindingCloseLabel("inventory");
   renderInventoryList(inventoryList, id => {
     if (!selectInventoryItem(id)) return;
     refreshInventoryList();
@@ -24,6 +25,7 @@ function closeInventory() {
 }
 
 function toggleInventory() {
+  if (settingsUi.open || mapUi.open) return;
   if (typeof hintUi !== "undefined" && hintUi.open) return;
   if (achievementUi.open) return;
   stopBubbleDrag();
@@ -43,8 +45,3 @@ function toggleInventory() {
 inventoryClose.addEventListener("click", closeInventory);
 // 닫기는 I 키와 닫기 버튼으로만 처리한다.
 inventoryDialog.addEventListener("cancel", event => event.preventDefault());
-window.addEventListener("keydown", event => {
-  if (event.code !== "KeyI" || event.ctrlKey || event.altKey || event.metaKey) return;
-  event.preventDefault();
-  if (!event.repeat && !event.isComposing) toggleInventory();
-});

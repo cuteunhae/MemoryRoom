@@ -3,7 +3,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const pressedKeys = new Set();
-const movementKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+
 
 // 월드 배율은 논리 좌표 1칸에 대응하는 픽셀 수, 이동 속도는 초당 픽셀 수다.
 const settings = {
@@ -38,19 +38,6 @@ const player = {
   collisionRadius: 10,
   footOffset: 18,
 };
-
-window.addEventListener("keydown", (event) => {
-  if (!movementKeys.has(event.key)) return;
-  event.preventDefault();
-  if (isGameInputBlocked()) return;
-  pressedKeys.add(event.key);
-});
-
-window.addEventListener("keyup", (event) => {
-  if (!movementKeys.has(event.key)) return;
-  event.preventDefault();
-  pressedKeys.delete(event.key);
-});
 
 // 다른 창이나 탭으로 이동할 때 키가 눌린 상태로 남지 않도록 처리한다.
 window.addEventListener("blur", () => pressedKeys.clear());

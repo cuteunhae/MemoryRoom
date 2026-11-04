@@ -28,6 +28,8 @@
     <script src="data/registry.js" defer></script>
     <script src="data/achievement-conditions.js" defer></script>
     <script src="data/hints.js" defer></script>
+    <script src="data/settings.js" defer></script>
+    <script src="input.js" defer></script>
     <script src="game-state.js" defer></script>
     <script src="achievements.js" defer></script>
     <script src="game.js" defer></script>
@@ -39,6 +41,8 @@
     <script src="hints.js" defer></script>
     <script src="data/save.js" defer></script>
     <script src="save.js" defer></script>
+    <script src="map-ui.js" defer></script>
+    <script src="settings-ui.js" defer></script>
   </head>
   <body>
     <main>
@@ -47,6 +51,22 @@
       </canvas>
     </main>
     <button id="new-game" type="button"></button>
+    <div id="settings-launcher"></div>
+    <dialog id="settings-dialog" aria-labelledby="settings-title">
+      <header class="inventory-header"><h1 id="settings-title"></h1><button id="settings-close" type="button"></button></header>
+      <p id="settings-message" aria-live="polite"></p>
+      <div id="settings-keys"></div>
+      <button id="settings-cancel-key" type="button" hidden></button>
+      <button id="settings-restore" type="button"></button>
+      <div class="volume-row"><label id="settings-bgm-label" for="settings-bgm"></label><input id="settings-bgm" type="range" min="0" max="100" step="1"><output id="settings-bgm-value" for="settings-bgm"></output></div>
+      <div class="volume-row"><label id="settings-sfx-label" for="settings-sfx"></label><input id="settings-sfx" type="range" min="0" max="100" step="1"><output id="settings-sfx-value" for="settings-sfx"></output></div>
+      <p id="settings-sound-note"></p>
+      <button id="settings-new-game" type="button"></button>
+    </dialog>
+    <dialog id="map-dialog" aria-labelledby="map-title">
+      <header class="inventory-header"><h1 id="map-title"></h1><button id="map-close" type="button"></button></header>
+      <canvas id="map-picture"></canvas>
+    </dialog>
     <aside id="hint-controls">
       <button id="hint-gift" type="button" hidden></button>
       <button id="hint-history" type="button"></button>
