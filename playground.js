@@ -77,7 +77,8 @@ function drawPlayground() {
   const layout = playgroundLayout();
   ctx.save();
   ctx.fillStyle = "#9a8b6a";
-  for (const fence of playgroundFences(layout)) ctx.fillRect(fence.x - fence.width / 2, fence.y - fence.height / 2, fence.width, fence.height);
+  // 도시 그림에 이미 울타리가 있으면 충돌용 울타리는 그리지 않는다.
+  if (!cityMapReady()) for (const fence of playgroundFences(layout)) ctx.fillRect(fence.x - fence.width / 2, fence.y - fence.height / 2, fence.width, fence.height);
   ctx.font = "18px 'Malgun Gothic', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillStyle = "#4e5847";
   ctx.fillText(PLAYGROUND_DATA.text.entrance, layout.gateX, layout.bottom - 25);

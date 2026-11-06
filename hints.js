@@ -15,6 +15,7 @@ function syncHintProgress() {
   if (changed) {
     gameState.hints.lastProgressAt = Date.now();
     gameState.hints.idleMs = 0;
+    gameState.hints.received = [];
     hintRuntime.lastTick = Date.now();
   }
   return changed;
@@ -91,10 +92,16 @@ function chooseHint() {
     const priority = same ? (!candidate.floor || candidate.floor === scene.schoolFloor ? 0 : 1) : 2;
     return [priority, target ? Math.hypot(origin.x-target.x, origin.y-target.y) : 0];
   };
-  return hintCandidates().sort((a,b) => { const ar=rank(a),br=rank(b); return ar[0]-br[0] || ar[1]-br[1]; })[0] || null;
+  // 이번 대기 동안 이미 받은 힌트는 빼고, 다음으로 가까운 할 일을 고른다.
+  return hintCandidates().filter(candidate => !gameState.hints.received.includes(candidate.id)).sort((a,b) => { const ar=rank(a),br=rank(b); return ar[0]-br[0] || ar[1]-br[1]; })[0] || null;
 }
 
-function hintReady() { return gameState.hints.idleMs >= (city.debug ? HINT_DATA.debugWaitMs : HINT_DATA.waitMs); }
+// 대기 시간이 한 번 지날 때마다 받을 수 있는 힌트가 하나씩 늘어난다. 최대 maxHints개다.
+function unlockedHintCount() {
+  const wait = city.debug ? HINT_DATA.debugWaitMs : HINT_DATA.waitMs;
+  return Math.min(HINT_DATA.maxHints, Math.floor(gameState.hints.idleMs / wait));
+}
+function hintReady() { return gameState.hints.received.length < unlockedHintCount(); }
 function renderHintButton() {
   const gift = document.getElementById("hint-gift");
   gift.hidden = !hintReady() || !chooseHint();
@@ -124,6 +131,7 @@ function openHints(receive) {
   updateHintClock();
   const selected = receive && hintReady() ? chooseHint() : null;
   if (receive && !selected) return;
+  if (selected) gameState.hints.received.push(selected.id);
   if (selected && !gameState.hints.history.includes(selected.id)) gameState.hints.history.push(selected.id);
   hintUi.current = selected?.id || null;
   hintUi.open = true;

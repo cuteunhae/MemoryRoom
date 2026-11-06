@@ -10,7 +10,7 @@ function parkLayout() {
     right: (bounds.x + bounds.width / 2) * scale - inset,
     top: (bounds.y - bounds.height / 2) * scale + inset,
     bottom: (bounds.y + bounds.height / 2) * scale - inset,
-    gateY: place.y * scale,
+    gateX: (place.x + PARK_DATA.gateX) * scale,
     ticket: convert(PARK_DATA.ticket), shop: convert(PARK_DATA.shop), stand: convert(PARK_DATA.stand),
     center: { x: (place.x + PARK_DATA.carousel.x) * scale, y: (place.y + PARK_DATA.carousel.y) * scale },
   };
@@ -19,13 +19,14 @@ function parkLayout() {
 function parkFences(layout) {
   const thickness = PARK_DATA.fenceThickness * settings.worldScale;
   const gap = PARK_DATA.gateWidth * settings.worldScale;
-  const { left, right, top, bottom, gateY } = layout;
+  const { left, right, top, bottom, gateX } = layout;
+  // 남쪽 울타리 가운데만 정문으로 비워 둔다.
   return [
     { x: (left + right) / 2, y: top, width: right - left, height: thickness },
-    { x: (left + right) / 2, y: bottom, width: right - left, height: thickness },
+    { x: left, y: (top + bottom) / 2, width: thickness, height: bottom - top },
     { x: right, y: (top + bottom) / 2, width: thickness, height: bottom - top },
-    { x: left, y: (top + gateY - gap / 2) / 2, width: thickness, height: gateY - gap / 2 - top },
-    { x: left, y: (bottom + gateY + gap / 2) / 2, width: thickness, height: bottom - gateY - gap / 2 },
+    { x: (left + gateX - gap / 2) / 2, y: bottom, width: gateX - gap / 2 - left, height: thickness },
+    { x: (gateX + gap / 2 + right) / 2, y: bottom, width: right - gateX - gap / 2, height: thickness },
   ];
 }
 
@@ -85,7 +86,8 @@ function drawPark() {
   const layout = parkLayout(), config = PARK_DATA.carousel;
   ctx.save();
   const rectangle = (rect, color) => { ctx.fillStyle = color; ctx.fillRect(rect.x - rect.width / 2, rect.y - rect.height / 2, rect.width, rect.height); };
-  for (const fence of parkFences(layout)) rectangle(fence, "#8f7861");
+  // 도시 그림에 이미 울타리가 있으면 충돌용 울타리는 그리지 않는다.
+  if (!cityMapReady()) for (const fence of parkFences(layout)) rectangle(fence, "#8f7861");
   ctx.font = "18px 'Malgun Gothic', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   for (const [rect, name, color] of [[layout.ticket, PARK_DATA.text.ticket, "#b38c72"], [layout.shop, PARK_DATA.text.shop, "#86a493"], [layout.stand, PARK_DATA.text.stand, "#a1947d"]]) {
     rectangle(rect, color); ctx.fillStyle = "#403a32"; ctx.fillText(name, rect.x, rect.y - rect.height / 2 - 22);

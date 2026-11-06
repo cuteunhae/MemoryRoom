@@ -50,27 +50,27 @@ const layout = read('parkLayout()');
 const rides = read('carouselRides()');
 assert.equal(rides.filter(ride=>ride.type==='horse').length,6);
 assert.equal(rides.filter(ride=>ride.type==='carriage').length,3);
-assert.deepEqual(read('city.locations.find(place=>place.id===PARK_DATA.placeId)').x,774);
+assert.deepEqual(read('city.locations.find(place=>place.id===PARK_DATA.placeId)').x,1243);
 assert.equal(run('scene.interiorId'),null);
 // 실제 충돌 판정으로 입구에서 시설과 관찰 지점까지 갈 수 있는지 검사한다.
 assert.equal(run(`(() => {
   const layout=parkLayout(), step=18;
-  const start=[0,0], origin={x:layout.left+36,y:layout.gateY};
+  const start=[0,0], origin={x:layout.gateX,y:layout.bottom-36};
   const queue=[start], seen=new Set(['0,0']);
   for(let i=0;i<queue.length;i++) {
     const [gx,gy]=queue[i];
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
       const nx=gx+dx,ny=gy+dy,key=nx+','+ny;
       const x=origin.x+nx*step,y=origin.y+ny*step;
-      if(seen.has(key)||x<layout.left-72||x>layout.right||y<layout.top||y>layout.bottom||!canStandCity(x,y-player.footOffset))continue;
+      if(seen.has(key)||x<layout.left||x>layout.right||y<layout.top||y>layout.bottom+72||!canStandCity(x,y-player.footOffset))continue;
       seen.add(key);queue.push([nx,ny]);
     }
   }
-  const points=[{x:layout.left-36,y:layout.gateY},
+  const points=[{x:layout.gateX,y:layout.bottom+36},
     {x:layout.ticket.x,y:layout.ticket.y-layout.ticket.height/2-36},
     {x:layout.shop.x,y:layout.shop.y+layout.shop.height/2+36},
     {x:layout.stand.x,y:layout.stand.y+layout.stand.height/2+36}];
-  for(let i=0;i<12;i++) points.push({x:layout.center.x+Math.cos(i*Math.PI/6)*470,y:layout.center.y+Math.sin(i*Math.PI/6)*470});
+  for(let i=0;i<12;i++) points.push({x:layout.center.x+Math.cos(i*Math.PI/6)*360,y:layout.center.y+Math.sin(i*Math.PI/6)*360});
   return points.every(point=>queue.some(([gx,gy])=>Math.hypot(origin.x+gx*step-point.x,origin.y+gy*step-point.y)<30));
 })()`),true);
 // 관찰 가능한 모든 격자 위치에서 전부 보이는 위치가 없어야 한다.

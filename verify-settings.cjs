@@ -72,7 +72,7 @@ a.elements['inventory-dialog'].children.find(b=>b.className==='settings-open').h
 assert.equal(a.run('settingsUi.open'),true);assert.equal(a.run('inventoryUiState.open'),true);
 key('Tab');assert.equal(a.run('inventoryUiState.open'),true);
 a.elements['settings-close'].handlers.click();assert.equal(a.run('inventoryUiState.open'),true);key('Tab');assert.equal(a.run('inventoryUiState.open'),false);
-key('Escape');assert.equal(a.run('mapUi.open'),true);assert.equal(a.elements['map-picture'].width,1000);assert.equal(a.elements['map-picture'].height,900);
+key('Escape');assert.equal(a.run('mapUi.open'),true);assert.equal(a.elements['map-picture'].width,a.run('city.width'));assert.equal(a.elements['map-picture'].height,a.run('city.height'));
 a.elements['map-dialog'].children.find(b=>b.className==='settings-open').handlers.click();assert.equal(a.run('settingsUi.open'),true);
 a.run('setSoundVolume("bgm",25);setSoundVolume("sfx",70)');assert.equal(a.run('getSoundVolume("bgm")'),.25);assert.equal(a.run('getSoundVolume("sfx")'),.7);
 a.elements['settings-restore'].handlers.click();assert.deepEqual(a.read('userPreferences.keys'),a.read('SETTINGS_DATA.keys'));assert.equal(a.run('getSoundVolume("bgm")'),.25);

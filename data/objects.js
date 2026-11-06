@@ -31,9 +31,9 @@ const STUDIO_TEXT = {
 };
 
 const PHOTO_ROAD_DATA = {
-  // R02의 마지막 점은 학교 앞 순환도로와 만나는 비대칭 분기다.
-  anchorRoadId: "R02",
+  // R07(학교 앞마당)의 마지막 점은 위쪽 큰길과 만나는 학교 앞 분기다.
+  anchorRoadId: "R07",
   // TODO: 사진에 담는 범위와 종이·선 색상은 임시 미술 설정이다. 좌표와 방향은 도시 데이터를 그대로 쓴다.
-  crop: { offsetX: -145, offsetY: -60, width: 230, height: 138 },
+  crop: { offsetX: -200, offsetY: -110, width: 560, height: 336 },
   width: 800, height: 480, paper: "#f2e9d4", ink: "#77766c", lineWidth: 3,
 };

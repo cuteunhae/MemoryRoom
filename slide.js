@@ -67,8 +67,10 @@ function drawGraffitiPicture(context, width, height) {
   context.fillStyle="#c4ae8f";context.fillRect(end[0]-18,end[1]+28,36,36);
   line([[235,32],[235,height-32]],"#d0bd99",2);
   const home=geometry.home;
-  const left=home.x-home.width/2-15, top=Math.min(home.y-home.height/2,...geometry.alley.map(point=>point[1]))-12;
-  const right=home.x+home.width/2+15, bottom=home.y+home.height/2+15;
+  // 집과 쪽문 골목이 모두 들어가도록 범위를 잡는다.
+  const pathXs=[...geometry.alley.map(point=>point[0]),geometry.side.x], pathYs=[...geometry.alley.map(point=>point[1]),geometry.side.y];
+  const left=Math.min(home.x-home.width/2,...pathXs)-15, top=Math.min(home.y-home.height/2,...pathYs)-12;
+  const right=Math.max(home.x+home.width/2,...pathXs)+15, bottom=Math.max(home.y+home.height/2,...pathYs)+15;
   const scale=Math.min((width-280)/(right-left),(height-55)/(bottom-top));
   const project=([x,y])=>[265+(x-left)*scale,25+(y-top)*scale];
   const [hx,hy]=project([home.x-home.width/2,home.y-home.height/2]);

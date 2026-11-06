@@ -60,7 +60,7 @@ const progress=a.run('SAVE_DATA.progressKey');
 const saved=()=>JSON.parse(a.storage.get(progress));
 const tick=ms=>{a.advanceMs(ms);a.run('updateHints()');};
 assert.equal(a.elements['hint-gift'].hidden,true);
-tick(599999);assert.equal(a.elements['hint-gift'].hidden,true);
+tick(179999);assert.equal(a.elements['hint-gift'].hidden,true);
 tick(1);assert.equal(a.elements['hint-gift'].hidden,false);
 a.elements['hint-gift'].handlers.click();assert.equal(a.run('hintUi.open'),true);assert.equal(a.run('gameState.hints.history.length'),1);
 const before=a.read('({x:player.x,y:player.y})');a.key({key:'ArrowRight',code:'ArrowRight'});a.run('update(.2)');assert.deepEqual(a.read('({x:player.x,y:player.y})'),before);
@@ -79,7 +79,16 @@ a.run('document.hidden=true');for(const fn of a.documentHandlers.visibilitychang
 a.run('document.hidden=false');for(const fn of a.documentHandlers.visibilitychange)fn();tick(1000);assert.equal(a.run('gameState.hints.idleMs'),4000);
 let b=session(a.storage);assert.equal(b.run('gameState.hints.idleMs'),4000);assert.deepEqual(b.read('gameState.hints.history'),a.read('gameState.hints.history'));assert.equal(b.run('gameState.hints.lastProgressAt'),a.run('gameState.hints.lastProgressAt'));
 b.advanceMs(1000);b.run('updateHints()');assert.equal(b.run('gameState.hints.idleMs'),5000);
-a=session();a.run('city.debug=true');tick(9999);assert.equal(a.elements['hint-gift'].hidden,true);tick(1);assert.equal(a.elements['hint-gift'].hidden,false);
+a=session();a.run('city.debug=true');tick(179999);assert.equal(a.elements['hint-gift'].hidden,true);tick(1);assert.equal(a.elements['hint-gift'].hidden,false);
+// 3분·6분·9분마다 아직 받지 않은 다음 힌트를 하나씩 받고, 9분 이후에는 더 늘지 않는다.
+a=session();const take=()=>{a.elements['hint-gift'].handlers.click();const id=a.run('hintUi.current');a.run('closeHints()');return id;};
+tick(180000);const first=take();assert.equal(a.elements['hint-gift'].hidden,true);
+tick(179999);assert.equal(a.elements['hint-gift'].hidden,true);tick(1);assert.equal(a.elements['hint-gift'].hidden,false);const second=take();
+tick(180000);const third=take();assert.equal(new Set([first,second,third]).size,3);assert.deepEqual(a.read('gameState.hints.received'),[first,second,third]);
+tick(600000);assert.equal(a.elements['hint-gift'].hidden,true);a.run('openHints(true)');assert.equal(a.run('hintUi.open'),false);
+b=session(a.storage);assert.deepEqual(b.read('gameState.hints.received'),[first,second,third]);assert.equal(b.elements['hint-gift'].hidden,true);
+a.run('acquireItem("ITM-01");updateHints()');assert.deepEqual(a.read('gameState.hints.received'),[]);assert.equal(a.elements['hint-gift'].hidden,true);
+tick(180000);assert.equal(a.elements['hint-gift'].hidden,false);
 // 기존 1버전 저장을 읽어도 인벤토리와 완료 기록을 잃지 않는다.
 a.run('acquireItem("ITM-01")');let old=saved();old.saveVersion=1;delete old.hints;a.storage.set(progress,JSON.stringify(old));b=session(a.storage);
 assert.equal(b.run('gameState.photoCollected'),true);assert.equal(b.run('gameState.hints.history.length'),0);assert.equal(saved().saveVersion,3);
@@ -106,5 +115,5 @@ const exact=[
  '집의 앞문만 보지 말고 옆으로 이어지는 길도 살펴보세요.',
  '다섯 장소에서 얻은 추억의 물건을 순서에 맞게 놓아보세요.',
 ];assert.deepEqual(a.read('HINT_DATA.entries.slice(0,8).map(e=>e.text)'),exact);
-console.log('PASS: exact hints, 10-minute/10-second boundaries, visible time only, progress deduplication, saved timer/history, v1 migration, context/prerequisite/distance selection, modal blocking');
+console.log('PASS: exact hints, 3-minute boundaries in normal/debug modes, extra hints at 6/9 minutes (max 3), visible time only, progress deduplication, saved timer/history, v1 migration, context/prerequisite/distance selection, modal blocking');
 

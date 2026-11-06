@@ -52,8 +52,9 @@ const layout=read('playgroundLayout()');
 const graffiti=read('slideGraffitiTarget()');
 const geometry=read('graffitiGeometry()');
 assert.deepEqual(geometry.alley,read('city.roads.find(road=>road.id===PLAYGROUND_DATA.slideDetail.alleyId).points'));
-assert.ok(geometry.home.x<geometry.playground.x && geometry.home.y>geometry.playground.y);
-assert.ok(geometry.side.y<geometry.locked.y);
+// 도시 그림에서 집은 놀이터의 북동쪽이고, 쪽문은 잠긴 정문의 동쪽(오른쪽)에 있다.
+assert.ok(geometry.home.x>geometry.playground.x && geometry.home.y<geometry.playground.y);
+assert.ok(geometry.side.x>geometry.locked.x);
 const achievement=read('ACHIEVEMENT_CONDITIONS.find(condition=>condition.flags?.includes("slideUsed"))');
 const approach=target=>{
  run(`player.x=${target.x};player.y=${target.y+target.height/2+36}-player.footOffset;updateCamera()`);

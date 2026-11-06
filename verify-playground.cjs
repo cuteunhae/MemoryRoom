@@ -56,11 +56,12 @@ assert.equal(run('gameState.playgroundMemoViewed'),false);
 assert.equal(run('playgroundGiftVisible()'),false);
 assert.ok(layout.swing.x<layout.seesaw.x && layout.swing.y<layout.seesaw.y);
 assert.ok(layout.slide.x>layout.swing.x && layout.slide.y<layout.seesaw.y);
-assert.ok(layout.gateX<layout.swing.x && layout.bottom>layout.seesaw.y);
+// 출입구는 그림처럼 남쪽 울타리에 있다.
+assert.ok(layout.gateX>layout.left && layout.gateX<layout.right && layout.bottom>layout.seesaw.y);
 assert.ok(run('city.landmarks.find(item=>item.id===PLAYGROUND_DATA.treeId).x*settings.worldScale')<layout.left);
 // 실제 보행 판정으로 기존 도로의 진입점부터 시설까지 연결을 확인한다.
 assert.equal(run(`(() => {
- const layout=playgroundLayout(), origin={x:740*settings.worldScale,y:640*settings.worldScale},step=18;
+ const layout=playgroundLayout(), entry=city.accessPoints.find(point=>point.placeId===PLAYGROUND_DATA.placeId),origin={x:entry.x*settings.worldScale,y:entry.y*settings.worldScale},step=18;
  const queue=[[0,0]],seen=new Set(['0,0']);
  for(let i=0;i<queue.length;i++) {
   const [gx,gy]=queue[i];

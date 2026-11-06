@@ -48,83 +48,56 @@ for (const file of ["city-data.js", "data/playground.js", "playground.js", "slid
   vm.runInContext(fs.readFileSync(path.join(__dirname, file), "utf8"), sandbox, { filename: file });
 }
 vm.runInContext(`
-  assert.equal(world.width, 9000);
-  assert.equal(world.height, 8100);
+  // 도시 그림(1672×941)의 픽셀을 논리 좌표로 쓰고 화면에서는 3배로 키운다.
+  assert.equal(city.width, 1672);
+  assert.equal(city.height, 941);
+  assert.equal(world.width, 5016);
+  assert.equal(world.height, 2823);
   assert.equal(settings.cameraZoom, 1);
-  assert.equal(city.frame.length, 5);
-  assert.equal(city.landmarks.length, 4);
-  assert.equal(city.buildings.length, 30);
-  assert.deepEqual(JSON.stringify(city.locations.map(p => [p.x, p.y])),
-    JSON.stringify([[170,565],[265,305],[774,345],[809,571],[533,778]]));
+  assert.equal(settings.locationScale, settings.worldScale);
+  assert.equal(city.mapImage, "assets/city-map.png");
+  assert.equal(city.buildings.length, 0);
+  assert.deepEqual(JSON.stringify(city.locations.map(p => [p.id, p.x, p.y])),
+    JSON.stringify([["C01",1230,121],["C02",442,125],["C03",1243,562],["C04",365,598],["C05",846,100]]));
   const canWalk = (x, y) => canStand(x * settings.worldScale, y * settings.worldScale - player.footOffset);
-  const pond = city.landmarks.find(landmark => landmark.id === "L03");
-  assert.equal(pond.placeId, "C03");
-  assert.ok(canWalk(pond.approach.x, pond.approach.y), "연못 가장자리에 설 수 없습니다.");
-  for (const id of [pond.approachRoadId, pond.parkRoadId]) {
-    const road = city.roads.find(road => road.id === id);
-    for (let i = 1; i < road.points.length; i++) {
-      const a = road.points[i - 1], b = road.points[i];
-      const count = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) * 2);
-      for (let n = 0; n <= count; n++) {
-        assert.ok(canWalk(a[0] + (b[0] - a[0]) * n / count, a[1] + (b[1] - a[1]) * n / count), id + " 보행로가 막혔습니다.");
-      }
-    }
-  }
-  // 연못의 테두리를 포함하는 사각형으로 검사하여 건물·다른 랜드마크와의 겹침을 보수적으로 확인한다.
-  for (const obstacle of [...city.buildings, ...city.locations.filter(p => p.solid).map(locationBounds), ...city.landmarks.filter(l => l.id !== pond.id)]) {
-    const halfWidth = obstacle.width / 2 || obstacle.radiusX || obstacle.radius;
-    const halfHeight = obstacle.height / 2 || obstacle.radiusY || obstacle.radius;
-    assert.ok(Math.abs(pond.x - obstacle.x) > pond.radiusX + 2 + halfWidth ||
-      Math.abs(pond.y - obstacle.y) > pond.radiusY + 2 + halfHeight, "연못이 다른 구조물과 겹칩니다.");
-  }
-  const buildings = [
-    ...city.locations.filter(place => place.solid).map(locationBounds),
-    ...city.buildings.map((building, i) => ({ ...building, id: "일반 건물 " + (i + 1) })),
-  ];
-  for (const building of buildings) {
-    // 건물 외곽선 0.5와 오른쪽·아래쪽 그림자 3까지 포함한 영역이다.
-    const visualBounds = { ...building, x: building.x + 1.25, y: building.y + 1.25,
-      width: building.width + 3.5, height: building.height + 3.5 };
-    for (const road of city.roads) for (let i = 1; i < road.points.length; i++) {
-      const clearance = segmentRectangleDistance(road.points[i-1], road.points[i], visualBounds) - (road.width + 3) / 2;
-      assert.ok(clearance >= -0.001, building.id + " / " + road.id + " 도로 겹침: " + (-clearance));
-    }
-  }
-  console.log("겹침 없음: 주요 건물 3개 + 일반 건물 30개 (그림자·도로 테두리 포함)");
+  // 집: 남쪽 정문은 잠김, 오른쪽 담장의 나무 쪽문으로 출입한다. 쪽문은 R16 골목을 통해서만 닿는다.
   const house = city.locations.find(place => place.id === "C05");
-  assert.equal(house.x, 533); assert.equal(house.y, 778);
   assert.equal(house.doors.find(door => door.side === "south").kind, "locked");
-  assert.equal(house.doors.find(door => door.side === "north").kind, "side");
-  const rearDoor = city.accessPoints.find(point => point.placeId === "C05" && point.door === "north");
-  assert.ok(canWalk(rearDoor.x, rearDoor.y));
+  assert.equal(house.doors.find(door => door.side === "east").kind, "side");
+  const sideDoor = city.accessPoints.find(point => point.placeId === "C05" && point.door === "east");
+  const frontDoor = city.accessPoints.find(point => point.placeId === "C05" && point.door === "south");
+  assert.ok(canWalk(sideDoor.x, sideDoor.y));
+  assert.ok(canWalk(frontDoor.x, frontDoor.y));
   const allRoads = city.roads;
   try {
     city.roads = allRoads.filter(road => road.id !== "R16");
-    assert.equal(canWalk(rearDoor.x, rearDoor.y), false, "쪽문 골목 외의 길이 문 앞으로 직접 연결됩니다.");
+    assert.equal(canWalk(sideDoor.x, sideDoor.y), false, "쪽문 골목 외의 길이 문 앞으로 직접 연결됩니다.");
   } finally { city.roads = allRoads; }
   assert.ok(canStand(player.x, player.y), "시작점이 보행 구역 밖입니다.");
-  for (const point of city.coast) assert.ok(pointInPolygon(...point, city.frame), "해안선이 오각형 밖입니다.");
-  assert.equal(canWalk(500, 100), false, "도로 밖 잔디에 진입할 수 있습니다.");
-  assert.equal(canWalk(10, 10), false, "바다에 진입할 수 있습니다.");
-  for (const building of city.buildings) assert.equal(canWalk(building.x, building.y), false);
-  for (const landmark of city.landmarks) assert.equal(canWalk(landmark.x, landmark.y), false);
-  // 놀이공원 중심에는 새로 배치한 회전목마가 있어 보행할 수 없다.
-  for (const place of city.locations) assert.equal(canWalk(place.x, place.y), !place.solid && place.id !== PARK_DATA.placeId);
-  for (const road of city.roads.filter(r => r.kind === "ring")) {
+  // 잔디·나무·연못·건물·화단에는 들어갈 수 없다.
+  for (const [x, y, name] of [[150, 150, "왼쪽 위 숲"], [600, 120, "학교와 집 사이 숲"], [820, 450, "가운데 길 옆 잔디"], [1650, 600, "오른쪽 숲"], [100, 900, "왼쪽 아래 개울"]]) {
+    assert.equal(canWalk(x, y), false, name + "에 진입할 수 있습니다.");
+  }
+  for (const landmark of city.landmarks) assert.equal(canWalk(landmark.x, landmark.y), false, landmark.name);
+  for (const obstacle of city.obstacles) assert.equal(canWalk(obstacle.x, obstacle.y), false, obstacle.id);
+  // 놀이공원 중심에는 회전목마가 있어 보행할 수 없다.
+  for (const place of city.locations) assert.equal(canWalk(place.x, place.y), !place.solid && place.id !== PARK_DATA.placeId, place.id);
+  // 큰길은 중심선 전체를 걸을 수 있다.
+  for (const road of city.roads.filter(r => r.kind === "main")) {
     for (let i = 1; i < road.points.length; i++) {
       const a = road.points[i-1], b = road.points[i];
       const samples = Math.ceil(Math.hypot(b[0]-a[0], b[1]-a[1]) / 2);
       for (let n = 0; n <= samples; n++) {
-        assert.ok(canWalk(a[0]+(b[0]-a[0])*n/samples, a[1]+(b[1]-a[1])*n/samples), "순환도로가 막혀 있습니다.");
+        assert.ok(canWalk(a[0]+(b[0]-a[0])*n/samples, a[1]+(b[1]-a[1])*n/samples), road.id + " 큰길이 막혀 있습니다.");
       }
     }
   }
-  // 두 야외 장소는 중심선에서 떨어진 바닥도 이동 가능해야 한다.
-  // 놀이공원은 울타리·시설 접근을 verify-park.cjs에서 별도로 검사한다.
+  // 놀이터 바닥은 중심선에서 떨어진 곳도 이동 가능해야 한다. 놀이공원은 verify-park.cjs에서 검사한다.
   for (const place of city.locations.filter(p => !p.solid && p.id !== PARK_DATA.placeId)) {
     const size = locationBounds(place);
+    const inset = PLAYGROUND_DATA.fenceInset + PLAYGROUND_DATA.fenceThickness + 5;
     for (const dx of [-1, 1]) for (const dy of [-1, 1]) {
-      assert.ok(canWalk(size.x + dx * (size.width / 2 - 5), size.y + dy * (size.height / 2 - 5)));
+      assert.ok(canWalk(size.x + dx * (size.width / 2 - inset), size.y + dy * (size.height / 2 - inset)), place.id + " 모서리");
     }
   }
 
@@ -151,7 +124,7 @@ vm.runInContext(`
       queue.push([nx, ny]);
     }
   }
-  for (const target of [...city.accessPoints, { placeId: "L03", ...pond.approach }]) {
+  for (const target of city.accessPoints) {
     const name = target.placeId + (target.door ? " " + target.door : "");
     assert.ok(canWalk(target.x, target.y), name + " 문 앞이 막혀 있습니다.");
     const gx = Math.round((target.x - start[0]) / step), gy = Math.round((target.y - start[1]) / step);
@@ -173,5 +146,5 @@ vm.runInContext(`
     assert.ok(camera.x >= 0 && camera.x <= world.width - canvas.width / settings.cameraZoom);
     assert.ok(camera.y >= 0 && camera.y <= world.height - canvas.height / settings.cameraZoom);
   }
-  console.log("통과: 장소 좌표, 오각형·해안선, 도로 제한, 건물·랜드마크 충돌, 야외 바닥, 6개 접근 지점, 카메라");
+  console.log("통과: 그림 기준 장소 좌표·월드 크기, 잔디·숲·연못·화단 충돌, 쪽문 골목, 큰길, 놀이터 바닥, 6개 접근 지점, 카메라");
 `, sandbox);

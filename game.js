@@ -6,11 +6,14 @@ const pressedKeys = new Set();
 
 
 // 월드 배율은 논리 좌표 1칸에 대응하는 픽셀 수, 이동 속도는 초당 픽셀 수다.
+// TODO: 도시 그림 1픽셀이 화면 3픽셀이 되도록 임시로 정한 배율이다. 플레이 테스트에서 조정한다.
 const settings = {
-  worldScale: 9,
-  locationScale: 15, // 원본 장소 크기 대비 배율. 이전 배율 3의 5배다.
+  worldScale: 3,
+  locationScale: 3, // 장소 크기를 그림 픽셀 그대로 쓰도록 worldScale과 같게 둔다.
   cameraZoom: 1,
   playerSpeed: 630,
+  // 그림을 확대할 때 부드럽게 번지게 할지 여부. false면 픽셀이 또렷하게 보인다.
+  mapSmoothing: false,
 };
 
 // 지도 데이터는 그리기와 이동 판정에서 함께 참조한다.
@@ -20,6 +23,15 @@ const world = {
   height: city.height * settings.worldScale,
 };
 const camera = { x: 0, y: 0 };
+// 도시 그림. 불러오지 못하면 기존 임시 도형으로 그린다.
+const cityMapImage = typeof Image === "function" && city.mapImage ? new Image() : null;
+if (cityMapImage) {
+  cityMapImage.addEventListener("load", () => draw());
+  cityMapImage.src = city.mapImage;
+}
+function cityMapReady() {
+  return !!cityMapImage && cityMapImage.complete && cityMapImage.naturalWidth > 0;
+}
 const scene = {
   interiorId: null,
   schoolFloor: 1,
@@ -52,12 +64,16 @@ function currentInterior() {
   return interior;
 }
 
+// 문 위치(논리 좌표). x·y를 직접 적은 문은 그대로 쓰고, 아니면 건물 변(side)과 offset으로 계산한다.
 function doorRectangle(building, door) {
+  const width = door.width ?? 10, height = door.height ?? 4;
+  if (Number.isFinite(door.x) && Number.isFinite(door.y)) return { x: door.x, y: door.y, width, height };
+  const horizontal = door.side === "north" || door.side === "south";
   return {
-    x: building.x + building.width * door.offset,
-    y: building.y + (door.side === "north" ? -1 : 1) * building.height / 2,
-    width: 10,
-    height: 4,
+    x: horizontal ? building.x + building.width * (door.offset ?? 0) : building.x + (door.side === "west" ? -1 : 1) * building.width / 2,
+    y: horizontal ? building.y + (door.side === "north" ? -1 : 1) * building.height / 2 : building.y + building.height * (door.offset ?? 0),
+    width,
+    height,
   };
 }
 
@@ -82,7 +98,9 @@ function nearOutdoorDoor(target) {
   if (!target.approach) return false;
   const footY = player.y + player.footOffset;
   if (Math.hypot(player.x - target.approach.x, footY - target.approach.footY) > city.entrances.interactDistance) return false;
-  if (target.side === "north" ? footY > target.y : footY < target.y) return false;
+  // 문 바깥쪽에 서 있어야 한다. 북쪽 문은 위, 남쪽 문은 아래, 동쪽 문은 오른쪽, 서쪽 문은 왼쪽이다.
+  const outside = { north: footY <= target.y, south: footY >= target.y, east: player.x >= target.x, west: player.x <= target.x };
+  if (!outside[target.side]) return false;
   // 문 가까이에 있어도 벽이나 잔디를 가로질러 출입하지 않도록 접근 지점까지 검사한다.
   const steps = Math.max(1, Math.ceil(Math.hypot(player.x - target.approach.x, footY - target.approach.footY) / 5));
   for (let i = 0; i <= steps; i++) {
@@ -113,7 +131,7 @@ function enterInterior(target) {
   const returnPoint = {
     x: target.approach.x,
     y: target.approach.footY - player.footOffset,
-    facing: target.side === "north" ? "up" : "down",
+    facing: { north: "up", south: "down", east: "right", west: "left" }[target.side],
   };
   if (!canStandCity(returnPoint.x, returnPoint.y) ||
       !canStandInterior(interior.spawn.x, interior.spawn.footY - player.footOffset, interior)) return false;
@@ -268,6 +286,10 @@ function isWalkableSurface(x, y, radius) {
   // 놀이공원·놀이터 바닥은 사용자의 요청에 따라 전체를 보행 구역으로 취급한다.
   for (const place of city.locations) {
     if (place.solid) continue;
+    if (place.walkArea) {
+      if (circleInsidePolygon(x, y, radius, place.walkArea)) return true;
+      continue;
+    }
     const bounds = locationBounds(place);
     if (Math.abs(x - bounds.x) <= bounds.width / 2 - radius &&
         Math.abs(y - bounds.y) <= bounds.height / 2 - radius) return true;
@@ -328,6 +350,7 @@ function canStandCity(x, y) {
     if (circleHitsRectangle(logicalX, footY, radius, locationBounds(place))) return false;
   }
   if (city.buildings.some(building => circleHitsRectangle(logicalX, footY, radius, building))) return false;
+  if ((city.obstacles || []).some(obstacle => circleHitsRectangle(logicalX, footY, radius, obstacle))) return false;
   if (city.landmarks.some(landmark => hitsLandmark(logicalX, footY, radius, landmark))) return false;
   return true;
 }
@@ -366,6 +389,13 @@ function tracePath(points, close = false) {
 }
 
 function drawCity() {
+  if (cityMapReady()) {
+    ctx.save();
+    ctx.imageSmoothingEnabled = settings.mapSmoothing;
+    ctx.drawImage(cityMapImage, 0, 0, city.width, city.height);
+    ctx.restore();
+    return;
+  }
   tracePath(city.frame, true);
   ctx.fillStyle = "#a9cdd4";
   ctx.fill();
@@ -460,9 +490,9 @@ function drawBuilding(building) {
     ctx.fillRect(wx, top + height * 0.68, 5, Math.min(6, height * 0.16));
   }
   for (const door of building.doors || []) {
-    const { x: doorX, y: doorY } = doorRectangle(building, door);
+    const { x: doorX, y: doorY, width: doorWidth, height: doorHeight } = doorRectangle(building, door);
     ctx.fillStyle = door.kind === "locked" ? "#6e5547" : "#45675c";
-    ctx.fillRect(doorX - 5, doorY - 2, 10, 4);
+    ctx.fillRect(doorX - doorWidth / 2, doorY - doorHeight / 2, doorWidth, doorHeight);
     ctx.fillStyle = "#f2db9d";
     ctx.fillRect(doorX + 2, doorY - 0.5, 1, 1);
     if (door.kind === "locked") {
