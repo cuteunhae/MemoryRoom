@@ -53,7 +53,7 @@ vm.runInContext(`
   assert.equal(city.height, 941);
   assert.equal(world.width, 5016);
   assert.equal(world.height, 2823);
-  assert.equal(settings.cameraZoom, 1);
+  assert.equal(settings.cameraZoom, 0.75);
   assert.equal(settings.locationScale, settings.worldScale);
   assert.equal(city.mapImage, "assets/city-map.png");
   assert.equal(city.buildings.length, 0);

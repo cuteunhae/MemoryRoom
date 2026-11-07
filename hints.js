@@ -82,18 +82,13 @@ function hintCandidates() {
   return result;
 }
 
+// 사용자 결정: 플레이어 위치와 관계없이 장소 ID 순서(C01 사진관 → C02 학교 → C03 놀이공원 → C04 놀이터 → C05 집)로 준다.
+// 한 장소에 남은 힌트가 여러 개면 hintCandidates()에 적힌 순서대로 모두 준 뒤 다음 장소로 넘어간다.
+// 이번 대기 동안 이미 받은 힌트와 끝낸 활동의 힌트는 후보에서 빠진다.
 function chooseHint() {
-  const rank = candidate => {
-    const same = candidate.placeId === scene.interiorId;
-    const place = city.locations.find(place => place.id === candidate.placeId);
-    const target = same ? candidate.target : scene.interiorId ? place :
-      ([PARK_DATA.placeId, PLAYGROUND_DATA.placeId].includes(candidate.placeId) && candidate.target ? candidate.target : { x: place.x*settings.worldScale, y: place.y*settings.worldScale });
-    const origin = scene.interiorId && !same ? city.locations.find(place => place.id === scene.interiorId) : player;
-    const priority = same ? (!candidate.floor || candidate.floor === scene.schoolFloor ? 0 : 1) : 2;
-    return [priority, target ? Math.hypot(origin.x-target.x, origin.y-target.y) : 0];
-  };
-  // 이번 대기 동안 이미 받은 힌트는 빼고, 다음으로 가까운 할 일을 고른다.
-  return hintCandidates().filter(candidate => !gameState.hints.received.includes(candidate.id)).sort((a,b) => { const ar=rank(a),br=rank(b); return ar[0]-br[0] || ar[1]-br[1]; })[0] || null;
+  const order = id => city.locations.findIndex(place => place.id === id);
+  return hintCandidates().filter(candidate => !gameState.hints.received.includes(candidate.id))
+    .sort((a, b) => order(a.placeId) - order(b.placeId))[0] || null;
 }
 
 // 대기 시간이 한 번 지날 때마다 받을 수 있는 힌트가 하나씩 늘어난다. 최대 maxHints개다.
@@ -102,11 +97,14 @@ function unlockedHintCount() {
   return Math.min(HINT_DATA.maxHints, Math.floor(gameState.hints.idleMs / wait));
 }
 function hintReady() { return gameState.hints.received.length < unlockedHintCount(); }
+// 새 힌트를 받을 수 있는지 여부.
+function newHintAvailable() { return hintReady() && !!chooseHint(); }
+// 사용자 결정: 힌트를 한 번이라도 받았다면 선물상자를 계속 보여 주어 누적된 힌트를 다시 볼 수 있게 한다.
 function renderHintButton() {
   const gift = document.getElementById("hint-gift");
-  gift.hidden = !hintReady() || !chooseHint();
+  gift.hidden = !newHintAvailable() && gameState.hints.history.length === 0;
   gift.disabled = isGameInputBlocked();
-  document.getElementById("hint-history").disabled = isGameInputBlocked();
+  gift.setAttribute("aria-label", newHintAvailable() ? HINT_DATA.text.available : HINT_DATA.text.title);
 }
 
 function updateHintClock() {
@@ -126,11 +124,12 @@ function updateHints() {
   }
 }
 
-function openHints(receive) {
+// 선물상자를 누르면 새 힌트가 있으면 받아서 위에 보여 주고, 아래에는 지금까지 받은 힌트를 모두 보여 준다.
+function openHints() {
   if (isGameInputBlocked()) return;
   updateHintClock();
-  const selected = receive && hintReady() ? chooseHint() : null;
-  if (receive && !selected) return;
+  const selected = hintReady() ? chooseHint() : null;
+  if (!selected && gameState.hints.history.length === 0) return;
   if (selected) gameState.hints.received.push(selected.id);
   if (selected && !gameState.hints.history.includes(selected.id)) gameState.hints.history.push(selected.id);
   hintUi.current = selected?.id || null;
@@ -139,9 +138,13 @@ function openHints(receive) {
   pressedKeys.clear();
   const list = document.getElementById("hint-list");
   list.replaceChildren();
-  document.getElementById("hint-current").textContent = selected ? selected.text : HINT_DATA.text.empty;
-  document.getElementById("hint-current").hidden = !selected && gameState.hints.history.length > 0;
-  for (const id of gameState.hints.history) {
+  document.getElementById("hint-current").textContent = selected ? selected.text : "";
+  document.getElementById("hint-current").hidden = !selected;
+  // 방금 받은 힌트는 위에 따로 보이므로 누적 목록에서는 뺀다.
+  const previous = gameState.hints.history.filter(id => id !== selected?.id);
+  document.getElementById("hint-previous").hidden = previous.length === 0;
+  list.hidden = previous.length === 0;
+  for (const id of previous) {
     const row = document.createElement("li");
     row.textContent = HINT_DATA.entries.find(entry => entry.id === id).text;
     list.append(row);
@@ -160,13 +163,10 @@ function closeHints() {
 }
 
 document.getElementById("hint-gift").textContent = HINT_DATA.text.gift;
-document.getElementById("hint-gift").setAttribute("aria-label", HINT_DATA.text.available);
-document.getElementById("hint-history").textContent = HINT_DATA.text.history;
 document.getElementById("hint-title").textContent = HINT_DATA.text.title;
 document.getElementById("hint-previous").textContent = HINT_DATA.text.previous;
 document.getElementById("hint-close").textContent = HINT_DATA.text.close;
-document.getElementById("hint-gift").addEventListener("click", () => openHints(true));
-document.getElementById("hint-history").addEventListener("click", () => openHints(false));
+document.getElementById("hint-gift").addEventListener("click", () => openHints());
 document.getElementById("hint-close").addEventListener("click", closeHints);
 document.getElementById("hint-dialog").addEventListener("cancel", event => event.preventDefault());
 function setHintActive(active) {

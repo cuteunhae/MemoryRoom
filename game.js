@@ -10,7 +10,8 @@ const pressedKeys = new Set();
 const settings = {
   worldScale: 3,
   locationScale: 3, // 장소 크기를 그림 픽셀 그대로 쓰도록 worldScale과 같게 둔다.
-  cameraZoom: 1,
+  // TODO: 1보다 작을수록 카메라가 멀어져 더 넓게 보인다. 임시 값이다.
+  cameraZoom: 0.75,
   playerSpeed: 630,
   // 그림을 확대할 때 부드럽게 번지게 할지 여부. false면 픽셀이 또렷하게 보인다.
   mapSmoothing: false,

@@ -63,11 +63,14 @@ assert.equal(a.elements['hint-gift'].hidden,true);
 tick(179999);assert.equal(a.elements['hint-gift'].hidden,true);
 tick(1);assert.equal(a.elements['hint-gift'].hidden,false);
 a.elements['hint-gift'].handlers.click();assert.equal(a.run('hintUi.open'),true);assert.equal(a.run('gameState.hints.history.length'),1);
+// 처음 받은 힌트는 위에만 보이고 누적 목록은 비어 있다.
+assert.equal(a.elements['hint-current'].hidden,false);assert.equal(a.elements['hint-current'].textContent,a.run('HINT_DATA.entries[0].text'));assert.equal(a.elements['hint-previous'].hidden,true);assert.equal(a.elements['hint-list'].children.length,0);
 const before=a.read('({x:player.x,y:player.y})');a.key({key:'ArrowRight',code:'ArrowRight'});a.run('update(.2)');assert.deepEqual(a.read('({x:player.x,y:player.y})'),before);
 a.key({code:'KeyI'});assert.equal(a.run('inventoryUiState.open'),false);a.key({code:'Tab'});assert.equal(a.run('achievementUi.open'),false);
-a.run('closeHints();openHints(true);closeHints()');assert.equal(a.run('gameState.hints.history.length'),1);
-a.run('acquireItem("ITM-01");updateHints()');assert.equal(a.run('gameState.hints.idleMs'),0);assert.equal(a.elements['hint-gift'].hidden,true);
-a.run('openHints(false)');assert.equal(a.elements['hint-list'].children.length,1);a.run('closeHints()');
+// 새 힌트가 없어도 선물상자는 남아 있고, 누르면 누적된 힌트만 보인다. 같은 힌트를 중복 지급하지 않는다.
+a.run('closeHints()');assert.equal(a.elements['hint-gift'].hidden,false);assert.equal(a.run('newHintAvailable()'),false);
+a.run('openHints()');assert.equal(a.run('hintUi.open'),true);assert.equal(a.elements['hint-current'].hidden,true);assert.equal(a.elements['hint-previous'].hidden,false);assert.equal(a.elements['hint-list'].children.length,1);a.run('closeHints()');assert.equal(a.run('gameState.hints.history.length'),1);
+a.run('acquireItem("ITM-01");updateHints()');assert.equal(a.run('gameState.hints.idleMs'),0);assert.equal(a.elements['hint-gift'].hidden,false);assert.equal(a.run('newHintAvailable()'),false);
 tick(1000);a.run('acquireItem("ITM-01");updateHints()');assert.equal(a.run('gameState.hints.idleMs'),1000);
 a.run('markHintClue("photo-front")');assert.equal(a.run('gameState.hints.idleMs'),0);const progressTime=a.run('gameState.hints.lastProgressAt');
 tick(2000);a.run('markHintClue("photo-front")');assert.equal(a.run('gameState.hints.idleMs'),2000);assert.equal(a.run('gameState.hints.lastProgressAt'),progressTime);
@@ -82,27 +85,44 @@ b.advanceMs(1000);b.run('updateHints()');assert.equal(b.run('gameState.hints.idl
 a=session();a.run('city.debug=true');tick(179999);assert.equal(a.elements['hint-gift'].hidden,true);tick(1);assert.equal(a.elements['hint-gift'].hidden,false);
 // 3분·6분·9분마다 아직 받지 않은 다음 힌트를 하나씩 받고, 9분 이후에는 더 늘지 않는다.
 a=session();const take=()=>{a.elements['hint-gift'].handlers.click();const id=a.run('hintUi.current');a.run('closeHints()');return id;};
-tick(180000);const first=take();assert.equal(a.elements['hint-gift'].hidden,true);
-tick(179999);assert.equal(a.elements['hint-gift'].hidden,true);tick(1);assert.equal(a.elements['hint-gift'].hidden,false);const second=take();
-tick(180000);const third=take();assert.equal(new Set([first,second,third]).size,3);assert.deepEqual(a.read('gameState.hints.received'),[first,second,third]);
-tick(600000);assert.equal(a.elements['hint-gift'].hidden,true);a.run('openHints(true)');assert.equal(a.run('hintUi.open'),false);
-b=session(a.storage);assert.deepEqual(b.read('gameState.hints.received'),[first,second,third]);assert.equal(b.elements['hint-gift'].hidden,true);
-a.run('acquireItem("ITM-01");updateHints()');assert.deepEqual(a.read('gameState.hints.received'),[]);assert.equal(a.elements['hint-gift'].hidden,true);
-tick(180000);assert.equal(a.elements['hint-gift'].hidden,false);
+tick(180000);const first=take();assert.equal(a.elements['hint-gift'].hidden,false);assert.equal(a.run('newHintAvailable()'),false);
+tick(179999);assert.equal(a.run('newHintAvailable()'),false);tick(1);assert.equal(a.run('newHintAvailable()'),true);const second=take();
+tick(180000);const third=take();assert.deepEqual([first,second,third],['HNT-01','HNT-02','HNT-09']);assert.deepEqual(a.read('gameState.hints.received'),[first,second,third]);
+// 9분 이후에는 새 힌트가 없고, 선물상자를 누르면 누적된 3개만 보인다.
+tick(600000);assert.equal(a.run('newHintAvailable()'),false);assert.equal(a.elements['hint-gift'].hidden,false);
+a.run('openHints()');assert.equal(a.run('hintUi.current'),null);assert.equal(a.elements['hint-current'].hidden,true);assert.equal(a.elements['hint-list'].children.length,3);a.run('closeHints()');
+b=session(a.storage);assert.deepEqual(b.read('gameState.hints.received'),[first,second,third]);assert.equal(b.elements['hint-gift'].hidden,false);assert.equal(b.run('newHintAvailable()'),false);
+a.run('acquireItem("ITM-01");updateHints()');assert.deepEqual(a.read('gameState.hints.received'),[]);assert.equal(a.run('newHintAvailable()'),false);
+// 새 힌트는 위에, 나머지 누적 힌트는 아래 목록에 겹치지 않게 보인다.
+tick(180000);assert.equal(a.run('newHintAvailable()'),true);a.elements['hint-gift'].handlers.click();
+assert.equal(a.run('hintUi.current'),'HNT-02');assert.equal(a.elements['hint-current'].hidden,false);assert.equal(a.elements['hint-list'].children.length,2);a.run('closeHints()');
 // 기존 1버전 저장을 읽어도 인벤토리와 완료 기록을 잃지 않는다.
 a.run('acquireItem("ITM-01")');let old=saved();old.saveVersion=1;delete old.hints;a.storage.set(progress,JSON.stringify(old));b=session(a.storage);
 assert.equal(b.run('gameState.photoCollected'),true);assert.equal(b.run('gameState.hints.history.length'),0);assert.equal(saved().saveVersion,3);
-// 현재 실내·층과 필수 아이템을 우선하고, 야외에서는 실제 거리를 비교한다.
-a=session();a.run('scene.interiorId="C01"');assert.equal(a.run('chooseHint().id'),'HNT-01');
-a.run('scene.interiorId=SCHOOL_DATA.placeId;scene.schoolFloor=1');assert.equal(a.run('chooseHint().id'),'HNT-02');
-a.run('scene.schoolFloor=2;player.x=classroomRoom().x+40;player.y=classroomRoom().y+80');assert.equal(a.run('chooseHint().id'),'HNT-03');
-a.run('gameState.acquiredItems[HINT_DATA.items.crayon]=true;scene.schoolFloor=1;player.x=INSPECTION_OBJECTS.find(o=>o.type==="registry").x;player.y=INSPECTION_OBJECTS.find(o=>o.type==="registry").y');assert.equal(a.run('chooseHint().id'),'HNT-04');
-a.run('delete gameState.acquiredItems[HINT_DATA.items.crayon]');assert.notEqual(a.run('chooseHint().id'),'HNT-04');
-a.run('scene.interiorId=null;player.x=parkLayout().center.x;player.y=parkLayout().center.y;gameState.acquiredItems[PARK_DATA.headbandId]=true');assert.equal(a.run('chooseHint().id'),'HNT-05');
-a.run('player.x=playgroundLayout().swing.x;player.y=playgroundLayout().swing.y');assert.equal(a.run('chooseHint().id'),'HNT-06');
-a.run('player.x=city.locations.find(p=>p.id===HOUSE_DATA.placeId).x*settings.worldScale;player.y=city.locations.find(p=>p.id===HOUSE_DATA.placeId).y*settings.worldScale');assert.equal(a.run('chooseHint().id'),'HNT-07');
-a.run('scene.interiorId=HOUSE_DATA.placeId;CABINET_DATA.answer.forEach(id=>gameState.acquiredItems[id]=true)');assert.equal(a.run('chooseHint().id'),'HNT-08');
-a.run('gameState.cabinetSolved=true;gameState.childRoomUnlocked=true');assert.equal(a.run('chooseHint().id'),'HNT-16');
+// 플레이어 위치와 관계없이 사진관→학교→놀이공원→놀이터→집 순서로 고른다. 한 장소의 힌트를 다 준 뒤 다음 장소로 넘어간다.
+a=session();assert.equal(a.run('chooseHint().id'),'HNT-01');
+// 다른 장소(놀이터 안, 집 안)에 있어도 앞 순서 장소의 힌트가 먼저다.
+a.run('player.x=playgroundLayout().swing.x;player.y=playgroundLayout().swing.y');assert.equal(a.run('chooseHint().id'),'HNT-01');
+a.run('scene.interiorId=HOUSE_DATA.placeId');assert.equal(a.run('chooseHint().id'),'HNT-01');a.run('scene.interiorId=null');
+a.run('gameState.acquiredItems[HINT_DATA.items.photo]=true');assert.equal(a.run('chooseHint().id'),'HNT-02');
+a.run('gameState.hints.clues.push("class-nine")');assert.equal(a.run('chooseHint().id'),'HNT-03');
+a.run('gameState.acquiredItems[HINT_DATA.items.notebook]=true;gameState.acquiredItems[HINT_DATA.items.crayon]=true');assert.equal(a.run('chooseHint().id'),'HNT-04');
+a.run('delete gameState.acquiredItems[HINT_DATA.items.crayon]');assert.equal(a.run('chooseHint().id'),'HNT-03');
+a.run('gameState.acquiredItems[HINT_DATA.items.crayon]=true;gameState.registrySolved=true');
+// 놀이공원은 남은 두 힌트(머리띠→회전목마)를 연달아 준 뒤 놀이터로 넘어간다.
+assert.equal(a.run('chooseHint().id'),'HNT-09');
+a.run('gameState.hints.received.push("HNT-09")');assert.equal(a.run('chooseHint().id'),'HNT-05');
+a.run('gameState.hints.received.push("HNT-05")');assert.equal(a.run('chooseHint().id'),'HNT-06');
+a.run('gameState.hints.received=[];gameState.acquiredItems[PARK_DATA.headbandId]=true');assert.equal(a.run('chooseHint().id'),'HNT-05');
+a.run('gameState.carouselSolved=true');assert.equal(a.run('chooseHint().id'),'HNT-10');
+a.run('gameState.acquiredItems[PARK_DATA.balloonId]=true;gameState.acquiredItems[PARK_DATA.memoId]=true;gameState.playgroundMemoViewed=true');assert.equal(a.run('chooseHint().id'),'HNT-06');
+a.run('gameState.swingUsed=true;gameState.seesawUsed=true');assert.equal(a.run('chooseHint().id'),'HNT-12');
+a.run('gameState.acquiredItems[PLAYGROUND_DATA.toyId]=true');assert.equal(a.run('chooseHint().id'),'HNT-13');
+a.run('gameState.slideUsed=true');assert.equal(a.run('chooseHint().id'),'HNT-07');
+a.run('scene.interiorId=HOUSE_DATA.placeId');assert.equal(a.run('chooseHint().id'),'HNT-14');
+a.run('CABINET_DATA.answer.forEach(id=>gameState.acquiredItems[id]=true)');assert.equal(a.run('chooseHint().id'),'HNT-08');
+a.run('gameState.cabinetSolved=true');assert.equal(a.run('chooseHint().id'),'HNT-15');
+a.run('gameState.childRoomUnlocked=true');assert.equal(a.run('chooseHint().id'),'HNT-16');
 // 마지막 활동까지 끝나면 새 힌트를 만들지 않으며 기존 기록은 유지된다.
 a.run('HINT_DATA.progressFlags.forEach(flag=>gameState[flag]=true);Object.values(HINT_DATA.items).forEach(id=>gameState.acquiredItems[id]=true)');assert.equal(a.run('chooseHint()'),null);
 const exact=[
@@ -115,5 +135,5 @@ const exact=[
  '집의 앞문만 보지 말고 옆으로 이어지는 길도 살펴보세요.',
  '다섯 장소에서 얻은 추억의 물건을 순서에 맞게 놓아보세요.',
 ];assert.deepEqual(a.read('HINT_DATA.entries.slice(0,8).map(e=>e.text)'),exact);
-console.log('PASS: exact hints, 3-minute boundaries in normal/debug modes, extra hints at 6/9 minutes (max 3), visible time only, progress deduplication, saved timer/history, v1 migration, context/prerequisite/distance selection, modal blocking');
+console.log('PASS: exact hints, 3-minute boundaries in normal/debug modes, extra hints at 6/9 minutes (max 3), gift stays for accumulated hints, visible time only, progress deduplication, saved timer/history, v1 migration, place-order selection (C01→C05, finish a place before the next), modal blocking');
 
