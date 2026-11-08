@@ -48,7 +48,8 @@ const click = (target, button = 0) => {
 
 const layout = read('parkLayout()');
 const rides = read('carouselRides()');
-assert.equal(rides.filter(ride=>ride.type==='horse').length,6);
+// 사용자 결정: 회전목마 그림에 맞춰 말 5·마차 3이다.
+assert.equal(rides.filter(ride=>ride.type==='horse').length,5);
 assert.equal(rides.filter(ride=>ride.type==='carriage').length,3);
 assert.deepEqual(read('city.locations.find(place=>place.id===PARK_DATA.placeId)').x,1243);
 assert.equal(run('scene.interiorId'),null);
@@ -73,19 +74,8 @@ assert.equal(run(`(() => {
   for(let i=0;i<12;i++) points.push({x:layout.center.x+Math.cos(i*Math.PI/6)*360,y:layout.center.y+Math.sin(i*Math.PI/6)*360});
   return points.every(point=>queue.some(([gx,gy])=>Math.hypot(origin.x+gx*step-point.x,origin.y+gy*step-point.y)<30));
 })()`),true);
-// 관찰 가능한 모든 격자 위치에서 전부 보이는 위치가 없어야 한다.
-const visibility=read(`(() => {
- const layout=parkLayout(), rides=carouselRides(), seen=new Set(); let maximum=0;
- for(let x=layout.left+30;x<layout.right;x+=45)for(let y=layout.top+30;y<layout.bottom;y+=45){
-   if(!canStandCity(x,y-player.footOffset))continue;
-   player.x=x;player.y=y-player.footOffset;
-   let count=0;rides.forEach((ride,index)=>{if(visibleCarouselRide(ride)){count++;seen.add(index);}});
-   maximum=Math.max(maximum,count);
- }
- return {maximum,seen:seen.size};
-})()`);
-assert.ok(visibility.maximum<9);
-assert.equal(visibility.seen,9);
+// 사용자 결정: 가림 없이 모든 탈것이 보인다. 가림 함수가 남아 있지 않아야 한다.
+assert.equal(run('typeof visibleCarouselRide'),'undefined');
 for(const fence of read('parkFences(parkLayout())')) assert.equal(run(`canStandCity(${fence.x},${fence.y}-player.footOffset)`),false);
 const standAt = (target,side=1) => run(`player.x=${target.x};player.y=${target.y+side*(target.height/2+36)}-player.footOffset;updateCamera()`);
 standAt(layout.ticket,-1);
@@ -105,7 +95,7 @@ standAt(layout.shop);click(layout.shop);
 const horses=elements['carousel-horses'],carriages=elements['carousel-carriages'];
 const submit=()=>elements['carousel-panel'].handlers.submit({preventDefault(){}});
 const message=elements['inspection-message'].textContent;
-for(const [h,c] of [['',''],['5','3'],['6','4'],['6x','3'],['6.0','3']]) {
+for(const [h,c] of [['',''],['6','3'],['5','4'],['5x','3'],['5.0','3']]) {
  horses.value=h;carriages.value=c;submit();
  assert.equal(run('gameState.carouselSolved'),false);
  assert.equal(horses.value,h);assert.equal(carriages.value,c);
@@ -113,7 +103,7 @@ for(const [h,c] of [['',''],['5','3'],['6','4'],['6x','3'],['6.0','3']]) {
 }
 // 관찰 이력이나 머리띠 보유 여부가 정답 처리를 막으면 안 된다.
 run('gameState.inventory.itemIds=[];gameState.acquiredItems={}');
-horses.value='6';carriages.value='3';submit();submit();
+horses.value='5';carriages.value='3';submit();submit();
 assert.equal(run('gameState.carouselSolved'),true);
 assert.equal(run('gameState.inventory.itemIds.length'),0);
 elements['inspection-close'].handlers.click();
@@ -124,5 +114,5 @@ standAt(layout.shop);click(layout.shop);
 assert.equal(elements['carousel-confirm'].disabled,true);
 assert.equal(elements['inspection-message'].textContent,run('PARK_DATA.text.solved'));
 assert.equal(run('scene.interiorId'),null);
-console.log('통과: 단일 입구·시설 접근·회전목마 가림과 전체 관찰 가능, 머리띠 중복 방지, 오답 유지·정답 선입력·해결 재방문·거치대만 클릭하면 미획득');
+console.log('통과: 단일 입구·시설 접근·말 5·마차 3(가림 없음), 머리띠 중복 방지, 오답 유지·정답 선입력·해결 재방문·거치대만 클릭하면 미획득');
 

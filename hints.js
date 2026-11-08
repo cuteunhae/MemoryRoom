@@ -60,6 +60,8 @@ function hintCandidates() {
   if (!has("notebook") || !has("crayon")) {
     if (insideHintClassroom() || gameState.hints.clues.includes("class-nine")) add("HNT-03", classroomObjects().find(object => object.number === 1), CLASSROOM_DATA.floor);
     else add("HNT-02", SCHOOL_DATA.objects.find(object => object.type === "board"), 1);
+    // 사용자 결정: 크레파스 힌트는 게시판·배치도 힌트 다음 순서다.
+    add("HNT-17", classroomObjects().find(object => object.number === 1), CLASSROOM_DATA.floor);
   }
   // 필요한 크레파스가 없으면 명부 대신 교실에서 물건을 찾는 활동이 후보가 된다.
   if (!gameState.registrySolved && has("crayon")) add("HNT-04", INSPECTION_OBJECTS.find(object => object.type === "registry"), 1);

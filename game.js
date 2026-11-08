@@ -161,6 +161,8 @@ function exitInterior() {
 function finishMapTransition() {
   if (inspectionUiState.mode === "cabinet") closeInspection();
   else restoreUnsolvedCabinet();
+  // 학교를 나가면 열어 둔 문을 모두 닫는다(층 이동은 유지).
+  if (scene.interiorId !== SCHOOL_DATA.placeId) schoolDoorUi.open.clear();
   clearBubbleEffects();
   // 누르고 있던 방향키와 이전 화면의 시간 차가 새 맵에 남지 않게 한다.
   pressedKeys.clear();
@@ -188,6 +190,7 @@ function handleDoorClick(event) {
   if (interior) {
     if (interior.placeId === HOUSE_DATA.placeId && handleHouseClick(x, y)) return;
     if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolStairs(x, y)) return;
+    if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolDoorClick(x, y)) return;
     const object = inspectionObjectsFor(interior).sort((a, b) => Math.hypot(x - a.x, y - a.y) - Math.hypot(x - b.x, y - b.y)).find(object =>
       Math.abs(x - object.x) <= object.width / 2 + (object.clickPadding || 0) && Math.abs(y - object.y) <= object.height / 2 + (object.clickPadding || 0));
     if (object) {
@@ -318,13 +321,9 @@ function canStand(x, y) {
 function canStandInterior(x, y, interior) {
   const footY = y + player.footOffset;
   if (interior.placeId === HOUSE_DATA.placeId && houseObstacles().some(rectangle => circleHitsRectangle(x, footY, player.collisionRadius, rectangle))) return false;
-  if (interior.placeId === SCHOOL_DATA.placeId) {
-    const corridor = SCHOOL_DATA.corridor;
-    if (footY + player.collisionRadius > corridor.y &&
-        (x - player.collisionRadius < corridor.x || x + player.collisionRadius > corridor.x + corridor.length)) return false;
-  }
+  // 학교는 그림의 바닥 사각형 안만 걸을 수 있다.
+  if (interior.placeId === SCHOOL_DATA.placeId && !schoolCanStand(x, footY, player.collisionRadius)) return false;
   if (inspectionObjectsFor(interior).some(object => object.solid && circleHitsRectangle(x, footY, player.collisionRadius, object))) return false;
-  if (interior.placeId === SCHOOL_DATA.placeId && schoolWalls().some(wall => circleHitsRectangle(x, footY, player.collisionRadius, wall))) return false;
   if (inspectionObjectsFor(interior).some(object => object.table &&
       circleHitsRectangle(x, footY, player.collisionRadius, object.table))) return false;
   return x - player.width / 2 >= interior.wall && x + player.width / 2 <= interior.width - interior.wall &&
@@ -604,6 +603,10 @@ function drawPlayer() {
 }
 
 function drawInterior(interior) {
+  // 학교는 층 그림이 바닥·벽을 모두 그린다.
+  const school = interior.placeId === SCHOOL_DATA.placeId;
+  if (school) drawSchool();
+  else {
   ctx.fillStyle = interior.wallColor;
   ctx.fillRect(0, 0, interior.width, interior.height);
   ctx.fillStyle = interior.floorColor;
@@ -628,12 +631,16 @@ function drawInterior(interior) {
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
   ctx.fillText(interior.name, interior.wall + 12, interior.wall / 2);
-  if (interior.placeId === SCHOOL_DATA.placeId) drawSchool();
+  }
   if (interior.placeId === HOUSE_DATA.placeId) drawHouse();
   const exit = interior.exit;
   if (exit) {
+  ctx.font = "16px 'Malgun Gothic', sans-serif";
+  ctx.textBaseline = "middle";
   ctx.fillStyle = "#45675c";
-  ctx.fillRect(exit.x - exit.width / 2, exit.y - exit.height / 2, exit.width, exit.height);
+  // 학교 정문은 그림에 있으므로 '나가기' 글자 상자만 작게 그린다.
+  if (school) ctx.fillRect(exit.x - 48, exit.y - 16, 96, 32);
+  else ctx.fillRect(exit.x - exit.width / 2, exit.y - exit.height / 2, exit.width, exit.height);
   ctx.fillStyle = "#f5eee3";
   ctx.textAlign = "center";
   ctx.fillText(city.interiorUi.exitLabel, exit.x, exit.y);
@@ -641,17 +648,19 @@ function drawInterior(interior) {
   ctx.textAlign = "center";
   for (const object of inspectionObjectsFor(interior)) {
     const table = object.table;
-    if (table) {
+    if (table && !table.hidden) {
       ctx.fillStyle = table.color;
       ctx.fillRect(table.x - table.width / 2, table.y - table.height / 2, table.width, table.height);
       ctx.strokeStyle = "#76583f";
       ctx.strokeRect(table.x - table.width / 2, table.y - table.height / 2, table.width, table.height);
     }
+    // hidden 물체는 그림에 이미 있으므로 그리지 않는다(클릭·충돌은 그대로).
+    if (object.hidden) continue;
     ctx.fillStyle = object.color;
     ctx.fillRect(object.x - object.width / 2, object.y - object.height / 2, object.width, object.height);
     ctx.fillStyle = "#fff8e9";
     ctx.font = "14px 'Malgun Gothic', sans-serif";
-    ctx.fillText(object.name, object.x, object.y);
+    ctx.fillText(object.label ?? object.name, object.x, object.y);
   }
 }
 

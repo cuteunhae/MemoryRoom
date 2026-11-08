@@ -23,11 +23,12 @@ function graffitiGeometry() {
   };
 }
 
-function drawSlideDetails(slide) {
+// drawHole이 false면 출발 구멍을 그리지 않는다(시설 그림에 이미 있을 때).
+function drawSlideDetails(slide, drawHole = true) {
   const detail = PLAYGROUND_DATA.slideDetail, w = slide.width, h = slide.height;
   ctx.save();
   // 출발 구멍 바로 위 표지와 옆 낙서는 각각 분리된 그림이다.
-  fillEllipse(-w/6,-h/2+10,22,13,"#364c56");
+  if (drawHole) fillEllipse(-w/6,-h/2+10,22,13,"#364c56");
   ctx.fillStyle="#f7e4b4";ctx.fillRect(-155,-h/2-63,280,48);
   ctx.fillStyle="#5b4937";ctx.font="bold 27px 'Malgun Gothic', sans-serif";
   ctx.fillText(PLAYGROUND_DATA.text.slideWarning,-15,-h/2-39);

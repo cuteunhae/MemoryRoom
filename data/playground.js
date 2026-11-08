@@ -6,13 +6,26 @@ const PLAYGROUND_DATA = {
   // 출입구는 그림의 남쪽 벽돌 기둥 사이다.
   fenceInset: 9, fenceThickness: 4.5, gateX: 23, gateWidth: 140,
   interactDistance: 140, animationMs: 2000,
-  swing: { x: -160, y: -125, width: 78, height: 66 },
-  seesaw: { x: 185, y: 25, width: 90, height: 48 },
-  slide: { x: 150, y: -125, width: 75, height: 81 },
+  // 크기는 그림의 가로세로 비율에 맞췄다. 충돌·클릭 범위와 그림 크기가 같다.
+  swing: { x: -160, y: -125, width: 78, height: 71 },
+  seesaw: { x: 185, y: 25, width: 90, height: 52 },
+  slide: { x: 150, y: -125, width: 81, height: 80 },
   // TODO: 상단 표지·낙서 크기와 탑승 연출은 임시 픽셀 설정이다.
   slideDetail: { graffitiOffsetX: 175, graffitiOffsetY: -28, graffitiWidth: 90, graffitiHeight: 70,
     rideMs: 2000, homeId: "C05", alleyId: "R16", canvasWidth: 640, canvasHeight: 400 },
-  gift: { x: -15, y: 25, width: 66, height: 60 },
+  gift: { x: -15, y: 25, width: 60, height: 60 },
+  // 시설 그림. 그네·시소는 2줄×5칸, 10장면짜리 그림이며 왼쪽 위부터 오른쪽으로 차례대로 재생한다.
+  // crop은 한 칸(또는 한 장) 안에서 실제 그림이 있는 부분이다. 칸마다 같은 위치를 잘라 움직임이 흔들리지 않는다.
+  // restFrame은 움직이지 않을 때 보여 줄 장면 번호(0부터)다. frameMs는 장면 하나를 보여 주는 시간이다.
+  // TODO: 장면 속도와 멈춤 장면은 임시 값이다.
+  sprites: {
+    swing: { src: "assets/playground-swing.png", columns: 5, rows: 2, frameCount: 10, restFrame: 9, frameMs: 100,
+      crop: { x: 29, y: 41, width: 340, height: 310 } },
+    seesaw: { src: "assets/playground-seesaw.png", columns: 5, rows: 2, frameCount: 10, restFrame: 0, frameMs: 100,
+      crop: { x: 20, y: 79, width: 403, height: 234 } },
+    slide: { src: "assets/playground-slide.png", crop: { x: 12, y: 45, width: 1227, height: 1209 } },
+    gift: { src: "assets/playground-gift.png", crop: { x: 0, y: 25, width: 1232, height: 1229 } },
+  },
   text: {
     swing: "그네", seesaw: "시소", slide: "미끄럼틀", gift: "선물상자", entrance: "출입구",
     near: "가까이에서 클릭해 주세요.", acquired: "비눗방울 장난감을 획득했습니다. (I: 인벤토리)",

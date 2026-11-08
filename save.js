@@ -132,6 +132,7 @@ function resetSession() {
   diaryUi.page = 0;
   Object.assign(playgroundAnimation, { swingUntil: 0, seesawUntil: 0, slideUntil: 0 });
   resetRegistryProgress();
+  schoolDoorUi.open.clear();
   clearBubbleEffects();
   pressedKeys.clear();
   previousTime = null;
@@ -148,6 +149,8 @@ function restoreProgress() {
       Object.assign(gameState, state);
       Object.assign(scene, { interiorId: position.interiorId, schoolFloor: position.schoolFloor, returnPoint: position.returnPoint });
       Object.assign(player, { x: position.x, y: position.y, facing: position.facing });
+      // 학교 문은 저장하지 않는다. 문 틈에 서 있던 저장이면 그 문만 열어 둔 채로 이어 한다.
+      if (scene.interiorId === SCHOOL_DATA.placeId) openSchoolDoorsAtPlayer();
       if (!canStand(player.x, player.y) || (scene.returnPoint && !canStandCity(scene.returnPoint.x, scene.returnPoint.y))) throw new Error("Invalid position");
       initializeHintSession();
       updateAchievementConditions();
@@ -171,15 +174,22 @@ function restoreProgress() {
 
 function validPreferences(value) {
   if (!value || typeof value !== "object" || !value.keys || !value.sound) return false;
-  return Object.keys(SAVE_DATA.defaultPreferences.keys).every(action => value.keys[action] === null || validBindingCode(value.keys[action])) &&
+  // 나중에 추가한 기능(예: 문 열기)의 키가 없는 이전 설정은 그 기능만 기본값으로 채운다(undefined 허용).
+  return Object.keys(SAVE_DATA.defaultPreferences.keys).every(action => value.keys[action] === undefined || value.keys[action] === null || validBindingCode(value.keys[action])) &&
     typeof value.sound.muted === "boolean" && Number.isFinite(value.sound.volume) && value.sound.volume >= 0 && value.sound.volume <= 1 &&
     ["bgmVolume","sfxVolume"].every(key=>value.sound[key]===undefined || (Number.isFinite(value.sound[key])&&value.sound[key]>=0&&value.sound[key]<=1));
 }
 
 function normalizePreferences(value) {
   const seen=new Set(),keys={};
-  for(const action of Object.keys(SAVE_DATA.defaultPreferences.keys)) {
-    const code=value.keys[action];keys[action]=code&&!seen.has(code)?code:null;if(code)seen.add(code);
+  const actions=Object.keys(SAVE_DATA.defaultPreferences.keys);
+  // 저장된 키를 먼저 배정하고, 저장에 없던 기능은 기본 키가 비어 있을 때만 기본 키를 준다.
+  for(const action of actions) {
+    const code=value.keys[action];if(code===undefined)continue;keys[action]=code&&!seen.has(code)?code:null;if(code)seen.add(code);
+  }
+  for(const action of actions) {
+    if(value.keys[action]!==undefined)continue;
+    const code=SAVE_DATA.defaultPreferences.keys[action];keys[action]=!seen.has(code)?code:null;seen.add(code);
   }
   return {keys,sound:{muted:value.sound.muted,volume:value.sound.volume,bgmVolume:value.sound.bgmVolume??(value.sound.muted?0:value.sound.volume),sfxVolume:value.sound.sfxVolume??(value.sound.muted?0:value.sound.volume)}};
 }

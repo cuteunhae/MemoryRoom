@@ -48,18 +48,16 @@ function carouselRides() {
   });
 }
 
-function carouselOccluders() {
-  const config = PARK_DATA.carousel, center = parkLayout().center;
-  return [{ ...center, radius: config.coreRadius * settings.worldScale }, ...Array.from({ length: config.pillarCount }, (_, i) => ({
-    x: center.x + Math.cos(i * Math.PI * 2 / config.pillarCount) * config.pillarOrbit * settings.worldScale,
-    y: center.y + Math.sin(i * Math.PI * 2 / config.pillarCount) * config.pillarOrbit * settings.worldScale,
-    radius: config.pillarRadius * settings.worldScale,
-  }))];
-}
+const parkImages = loadSpriteImages(PARK_DATA.sprites);
 
-function visibleCarouselRide(ride) {
-  return !carouselOccluders().some(obstacle => distanceToSegment(obstacle.x, obstacle.y,
-    [player.x, player.y + player.footOffset], [ride.x, ride.y]) < obstacle.radius);
+// 시설 그림을 사각형(rect) 자리에 그린다. 그림이 준비되지 않았으면 false를 돌려준다.
+function drawParkSprite(kind, rect) {
+  if (!spriteImageReady(parkImages[kind])) return false;
+  ctx.save();
+  ctx.translate(rect.x, rect.y);
+  drawSpriteImage(parkImages[kind], PARK_DATA.sprites[kind], 0, rect.width, rect.height);
+  ctx.restore();
+  return true;
 }
 
 function handleParkClick(x, y) {
@@ -89,16 +87,19 @@ function drawPark() {
   // 도시 그림에 이미 울타리가 있으면 충돌용 울타리는 그리지 않는다.
   if (!cityMapReady()) for (const fence of parkFences(layout)) rectangle(fence, "#8f7861");
   ctx.font = "18px 'Malgun Gothic', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  for (const [rect, name, color] of [[layout.ticket, PARK_DATA.text.ticket, "#b38c72"], [layout.shop, PARK_DATA.text.shop, "#86a493"], [layout.stand, PARK_DATA.text.stand, "#a1947d"]]) {
-    rectangle(rect, color); ctx.fillStyle = "#403a32"; ctx.fillText(name, rect.x, rect.y - rect.height / 2 - 22);
+  for (const [rect, name, color, kind] of [[layout.ticket, PARK_DATA.text.ticket, "#b38c72", "ticket"], [layout.shop, PARK_DATA.text.shop, "#86a493", "shop"], [layout.stand, PARK_DATA.text.stand, "#a1947d", null]]) {
+    if (!kind || !drawParkSprite(kind, rect)) rectangle(rect, color);
+    ctx.fillStyle = "#403a32"; ctx.fillText(name, rect.x, rect.y - rect.height / 2 - 22);
   }
   if (!gameState.acquiredItems[PARK_DATA.headbandId]) {
     ctx.strokeStyle = "#efd682"; ctx.lineWidth = 12; ctx.beginPath();
     ctx.arc(layout.ticket.x, layout.ticket.y + 12, 24, Math.PI, Math.PI * 2); ctx.stroke();
   }
+  const diameter = config.platformRadius * 2 * settings.worldScale;
+  // 그림에는 탈것이 모두 그려져 있다. 그림이 없을 때만 임시 도형으로 모든 탈것을 그린다(가림 없음).
+  if (!drawParkSprite("carousel", { ...layout.center, width: diameter, height: diameter })) {
   fillEllipse(layout.center.x, layout.center.y, config.platformRadius * settings.worldScale, config.platformRadius * settings.worldScale, "#dec5a2");
   for (const ride of carouselRides()) {
-    if (!visibleCarouselRide(ride)) continue;
     if (ride.type === "horse") {
       rectangle({ ...ride, width: 58, height: 25 }, "#936443");
       rectangle({ x: ride.x + 20, y: ride.y - 18, width: 20, height: 35 }, "#936443");
@@ -108,8 +109,9 @@ function drawPark() {
       for (const offset of [-23, 23]) fillEllipse(ride.x + offset, ride.y + 25, 10, 10, "#3d4c58");
     }
   }
-  for (const obstacle of carouselOccluders()) fillEllipse(obstacle.x, obstacle.y, obstacle.radius, obstacle.radius, "#9c7d72");
+  fillEllipse(layout.center.x, layout.center.y, config.coreRadius * settings.worldScale, config.coreRadius * settings.worldScale, "#9c7d72");
   ctx.fillStyle = "#fff4df"; ctx.fillText(PARK_DATA.text.carousel, layout.center.x, layout.center.y);
+  }
   if (gameState.carouselSolved && !gameState.acquiredItems[PARK_DATA.balloonId]) {
     ctx.strokeStyle = "#61584c"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(layout.stand.x, layout.stand.y); ctx.lineTo(layout.stand.x, layout.stand.y - 90); ctx.stroke();
     fillEllipse(layout.stand.x, layout.stand.y + PARK_DATA.balloon.offsetY, PARK_DATA.balloon.radiusX, PARK_DATA.balloon.radiusY, "#d88b8b");

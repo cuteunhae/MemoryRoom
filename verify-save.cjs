@@ -99,9 +99,9 @@ let c=session(a.storage);assert.ok(c.read('gameState.inventory.itemIds').include
 a=session();
 const school=a.read('outdoorDoors().find(d=>d.placeId===SCHOOL_DATA.placeId&&d.kind!=="locked")');a.positionAt(school);a.advance();a.click(school);
 assert.equal(snapshot().position.interiorId,a.run('SCHOOL_DATA.placeId'));
-a.run('player.x=SCHOOL_DATA.stairs.x;player.y=SCHOOL_DATA.stairs.y-player.footOffset;handleSchoolStairs(SCHOOL_DATA.stairs.x,SCHOOL_DATA.stairs.y)');
+a.run('player.x=schoolStairs().x;player.y=schoolStairs().y-player.footOffset;handleSchoolStairs(schoolStairs().x,schoolStairs().y)');
 b=session(a.storage);assert.equal(b.run('scene.schoolFloor'),2);assert.deepEqual(b.read('scene.returnPoint'),a.read('scene.returnPoint'));
-b.run('player.x=SCHOOL_DATA.stairs.x;player.y=SCHOOL_DATA.stairs.y-player.footOffset;handleSchoolStairs(SCHOOL_DATA.stairs.x,SCHOOL_DATA.stairs.y)');
+b.run('player.x=schoolStairs().x;player.y=schoolStairs().y-player.footOffset;handleSchoolStairs(schoolStairs().x,schoolStairs().y)');
 b.advance();b.run('player.x=currentInterior().spawn.x;player.y=currentInterior().spawn.footY-player.footOffset;exitInterior()');assert.equal(b.run('scene.interiorId'),null);
 // 설정은 진행 데이터와 다른 키에 저장하며 새 게임·디버그 초기화에도 유지한다.
 a=session();a.run('savePreferences({keys:{...userPreferences.keys,up:"KeyW"},sound:{muted:true,volume:.25}});acquireItem("ITM-01")');

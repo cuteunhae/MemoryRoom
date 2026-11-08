@@ -54,18 +54,27 @@ assert.deepEqual(desks.map(desk => desk.number).sort((a,b)=>a-b), Array.from({le
 assert.deepEqual(desks.map(desk => desk.number), expected.flat());
 run('scene.interiorId = SCHOOL_DATA.placeId; scene.schoolFloor = 2');
 const room = read('classroomRoom()');
-assert.equal(room.width, 1600);
-assert.equal(room.height, 2400);
+// 학교 2층 그림의 9반(오른쪽 아래 교실) 크기다. 책상은 문 쪽 게시판과 칠판 사이에 들어간다.
+assert.equal(room.width, 630);
+assert.equal(room.height, 967.5);
 for (const desk of desks) {
-  assert.ok(desk.x - desk.width / 2 >= room.x + 40);
-  assert.ok(desk.x + desk.width / 2 <= room.x + room.width - 40);
-  assert.ok(desk.y - desk.height / 2 > room.y + 160);
-  assert.ok(desk.y + desk.height / 2 < room.y + room.height - 220);
+  assert.ok(desk.x - desk.width / 2 >= room.x + 20);
+  assert.ok(desk.x + desk.width / 2 <= room.x + room.width - 20);
+  assert.ok(desk.y - desk.height / 2 > room.y + 100);
+  assert.ok(desk.y + desk.height / 2 < room.y + room.height - 100);
 }
+// 칠판이 아래쪽이므로 1행(14·8·23·5·17·29)은 가장 아래, 1번 책상은 가장 위 행이다.
+// 칠판을 바라보는 학생 기준 '왼쪽 쌍'은 화면 오른쪽이다.
+const at = n => desks.find(desk => desk.number === n);
+assert.ok(at(14).y > at(19).y);
+assert.ok(at(14).x > at(29).x);
+assert.equal(at(1).y, Math.min(...desks.map(desk => desk.y)));
+assert.ok(at(22).x > at(1).x && at(1).x > at(15).x);
 // 실제 충돌 함수로 출입문에서 모든 책상 뒤 통로·게시판까지 연결되는지 확인한다.
 assert.equal(run(`(() => {
   const room = classroomRoom(), step = 40;
-  const start = [Math.round((room.doorX - room.x) / step), Math.floor((room.height - 60) / step)];
+  // 9반 문은 교실 위쪽에 있다. 문 바로 안쪽에서 출발한다.
+  const start = [Math.round((schoolFloor().doors.find(door => door.room === CLASSROOM_DATA.roomName).openingRect.x - room.x) / step), 1];
   const queue = [start], seen = new Set([start.join(',')]);
   for (let i = 0; i < queue.length; i++) {
     const [gx, gy] = queue[i];
@@ -113,11 +122,12 @@ elements['inspection-close'].handlers.click();
 run('toggleInventory()');
 elements['inventory-list'].children.find(button=>button.dataset.itemId==='ITM-02').handlers.click();
 assert.equal(run('inspectionUiState.mode'), 'infirmary');
-assert.equal(elements['classroom-panel'].children[0].children.length, 6);
+// 1층에는 교무실·보건실 두 방이 있다.
+assert.equal(elements['classroom-panel'].children[0].children.length, 2);
 run('toggleInventory()');
 assert.equal(run('inspectionUiState.mode'), null);
 assert.equal(run('inventoryUiState.open'), false);
-run('player.x=classroomRoom().doorX; player.y=classroomRoom().y+classroomRoom().height-80; updateCamera()');
+run('player.x=classroomRoom().x+classroomRoom().width/2; player.y=classroomRoom().y+classroomRoom().height-80; updateCamera()');
 const cameraBefore = run('camera.y');
 run("pressedKeys.add('ArrowUp'); update(0.2); pressedKeys.clear(); updateCamera()");
 assert.notEqual(run('camera.y'), cameraBefore);

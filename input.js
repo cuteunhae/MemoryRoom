@@ -33,6 +33,11 @@ window.addEventListener("keydown", event => {
     if (!isGameInputBlocked()) { pressedKeys.add(movementActions[action]); heldMovementCodes.set(code,movementActions[action]); }
     return;
   }
+  if (action === "interact") {
+    event.preventDefault();
+    if (!event.repeat && !isGameInputBlocked()) interactNearbyDoor();
+    return;
+  }
   const actions = { inventory: toggleInventory, achievements: toggleAchievements, map: toggleMap };
   if (!actions[action]) return;
   if (action === "achievements" && !achievementUi.open && isGameInputBlocked()) return;

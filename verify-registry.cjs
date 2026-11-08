@@ -58,7 +58,7 @@ cover.setPointerCapture = id => {captured=id;};
 cover.hasPointerCapture = id => captured===id;
 cover.releasePointerCapture = () => {captured=null;};
 const registry = read('INSPECTION_OBJECTS.find(object=>object.type==="registry")');
-run(`scene.interiorId=SCHOOL_DATA.placeId; scene.schoolFloor=1; player.x=${registry.x}; player.y=${registry.y+100}-player.footOffset; updateCamera()`);
+run(`scene.interiorId=SCHOOL_DATA.placeId; scene.schoolFloor=1; player.x=${registry.x}; player.y=${registry.table.y+registry.table.height/2+15}-player.footOffset; updateCamera()`);
 assert.ok(run('canStand(player.x,player.y)'));
 const pointer = (type,x,y,buttons=1) => cover.handlers[type]({pointerId:1,button:0,buttons,clientX:25+x/2,clientY:30+y/2,preventDefault(){}});
 const stroke = (x1,y1,x2,y2) => {pointer('pointerdown',x1,y1);pointer('pointermove',x2,y2);pointer('pointerup',x2,y2,0);};

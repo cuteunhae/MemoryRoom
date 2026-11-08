@@ -15,7 +15,7 @@ const SAVE_DATA = {
     preferencesFailed: "키·소리 설정을 저장하지 못했습니다.",
   },
   defaultPreferences: {
-    keys: { up: "ArrowUp", down: "ArrowDown", left: "ArrowLeft", right: "ArrowRight", map: "KeyM", inventory: "KeyI", achievements: "Tab", settings: "Escape" },
+    keys: { up: "ArrowUp", down: "ArrowDown", left: "ArrowLeft", right: "ArrowRight", map: "KeyM", inventory: "KeyI", achievements: "Tab", settings: "Escape", interact: "KeyE" },
     // TODO: 소리 자산과 설정 화면을 연결할 때 조정할 임시 기본값이다.
     sound: { muted: false, volume: 1, bgmVolume: 1, sfxVolume: 1 },
   },

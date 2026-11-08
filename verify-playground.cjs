@@ -110,7 +110,8 @@ approach(layout.swing);advance();click(layout.swing);
 assert.equal(run('bubbleEffect.particles.length'),count+1);
 for(const interior of read('city.interiors')) {
  run(`scene.interiorId=${JSON.stringify(interior.placeId)};scene.schoolFloor=1;player.x=${interior.spawn.x};player.y=${interior.spawn.footY}-player.footOffset;finishMapTransition()`);
- advance();click({x:interior.spawn.x,y:interior.spawn.footY+(interior.exit.side==='north'?40:-40)});
+ // 출구를 누르지 않도록 출구 반대쪽 바닥을 클릭한다. 학교는 시작 위치가 정문 바로 앞이라 더 떨어진 곳을 누른다.
+ advance();click({x:interior.spawn.x,y:interior.spawn.footY+(interior.exit.side==='north'?40:-150)});
  assert.equal(run('bubbleEffect.particles.length'),1);
  assert.equal(run('bubbleEffect.particles[0].interiorId'),interior.placeId);
 }

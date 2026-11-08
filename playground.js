@@ -2,6 +2,53 @@
 
 const playgroundAnimation = { swingUntil: 0, seesawUntil: 0, slideUntil: 0 };
 
+// 시설 그림을 미리 불러온다. 놀이공원(park.js)도 같은 함수를 쓴다. 불러오지 못한 그림은 기존 임시 도형으로 그린다.
+function loadSpriteImages(sprites) {
+  const images = {};
+  if (typeof Image !== "function") return images;
+  for (const [kind, sprite] of Object.entries(sprites)) {
+    const image = new Image();
+    image.src = sprite.src;
+    images[kind] = image;
+  }
+  return images;
+}
+function spriteImageReady(image) {
+  return !!image && image.complete && image.naturalWidth > 0;
+}
+// 그림의 frame번째 칸을 crop 범위만 잘라, 가로 width·세로 height 사각형 안에 비율을 유지해 맞추고 바닥(아래쪽 가운데)에 붙여 그린다.
+// ctx는 대상 사각형의 중심으로 옮겨진 상태여야 한다.
+function drawSpriteImage(image, sprite, frame, width, height) {
+  const columns = sprite.columns || 1, rows = sprite.rows || 1;
+  const cellWidth = image.naturalWidth / columns, cellHeight = image.naturalHeight / rows;
+  const sourceX = (frame % columns) * cellWidth + sprite.crop.x, sourceY = Math.floor(frame / columns) * cellHeight + sprite.crop.y;
+  const scale = Math.min(width / sprite.crop.width, height / sprite.crop.height);
+  const drawWidth = sprite.crop.width * scale, drawHeight = sprite.crop.height * scale;
+  ctx.drawImage(image, sourceX, sourceY, sprite.crop.width, sprite.crop.height, -drawWidth / 2, height / 2 - drawHeight, drawWidth, drawHeight);
+}
+
+const playgroundImages = loadSpriteImages(PLAYGROUND_DATA.sprites);
+function playgroundImageReady(kind) {
+  return spriteImageReady(playgroundImages[kind]);
+}
+
+// 지금 보여 줄 장면 번호. 움직이는 동안에는 장면을 차례로 돌리고, 멈추면 restFrame을 보여 준다.
+function playgroundFrame(kind) {
+  const sprite = PLAYGROUND_DATA.sprites[kind];
+  if (!sprite.frameCount) return 0;
+  const remaining = playgroundAnimation[`${kind}Until`] - Date.now();
+  if (remaining <= 0) return sprite.restFrame;
+  const elapsed = PLAYGROUND_DATA.animationMs - remaining;
+  return Math.floor(Math.max(0, elapsed) / sprite.frameMs) % sprite.frameCount;
+}
+
+// 놀이터 시설 그림을 그린다. 그림이 준비되지 않았으면 false를 돌려준다. ctx는 대상 중심으로 옮겨진 상태다.
+function drawPlaygroundSprite(kind, width, height) {
+  if (!playgroundImageReady(kind)) return false;
+  drawSpriteImage(playgroundImages[kind], PLAYGROUND_DATA.sprites[kind], playgroundFrame(kind), width, height);
+  return true;
+}
+
 function playgroundLayout() {
   const place = city.locations.find(place => place.id === PLAYGROUND_DATA.placeId);
   const bounds = locationBounds(place), scale = settings.worldScale;
@@ -86,7 +133,10 @@ function drawPlayground() {
     ctx.save();ctx.translate(target.x, target.y);
     const w = target.width, h = target.height;
     ctx.strokeStyle = "#687966";ctx.lineWidth = 9;ctx.fillStyle = "#bd9166";
-    if (target.kind === "swing") {
+    if (drawPlaygroundSprite(target.kind, w, h)) {
+      // 미끄럼틀은 그림 위에 표지·낙서·탑승 연출을 덧그린다. 출발 구멍은 그림에 있으므로 그리지 않는다.
+      if (target.kind === "slide") drawSlideDetails(target, false);
+    } else if (target.kind === "swing") {
       tracePath([[-w/2,h/2],[-w/3,-h/2],[w/3,-h/2],[w/2,h/2]]);ctx.stroke();
       const remaining = playgroundAnimation.swingUntil - Date.now();
       const offset = remaining > 0 ? Math.sin(remaining / 140) * w * 0.12 : 0;
