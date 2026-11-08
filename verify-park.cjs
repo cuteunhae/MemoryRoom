@@ -76,6 +76,14 @@ assert.equal(run(`(() => {
 })()`),true);
 // 사용자 결정: 가림 없이 모든 탈것이 보인다. 가림 함수가 남아 있지 않아야 한다.
 assert.equal(run('typeof visibleCarouselRide'),'undefined');
+// 위쪽 큰길에서 분홍 길로 걸어 들어오고 나갈 수 있어야 하며, 분홍 길 옆 울타리는 막혀 있어야 한다.
+const northGate=read('parkLayout().northGateX'), parkTop=read('parkLayout().top');
+run(`player.x=${northGate};player.y=900-player.footOffset;pressedKeys.clear();pressedKeys.add('ArrowDown');update(0.5);pressedKeys.clear()`);
+assert.ok(run('player.y+player.footOffset')>parkTop+60,'위쪽 큰길에서 놀이공원으로 들어가지 못했습니다.');
+run("pressedKeys.add('ArrowUp');update(0.5);pressedKeys.clear()");
+assert.ok(run('player.y+player.footOffset')<parkTop-60,'놀이공원에서 위쪽 큰길로 나가지 못했습니다.');
+run(`player.x=${northGate-400};player.y=900-player.footOffset;pressedKeys.add('ArrowDown');update(1);pressedKeys.clear()`);
+assert.ok(run('player.y+player.footOffset')<parkTop,'분홍 길이 아닌 곳으로 놀이공원에 들어갔습니다.');
 for(const fence of read('parkFences(parkLayout())')) assert.equal(run(`canStandCity(${fence.x},${fence.y}-player.footOffset)`),false);
 const standAt = (target,side=1) => run(`player.x=${target.x};player.y=${target.y+side*(target.height/2+36)}-player.footOffset;updateCamera()`);
 standAt(layout.ticket,-1);
@@ -114,5 +122,5 @@ standAt(layout.shop);click(layout.shop);
 assert.equal(elements['carousel-confirm'].disabled,true);
 assert.equal(elements['inspection-message'].textContent,run('PARK_DATA.text.solved'));
 assert.equal(run('scene.interiorId'),null);
-console.log('통과: 단일 입구·시설 접근·말 5·마차 3(가림 없음), 머리띠 중복 방지, 오답 유지·정답 선입력·해결 재방문·거치대만 클릭하면 미획득');
+console.log('통과: 아래쪽 정문·위쪽 분홍 길 출입·시설 접근·말 5·마차 3(가림 없음), 머리띠 중복 방지, 오답 유지·정답 선입력·해결 재방문·거치대만 클릭하면 미획득');
 

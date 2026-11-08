@@ -39,6 +39,8 @@ const CITY_DATA = {
     { id: "R11", kind: "street", width: 100, points: [[1243, 840], [1243, 778]] },
     // 세로 길(R02)에서 집 뒤편 나무 쪽문으로 들어가는 짧은 골목. 쪽문은 이 골목을 통해서만 닿는다.
     { id: "R16", kind: "alley", width: 20, points: [[1019, 205], [1005, 205]] },
+    // 위쪽 큰길에서 놀이공원 북쪽 분홍 길로 내려가는 연결로. 폭은 그림의 분홍 길(x 1200~1320)에 맞춘다.
+    { id: "R17", kind: "street", width: 120, points: [[1260, 300], [1260, 360]] },
   ],
   // locationScale과 worldScale이 같으므로 width·height는 그림 픽셀 크기 그대로다.
   locations: [

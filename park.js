@@ -11,6 +11,7 @@ function parkLayout() {
     top: (bounds.y - bounds.height / 2) * scale + inset,
     bottom: (bounds.y + bounds.height / 2) * scale - inset,
     gateX: (place.x + PARK_DATA.gateX) * scale,
+    northGateX: (place.x + PARK_DATA.northGateX) * scale,
     ticket: convert(PARK_DATA.ticket), shop: convert(PARK_DATA.shop), stand: convert(PARK_DATA.stand),
     center: { x: (place.x + PARK_DATA.carousel.x) * scale, y: (place.y + PARK_DATA.carousel.y) * scale },
   };
@@ -19,10 +20,12 @@ function parkLayout() {
 function parkFences(layout) {
   const thickness = PARK_DATA.fenceThickness * settings.worldScale;
   const gap = PARK_DATA.gateWidth * settings.worldScale;
-  const { left, right, top, bottom, gateX } = layout;
-  // 남쪽 울타리 가운데만 정문으로 비워 둔다.
+  const northGap = PARK_DATA.northGateWidth * settings.worldScale;
+  const { left, right, top, bottom, gateX, northGateX } = layout;
+  // 남쪽 울타리는 정문, 북쪽 울타리는 위쪽 분홍 길 자리만 비워 둔다.
   return [
-    { x: (left + right) / 2, y: top, width: right - left, height: thickness },
+    { x: (left + northGateX - northGap / 2) / 2, y: top, width: northGateX - northGap / 2 - left, height: thickness },
+    { x: (northGateX + northGap / 2 + right) / 2, y: top, width: right - northGateX - northGap / 2, height: thickness },
     { x: left, y: (top + bottom) / 2, width: thickness, height: bottom - top },
     { x: right, y: (top + bottom) / 2, width: thickness, height: bottom - top },
     { x: (left + gateX - gap / 2) / 2, y: bottom, width: gateX - gap / 2 - left, height: thickness },
