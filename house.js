@@ -5,16 +5,67 @@ function houseDoor(room) {
   return room.door;
 }
 
+// 안방 문의 열림 상태. 집을 나가거나 새 게임을 시작하면 닫는다. 저장하지 않는다.
+const houseDoorUi = { bedroomOpen: false };
+
+function houseBedroomDoor() {
+  return HOUSE_DATA.rooms.find(room=>room.id==="bedroom").door;
+}
+
 // 벽과 가구는 집 그림 데이터(city-data.js)에서 막고, 여기서는 게임 상태에 따라 달라지는 것만 돌려준다.
 function houseObstacles() {
   const child=HOUSE_DATA.rooms.find(room=>room.id==="child");
-  return [HOUSE_DATA.cabinet,DIARY_DATA.bed,...HOUSE_DATA.dolls.filter(doll=>!gameState.acquiredItems[doll.itemId]),...(gameState.childRoomUnlocked?[]:[child.door])];
+  return [HOUSE_DATA.cabinet,DIARY_DATA.bed,...HOUSE_DATA.dolls.filter(doll=>!gameState.acquiredItems[doll.itemId]),...(gameState.childRoomUnlocked?[]:[child.door]),...(houseDoorUi.bedroomOpen?[]:[houseBedroomDoor()])];
+}
+
+// 플레이어 발밑에서 안방 문까지의 거리.
+function houseBedroomDoorDistance() {
+  const door=houseBedroomDoor(),footY=player.y+player.footOffset;
+  return Math.hypot(Math.max(0,Math.abs(player.x-door.x)-door.width/2),Math.max(0,Math.abs(footY-door.y)-door.height/2));
+}
+
+// 안방 문을 열거나 닫는다. 플레이어가 문 틈에 서 있으면 닫지 않는다.
+function toggleHouseBedroomDoor() {
+  if(houseDoorUi.bedroomOpen&&circleHitsRectangle(player.x,player.y+player.footOffset,player.collisionRadius,houseBedroomDoor())) {
+    showDoorMessage(HOUSE_DATA.text.doorBlocked);
+    return false;
+  }
+  houseDoorUi.bedroomOpen=!houseDoorUi.bedroomOpen;
+  return true;
+}
+
+function nearHouseBedroomDoor() {
+  return scene.interiorId===HOUSE_DATA.placeId&&houseBedroomDoorDistance()<=HOUSE_DATA.interactDistance;
+}
+
+// 상호작용 키: 가까운 안방 문을 열고 닫는다. 문이 가까우면 true를 돌려준다.
+function interactNearbyHouseDoor() {
+  if(!nearHouseBedroomDoor())return false;
+  toggleHouseBedroomDoor();
+  return true;
+}
+
+// 안방 문 안내 문구. 키가 지정되지 않았으면 클릭 안내만 보여 준다.
+function houseBedroomDoorHint() {
+  const text=HOUSE_DATA.text,key=interactKeyLabel(),open=houseDoorUi.bedroomOpen;
+  if(!key)return open?text.doorCloseClickHint:text.doorOpenClickHint;
+  return (open?text.doorCloseHint:text.doorOpenHint).replace("{key}",key);
+}
+
+// 저장에서 이어 할 때 문 틈에 서 있었다면 문을 열어 둔다.
+function openHouseDoorAtPlayer() {
+  if(circleHitsRectangle(player.x,player.y+player.footOffset,player.collisionRadius,houseBedroomDoor()))houseDoorUi.bedroomOpen=true;
 }
 
 function handleHouseClick(x,y) {
   const hit=rect=>Math.abs(x-rect.x)<=rect.width/2+8&&Math.abs(y-rect.y)<=rect.height/2+8;
   const child=HOUSE_DATA.rooms.find(room=>room.id==="child"),door=houseDoor(child);
   const book=DIARY_DATA.book;
+  if(hit(houseBedroomDoor().picture)) {
+    if(nearHouseBedroomDoor())toggleHouseBedroomDoor();
+    else showDoorMessage(HOUSE_DATA.text.doorNear);
+    return true;
+  }
   if(Math.abs(x-book.x)<=book.width/2+DIARY_DATA.clickPadding&&Math.abs(y-book.y)<=book.height/2+DIARY_DATA.clickPadding) {
     const footY=player.y+player.footOffset;
     const inside=player.x>child.x+HOUSE_DATA.wallThickness&&player.x<child.x+child.width-HOUSE_DATA.wallThickness&&footY>child.y+HOUSE_DATA.wallThickness&&footY<child.y+child.height-HOUSE_DATA.wallThickness;
@@ -70,20 +121,18 @@ function drawHouseDoll(doll) {
   ctx.restore();
 }
 
-// 문이 열려 있으면 문 그림 위에 근처 바닥 그림을 덮어 지나갈 수 있게 보여 준다.
-function drawOpenHouseDoor(image,door) {
-  const rect=door.picture;
-  ctx.drawImage(image,door.floor.x,door.floor.y,rect.width,rect.height,rect.x-rect.width/2,rect.y-rect.height/2,rect.width,rect.height);
-}
-
 function drawHouse() {
   const interior=city.interiors.find(room=>room.placeId===HOUSE_DATA.placeId);
   const image=objectSpriteImage(interior.picture.src);
-  const child=HOUSE_DATA.rooms.find(room=>room.id==="child"),bedroom=HOUSE_DATA.rooms.find(room=>room.id==="bedroom");
+  const child=HOUSE_DATA.rooms.find(room=>room.id==="child");
   ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="18px 'Malgun Gothic', sans-serif";
   if(image) {
-    drawOpenHouseDoor(image,bedroom.door);
-    if(gameState.childRoomUnlocked)drawOpenHouseDoor(image,child.door);
+    // 안방 문이 닫혀 있으면 통로 자리에 문 그림을 덮는다.
+    const closed=HOUSE_DATA.bedroomDoorClosed,closedImage=houseDoorUi.bedroomOpen?null:objectSpriteImage(closed.src);
+    if(closedImage)ctx.drawImage(closedImage,closed.x,closed.y,closed.width,closed.height);
+    // 아이 방 문을 열었으면 문 자리에 통로 그림을 덮는다.
+    const open=HOUSE_DATA.childDoorOpen,openImage=gameState.childRoomUnlocked?objectSpriteImage(open.src):null;
+    if(openImage)ctx.drawImage(openImage,open.x,open.y,open.width,open.height);
     drawObjectSprite(HOUSE_DATA.cabinet);
   } else {
     // 그림을 불러오지 못했을 때의 임시 표시.
@@ -94,6 +143,7 @@ function drawHouse() {
     ctx.fillStyle="#a98664";ctx.fillRect(cabinet.x-cabinet.width/2,cabinet.y-cabinet.height/2,cabinet.width,cabinet.height);
     ctx.fillStyle="#5b4b3b";ctx.fillText(HOUSE_DATA.text.cabinet,cabinet.x,cabinet.y+cabinet.height/2+20);
     if(!gameState.childRoomUnlocked){const door=child.door;ctx.fillStyle="#705346";ctx.fillRect(door.x-door.width/2,door.y-door.height/2,door.width,door.height);}
+    if(!houseDoorUi.bedroomOpen){const door=houseBedroomDoor();ctx.fillStyle="#9a6a42";ctx.fillRect(door.x-door.width/2,door.y-door.height/2,door.width,door.height);}
   }
   drawChildRoomFurniture(!!image);
   for(const doll of HOUSE_DATA.dolls)if(!gameState.acquiredItems[doll.itemId]) {

@@ -129,17 +129,18 @@ const CITY_DATA = {
       floorColor: "#e6dfc6", wallColor: "#a59c7d", tileSize: 64,
       exit: { x: 800, y: 984, width: 96, height: 32, side: "south" },
       spawn: { x: 800, footY: 888, facing: "up" } },
-    // 집은 그림(1254×1254) 픽셀이 곧 게임 좌표다. 사용자 결정(2026-11-08): 부엌은 그림에서 벽으로 막혀 있어 들어가지 못한다.
+    // 집은 그림(1254×1254) 픽셀이 곧 게임 좌표다. 그림은 원본에서 안방 문을 열린 통로로 합성한 사본이다. 사용자 결정(2026-11-08): 부엌과 마루 사이 벽, 마루의 시계·액자를 그림에서 지웠다. 부엌은 마루에서 걸어 들어간다.
     // TODO: 걷는 범위는 임시 값이다. 플레이 테스트에서 조정한다.
     { placeId: "C05", name: "집", wall: 0, floorColor: "#d7c5ac", wallColor: "#998674", tileSize: 64,
       picture: { src: "assets/house-interior.png", imageWidth: 1254, imageHeight: 1254, scale: 1,
         walkable: [
           { left: 18, top: 232, right: 312, bottom: 497 }, // 아이 방
-          { left: 238, top: 497, right: 302, bottom: 521 }, // 아이 방 문 틈
+          { left: 231, top: 497, right: 312, bottom: 521 }, // 아이 방 문 틈
           { left: 945, top: 232, right: 1238, bottom: 497 }, // 안방
-          { left: 952, top: 497, right: 1018, bottom: 521 }, // 안방 문 틈
+          { left: 947, top: 497, right: 1023, bottom: 521 }, // 안방 문 틈
           { left: 332, top: 232, right: 418, bottom: 372 }, // 부엌 왼쪽 복도
           { left: 332, top: 372, right: 925, bottom: 521 }, // 마루 위쪽
+          { left: 437, top: 238, right: 925, bottom: 372 }, // 부엌(마루와 벽 없이 이어진다)
           { left: 212, top: 520, right: 1042, bottom: 932 }, // 마루
           { left: 212, top: 930, right: 353, bottom: 952 }, // 마루 왼쪽 아래
           { left: 897, top: 930, right: 1042, bottom: 952 }, // 마루 오른쪽 아래
@@ -150,7 +151,7 @@ const CITY_DATA = {
           { left: 168, top: 165, right: 302, bottom: 262 }, // 아이 방 책상과 의자
           { left: 995, top: 170, right: 1172, bottom: 372 }, // 안방 침대(인형이 놓여 있다)
           { left: 1170, top: 205, right: 1232, bottom: 305 }, // 안방 협탁
-          { left: 463, top: 455, right: 742, bottom: 521 }, // 벽 그림과 시계
+          { left: 705, top: 165, right: 838, bottom: 292 }, // 부엌 식탁과 의자
           { left: 333, top: 585, right: 398, bottom: 768 }, // TV
           { left: 472, top: 558, right: 678, bottom: 672 }, // 소파
           { left: 675, top: 600, right: 755, bottom: 725 }, // 1인 소파
@@ -158,8 +159,9 @@ const CITY_DATA = {
           { left: 387, top: 950, right: 498, bottom: 1088 }, // 옷장
           { left: 730, top: 950, right: 858, bottom: 1070 }, // 신발장
         ] },
-      exit: { x: 620, y: 1180, width: 96, height: 32, side: "south" },
-      spawn: { x: 620, footY: 1110, facing: "up" } },
+      // 사용자 결정: 쪽문으로 들어오면 아이 방과 부엌 사이 복도 끝 문 앞에 서고, 나갈 때도 이 문으로 나간다. 아래쪽 현관문은 잠긴 정문이다.
+      exit: { x: 376, y: 180, width: 80, height: 105, side: "north" },
+      spawn: { x: 376, footY: 262, facing: "down" } },
   ],
 };
 

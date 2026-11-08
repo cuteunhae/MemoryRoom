@@ -38,7 +38,7 @@ window.addEventListener("keydown", event => {
     if (event.repeat) return;
     // 상호작용 키로 연 창(대화·게시판·명부)이 열려 있으면 닫고, 아니면 가까운 대상과 상호작용한다.
     if (inspectionUiState.object?.messages?.keyHint) closeInspection();
-    else if (!isGameInputBlocked()) interactNearbySchool() || interactNearbyObject() || interactNearbyEntrance();
+    else if (!isGameInputBlocked()) interactNearbySchool() || interactNearbyHouseDoor() || interactNearbyObject() || interactNearbyEntrance();
     return;
   }
   const actions = { inventory: toggleInventory, achievements: toggleAchievements, map: toggleMap };

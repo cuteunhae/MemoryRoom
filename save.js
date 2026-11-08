@@ -133,6 +133,7 @@ function resetSession() {
   Object.assign(playgroundAnimation, { swingUntil: 0, seesawUntil: 0, slideUntil: 0 });
   resetRegistryProgress();
   schoolDoorUi.open.clear();
+  houseDoorUi.bedroomOpen = false;
   clearBubbleEffects();
   pressedKeys.clear();
   previousTime = null;
@@ -151,6 +152,7 @@ function restoreProgress() {
       Object.assign(player, { x: position.x, y: position.y, facing: position.facing });
       // 학교 문은 저장하지 않는다. 문 틈에 서 있던 저장이면 그 문만 열어 둔 채로 이어 한다.
       if (scene.interiorId === SCHOOL_DATA.placeId) openSchoolDoorsAtPlayer();
+      if (scene.interiorId === HOUSE_DATA.placeId) openHouseDoorAtPlayer();
       if (!canStand(player.x, player.y) || (scene.returnPoint && !canStandCity(scene.returnPoint.x, scene.returnPoint.y))) throw new Error("Invalid position");
       initializeHintSession();
       updateAchievementConditions();

@@ -80,8 +80,14 @@ function hintCandidates() {
   if (!gameState.endingReached && homeNeeded) {
     if (scene.interiorId !== HOUSE_DATA.placeId) {
       add("HNT-07");
+      // 사용자 결정: 집 힌트(HNT-07) 다음에 침대 위 인형을 찾는 힌트(HNT-19)를 준다.
+      if (!has("bear")) add("HNT-19", HOUSE_DATA.dolls.find(doll => doll.itemId === HINT_DATA.items.bear));
       add("HNT-13");
-    } else if (!has("bear")) add("HNT-15", HOUSE_DATA.dolls.find(doll => doll.itemId === HINT_DATA.items.bear));
+    } else if (!has("bear")) {
+      const bear = HOUSE_DATA.dolls.find(doll => doll.itemId === HINT_DATA.items.bear);
+      add("HNT-19", bear);
+      add("HNT-15", bear);
+    }
     else if (!gameState.cabinetSolved && CABINET_DATA.answer.every(id => gameState.acquiredItems[id])) add("HNT-08", HOUSE_DATA.cabinet);
     else if (gameState.cabinetSolved && !gameState.childRoomUnlocked) add("HNT-16", houseDoor(HOUSE_DATA.rooms.find(room => room.id === "child")));
     else if (gameState.childRoomUnlocked) add("HNT-17", DIARY_DATA.book);

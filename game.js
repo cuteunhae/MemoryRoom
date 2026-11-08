@@ -166,6 +166,8 @@ function finishMapTransition() {
   else restoreUnsolvedCabinet();
   // 학교를 나가면 열어 둔 문을 모두 닫는다(층 이동은 유지).
   if (scene.interiorId !== SCHOOL_DATA.placeId) schoolDoorUi.open.clear();
+  // 집을 나가면 안방 문을 닫는다.
+  if (scene.interiorId !== HOUSE_DATA.placeId) houseDoorUi.bedroomOpen = false;
   clearBubbleEffects();
   // 누르고 있던 방향키와 이전 화면의 시간 차가 새 맵에 남지 않게 한다.
   pressedKeys.clear();
@@ -812,6 +814,10 @@ function currentKeyHint() {
   if (target) {
     const rect = target.pictureRect;
     return { text: schoolDoorHint(), x: rect.x, y: rect.y, center: true };
+  }
+  if (nearHouseBedroomDoor()) {
+    const rect = houseBedroomDoor().picture;
+    return { text: houseBedroomDoorHint(), x: rect.x, y: rect.y, center: true };
   }
   const object = nearbyKeyObject();
   if (object) {

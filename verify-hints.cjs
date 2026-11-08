@@ -119,14 +119,19 @@ a.run('gameState.hints.received=[];gameState.acquiredItems[PARK_DATA.headbandId]
 a.run('gameState.carouselSolved=true');assert.equal(a.run('chooseHint().id'),'HNT-10');
 a.run('gameState.acquiredItems[PARK_DATA.balloonId]=true;gameState.acquiredItems[PARK_DATA.memoId]=true;gameState.playgroundMemoViewed=true');assert.equal(a.run('chooseHint().id'),'HNT-06');
 a.run('gameState.swingUsed=true;gameState.seesawUsed=true');assert.equal(a.run('chooseHint().id'),'HNT-12');
-// 집에 들어가기 전에는 집 힌트(HNT-07→HNT-13)를 먼저 주고, 그다음 미끄럼틀 힌트(HNT-14)를 준다.
+// 집에 들어가기 전에는 집 힌트(HNT-07→HNT-19→HNT-13)를 먼저 주고, 그다음 미끄럼틀 힌트(HNT-14)를 준다.
 a.run('gameState.acquiredItems[PLAYGROUND_DATA.toyId]=true');assert.equal(a.run('chooseHint().id'),'HNT-07');
-a.run('gameState.hints.received.push("HNT-07")');assert.equal(a.run('chooseHint().id'),'HNT-13');
+a.run('gameState.hints.received.push("HNT-07")');assert.equal(a.run('chooseHint().id'),'HNT-19');
+a.run('gameState.hints.received.push("HNT-19")');assert.equal(a.run('chooseHint().id'),'HNT-13');
 a.run('gameState.hints.received.push("HNT-13")');assert.equal(a.run('chooseHint().id'),'HNT-14');
 a.run('gameState.hints.received=[];gameState.slideUsed=true');assert.equal(a.run('chooseHint().id'),'HNT-07');
 // 집 안에서는 집 외곽 힌트가 나오지 않는다.
-a.run('scene.interiorId=HOUSE_DATA.placeId');assert.equal(a.run('chooseHint().id'),'HNT-15');assert.equal(a.run('hintCandidates().some(c=>c.id==="HNT-13")'),false);
+// 집 안에서도 곰 인형이 없으면 HNT-19 다음에 HNT-15를 준다.
+a.run('scene.interiorId=HOUSE_DATA.placeId');assert.equal(a.run('chooseHint().id'),'HNT-19');
+a.run('gameState.hints.received.push("HNT-19")');assert.equal(a.run('chooseHint().id'),'HNT-15');a.run('gameState.hints.received=[]');assert.equal(a.run('hintCandidates().some(c=>c.id==="HNT-13")'),false);
 a.run('CABINET_DATA.answer.forEach(id=>gameState.acquiredItems[id]=true)');assert.equal(a.run('chooseHint().id'),'HNT-08');
+// 곰 인형을 얻은 뒤에는 집 밖에서도 HNT-19가 나오지 않는다.
+a.run('scene.interiorId=null');assert.equal(a.run('hintCandidates().some(c=>c.id==="HNT-19")'),false);a.run('scene.interiorId=HOUSE_DATA.placeId');
 a.run('gameState.cabinetSolved=true');assert.equal(a.run('chooseHint().id'),'HNT-16');
 a.run('gameState.childRoomUnlocked=true');assert.equal(a.run('chooseHint().id'),'HNT-17');
 // 마지막 활동까지 끝나면 새 힌트를 만들지 않으며 기존 기록은 유지된다.
