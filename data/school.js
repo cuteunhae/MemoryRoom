@@ -107,6 +107,8 @@ const SCHOOL_DATA = {
     { id: "school-teacher", placeId: "C02", floor: 1, type: "dialogue", name: "선생님",
       rect: { left: 322, top: 612, right: 337, bottom: 634 }, interactDistance: 140, color: "#557d78", sprite: { src: "assets/npc-teacher.png", width: 40, height: 72 }, messages: {
       tooFar: "선생님 가까이에서 클릭해 주세요.",
+      // 가까이 가면 나오는 안내. {key}는 설정에서 지정한 상호작용 키로 바뀐다. keyHintClick은 키가 할당 없음일 때 쓴다.
+      keyHint: "{key} 키를 누르거나 클릭해 대화하기", keyHintClick: "클릭해 대화하기",
       dialogue: "오랜만이구나! 졸업하고 어떻게 지내는지 궁금했단다. 아참, 저 게시판에는 새로 입학한 학생들을 위한 반 배치도가 있단다. 한번 살펴보렴.",
     } },
   ],

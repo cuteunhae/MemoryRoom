@@ -35,7 +35,10 @@ window.addEventListener("keydown", event => {
   }
   if (action === "interact") {
     event.preventDefault();
-    if (!event.repeat && !isGameInputBlocked()) interactNearbyDoor();
+    if (event.repeat) return;
+    // 대화창이 열려 있으면 닫고, 아니면 가까운 문이나 인물과 상호작용한다.
+    if (inspectionUiState.mode === "dialogue") closeInspection();
+    else if (!isGameInputBlocked()) interactNearbyDoor() || interactNearbyObject();
     return;
   }
   const actions = { inventory: toggleInventory, achievements: toggleAchievements, map: toggleMap };

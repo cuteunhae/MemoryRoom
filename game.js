@@ -725,11 +725,73 @@ function drawObjectSprite(object) {
   return true;
 }
 
+// 상호작용 키로 말을 걸 수 있는 가까운 물체(messages.keyHint가 있는 인물). 없으면 null이다.
+function nearbyKeyObject() {
+  const interior = currentInterior();
+  if (!interior) return null;
+  const footY = player.y + player.footOffset;
+  return inspectionObjectsFor(interior).find(object => object.messages?.keyHint &&
+    Math.hypot(Math.max(0, Math.abs(player.x - object.x) - object.width / 2), Math.max(0, Math.abs(footY - object.y) - object.height / 2)) <= object.interactDistance) || null;
+}
+
+// 상호작용 키: 가까운 인물에게 말을 건다. 말을 걸었으면 true를 돌려준다.
+function interactNearbyObject() {
+  const object = nearbyKeyObject();
+  if (!object) return false;
+  openInspection(object);
+  return true;
+}
+
+// 가까운 인물의 화면 안내 문구. 키가 지정되지 않았으면 클릭 안내만 보여 준다.
+function keyObjectHint() {
+  const object = nearbyKeyObject();
+  if (!object) return "";
+  const key = interactKeyLabel();
+  return key ? object.messages.keyHint.replace("{key}", key) : object.messages.keyHintClick;
+}
+
+// 상호작용 키 안내 상자의 크기와 플레이어 머리까지의 간격. 단위는 화면 픽셀이고, headOffset만 게임 속 픽셀이다.
+// TODO: 크기와 간격은 임시 값이다. 플레이 테스트에서 조정한다.
+const KEY_HINT_BOX = { height: 30, paddingX: 12, gap: 4, arrow: 6, margin: 8, headOffset: 32 };
+
+// 플레이어 머리 바로 위 상자의 화면 위치를 구한다. 화면 밖으로 나가지 않게 안쪽으로 밀어 넣는다.
+function keyHintBox(textWidth) {
+  const box = KEY_HINT_BOX, width = Math.min(textWidth + box.paddingX * 2, canvas.width - box.margin * 2);
+  const headX = (player.x - camera.x) * settings.cameraZoom;
+  const headY = (player.y - box.headOffset - camera.y) * settings.cameraZoom;
+  const x = Math.max(box.margin, Math.min(canvas.width - box.margin - width, headX - width / 2));
+  const y = Math.max(box.margin, headY - box.gap - box.arrow - box.height);
+  return { x, y, width, height: box.height, headX, headY };
+}
+
+// 문·인물의 상호작용 키 안내를 플레이어 머리 위에 그린다. 창이 열려 있으면 그리지 않는다.
+function drawKeyHint() {
+  if (isGameInputBlocked()) return;
+  const message = schoolDoorHint() || keyObjectHint();
+  if (!message) return;
+  ctx.save();
+  ctx.font = "15px 'Malgun Gothic', sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const rect = keyHintBox(ctx.measureText(message).width);
+  ctx.fillStyle = "#26342df2";
+  ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+  // 상자가 머리 위에 있을 때만 머리를 가리키는 작은 삼각형을 그린다.
+  const bottom = rect.y + rect.height;
+  if (bottom + KEY_HINT_BOX.arrow <= rect.headY) {
+    tracePath([[rect.headX - KEY_HINT_BOX.arrow, bottom], [rect.headX + KEY_HINT_BOX.arrow, bottom], [rect.headX, bottom + KEY_HINT_BOX.arrow]], true);
+    ctx.fill();
+  }
+  ctx.fillStyle = "#fff8e9";
+  ctx.fillText(message, rect.x + rect.width / 2, rect.y + rect.height / 2, rect.width - 8);
+  ctx.restore();
+}
+
 function drawDoorHint() {
   const interior = currentInterior();
   let message = scene.messageUntil > Date.now() ? scene.message : "";
   if (!message && interior && nearInteriorExit(interior)) message = city.interiorUi.exit;
-  if (!message && interior?.placeId === SCHOOL_DATA.placeId) message = schoolStairsHint() || schoolDoorHint();
+  if (!message && interior?.placeId === SCHOOL_DATA.placeId) message = schoolStairsHint();
   if (!message && !interior) {
     const target = outdoorDoors().find(nearOutdoorDoor);
     if (target) message = target.kind === "locked" ? city.interiorUi.locked : city.interiorUi.enter;
@@ -775,6 +837,7 @@ function draw() {
   }
   ctx.restore();
   drawDoorHint();
+  drawKeyHint();
 }
 
 let previousTime = null;

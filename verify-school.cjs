@@ -172,6 +172,15 @@ assert.equal(run('player.x'), savedReturn.x);
 assert.equal(run('player.y'), savedReturn.y);
 assert.equal(run('gameState.photoCollected'), false);
 assert.equal(run('gameState.inventory.itemIds.length'), 0);
+// 선생님 가까이에서는 키 안내가 나오고, 상호작용 키로 대화가 열린다. 멀어지면 안내가 없다.
+run('closeInspection&&inspectionUiState.mode&&closeInspection();scene.interiorId=SCHOOL_DATA.placeId;scene.schoolFloor=1;finishMapTransition()');
+const teacherObject=read('SCHOOL_DATA.objects.find(object=>object.id==="school-teacher")');
+run(`player.x=${teacherObject.x};player.y=${teacherObject.y+teacherObject.height/2+40}-player.footOffset;updateCamera()`);
+assert.ok(run('canStand(player.x,player.y)'));
+assert.equal(run('keyObjectHint()'),'E 키를 누르거나 클릭해 대화하기');
+assert.equal(run('interactNearbyObject()'),true);assert.equal(run('inspectionUiState.mode'),'dialogue');run('closeInspection()');
+run('player.x=schoolStairs().arrival.x;player.y=schoolStairs().arrival.footY-player.footOffset');
+assert.equal(run('keyObjectHint()'),'');
 console.log('통과: 그림 기준 문 닫힘 차단·문 가까이 안내 문구·E/클릭 열고 닫기·문 틈 닫기 방지·퇴장 시 닫힘, 문을 열면 모든 방·정문 도달, 벽/가구 충돌, 게시판·확정 대사·입력 차단, 줌별 계단 왕복·연속 클릭 방지, 2층 퇴장 차단, 입구 복귀');
 
 // 실제 입력 처리로 거리·중복·모달 차단·선택 유지·재입장을 확인한다.

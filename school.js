@@ -99,13 +99,19 @@ function interactNearbyDoor() {
   return door ? toggleSchoolDoor(door) : false;
 }
 
+// 상호작용 키의 화면 표시 이름. 키가 지정되지 않았으면 null이다.
+function interactKeyLabel() {
+  const code = currentBindings().interact;
+  return code ? code.replace(/^Key/, "").replace(/^Digit/, "") : null;
+}
+
 // 가까운 문이 있으면 화면 안내 문구를 돌려준다. 문 열기 키가 지정되지 않았으면 클릭 안내만 보여 준다.
 function schoolDoorHint() {
   const door = nearestSchoolDoor();
   if (!door) return "";
-  const open = schoolDoorUi.open.has(door.id), code = currentBindings().interact, text = SCHOOL_DATA.text;
-  if (!code) return open ? text.doorCloseClickHint : text.doorOpenClickHint;
-  return (open ? text.doorCloseHint : text.doorOpenHint).replace("{key}", code.replace(/^Key/, "").replace(/^Digit/, ""));
+  const open = schoolDoorUi.open.has(door.id), key = interactKeyLabel(), text = SCHOOL_DATA.text;
+  if (!key) return open ? text.doorCloseClickHint : text.doorOpenClickHint;
+  return (open ? text.doorCloseHint : text.doorOpenHint).replace("{key}", key);
 }
 
 // 저장에서 이어 할 때 문 틈에 서 있었다면 그 문을 열어 둔다.

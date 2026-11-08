@@ -125,12 +125,34 @@ assert.deepEqual(read("gameState.inventory.itemIds"), [album.rewardId]);
 assert.equal(run("gameState.inventory.selectedItemId"), album.rewardId);
 elements['inspection-close'].handlers.click();
 const staff = read('INSPECTION_OBJECTS.find(object => object.type === "dialogue")');
+// 멀리 있으면 안내가 없고 상호작용 키도 반응하지 않는다.
+assert.equal(run('keyObjectHint()'), '');
+assert.equal(run('interactNearbyObject()'), false);
 click(staff);
 assert.equal(run('inspectionUiState.mode'), null);
 run(`player.x = ${staff.x}; player.y = ${staff.y + 100} - player.footOffset; updateCamera()`);
 assert.ok(run('canStand(player.x, player.y)'));
 click(staff);
 assert.equal(elements['inspection-message'].textContent, staff.messages.dialogue);
+// 가까이 가면 키 안내가 나오고, 상호작용 키로도 대화가 열린다. 키가 할당 없음이면 클릭 안내만 나온다.
+run('closeInspection()');
+assert.equal(run('keyObjectHint()'), 'E 키를 누르거나 클릭해 대화하기');
+// 키 안내 상자는 플레이어 머리 바로 위에 있고, 화면 가장자리에서는 화면 안으로 밀려 들어온다.
+assert.ok(run(`(() => { const box = keyHintBox(200); return box.y + box.height <= box.headY && box.headY - (box.y + box.height) <= 20 && box.x <= box.headX && box.headX <= box.x + box.width; })()`));
+assert.ok(run(`(() => { const x = player.x; player.x = camera.x - 500; const box = keyHintBox(200); player.x = x; return box.x === KEY_HINT_BOX.margin; })()`));
+assert.ok(run(`(() => { const x = player.x; player.x = camera.x + 9000; const box = keyHintBox(200); player.x = x; return box.x + box.width === canvas.width - KEY_HINT_BOX.margin; })()`));
+run('currentBindings().interact = null');assert.equal(run('keyObjectHint()'), '클릭해 대화하기');run('currentBindings().interact = "KeyE"');
+assert.equal(run('interactNearbyObject()'), true);assert.equal(run('inspectionUiState.mode'), 'dialogue');
+assert.equal(elements['inspection-message'].textContent, staff.messages.dialogue);
+assert.equal(elements['inspection-close'].textContent, '닫기 (E)');
+// E 키로 대화창을 닫고 다시 열 수 있다. 키를 누르고 있는 동안(반복 입력)에는 닫히지 않는다.
+key('KeyE', 'e', true);assert.equal(run('inspectionUiState.mode'), 'dialogue');
+key('KeyE', 'e');assert.equal(run('inspectionUiState.mode'), null);
+key('KeyE', 'e');assert.equal(run('inspectionUiState.mode'), 'dialogue');
+// 대화창이 아닌 창은 E 키로 닫히지 않고, 닫기 버튼에 키 이름도 없다.
+run('closeInspection();openInspection(INSPECTION_OBJECTS[0])');assert.equal(elements['inspection-close'].textContent, '닫기');
+key('KeyE', 'e');assert.equal(run('inspectionUiState.mode'), 'album');
+run('closeInspection();openInspection(INSPECTION_OBJECTS.find(object => object.type === "dialogue"))');
 assert.equal(run('inspectionUiState.mode'), 'dialogue');
 const npcBefore = read('({x: player.x, y: player.y})');
 key('ArrowRight', 'ArrowRight'); run('update(0.1)');

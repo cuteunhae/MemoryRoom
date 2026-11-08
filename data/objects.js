@@ -13,10 +13,13 @@ const INSPECTION_OBJECTS = [{
   },
 }, {
   id: "studio-staff", placeId: "C01", name: "직원", type: "dialogue",
-  x: 408, y: 273, width: 42, height: 54, interactDistance: 140, solid: true,
-  color: "#557d78", sprite: { src: "assets/npc-photographer.png", width: 44, height: 72 },
+  // 사용자 요청: 사진작가를 2배로 키웠다. 이 범위가 클릭·충돌 범위이며 그림 전체를 덮는다.
+  x: 420, y: 228, width: 72, height: 144, interactDistance: 140, solid: true,
+  color: "#557d78", sprite: { src: "assets/npc-photographer.png", width: 88, height: 144 },
   messages: {
     tooFar: "직원 가까이에서 클릭해 주세요.",
+    // 가까이 가면 나오는 안내. {key}는 설정에서 지정한 상호작용 키로 바뀐다. keyHintClick은 키가 할당 없음일 때 쓴다.
+    keyHint: "{key} 키를 누르거나 클릭해 대화하기", keyHintClick: "클릭해 대화하기",
     dialogue: "드디어 사진을 찾으러 오셨군요! 사진은 사진첩 안에 들어있습니다. 오신 김에 사진관도 둘러보고 가세요.",
   },
 }];
