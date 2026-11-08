@@ -46,10 +46,11 @@ const CITY_DATA = {
   ],
   // locationScale과 worldScale이 같으므로 width·height는 그림 픽셀 크기 그대로다.
   locations: [
+    // hintOffset: 키 안내를 판정 위치에서 그림 속 문 쪽으로 옮기는 거리(도시 그림 픽셀)다.
     { id: "C01", name: "사진관", x: 1230, y: 121, width: 206, height: 158, color: "#c68f79", solid: true,
-      doors: [{ side: "south", offset: 0, kind: "entrance", width: 40, height: 12 }] },
+      doors: [{ side: "south", offset: 0, kind: "entrance", width: 40, height: 12, hintOffset: { x: 0, y: -29 } }] },
     { id: "C02", name: "학교", x: 442, y: 125, width: 266, height: 150, color: "#d4b572", solid: true,
-      doors: [{ side: "south", offset: 0, kind: "entrance", width: 40, height: 12 }] },
+      doors: [{ side: "south", offset: 0, kind: "entrance", width: 40, height: 12, hintOffset: { x: 0, y: -29 } }] },
     // 야외 장소는 walkArea 다각형 안을 걸을 수 있다. 없으면 사각형 전체를 걷는다.
     { id: "C03", name: "놀이공원", x: 1243, y: 562, width: 736, height: 454, color: "#e9c9b1", solid: false,
       walkArea: [[1000, 338], [1490, 338], [1530, 358], [1562, 400], [1600, 470], [1612, 520], [1612, 740],
@@ -59,7 +60,8 @@ const CITY_DATA = {
     // 정문(남쪽)은 잠겨 있고, 오른쪽 담장의 나무 쪽문으로 들어간다. 쪽문은 건물 밖 담장에 있어 위치를 직접 적는다.
     { id: "C05", name: "집", x: 846, y: 100, width: 168, height: 160, color: "#a6b7bd", solid: true,
       doors: [{ side: "south", offset: 0, kind: "locked", width: 30, height: 12 },
-        { side: "east", kind: "side", x: 990, y: 200, width: 12, height: 45 }] },
+        // 쪽문은 플레이어가 바로 옆에 서므로, 머리를 가리지 않게 안내를 문 윗부분에 놓는다.
+        { side: "east", kind: "side", x: 990, y: 200, width: 12, height: 45, hintOffset: { x: -8, y: -25 } }] },
   ],
   // 그림 속 큰 장애물(놀이공원 안 화단). 논리 좌표 사각형이다.
   obstacles: [
@@ -91,8 +93,11 @@ const CITY_DATA = {
     messageDurationMs: 1800,
   },
   interiorUi: {
-    enter: "E키를 클릭해 들어가기",
-    exit: "E키를 클릭해 나가기",
+    // {key}는 설정에서 지정한 상호작용 키로 바뀐다. ...Click은 키가 할당 없음일 때 쓴다.
+    enter: "{key}키를 클릭해 들어가기",
+    exit: "{key}키를 클릭해 나가기",
+    enterClick: "문을 클릭해 들어가기",
+    exitClick: "출구를 클릭해 나가기",
     exitLabel: "나가기",
     locked: "잠긴 문입니다.",
     tooFar: "문 가까이 이동하세요.",

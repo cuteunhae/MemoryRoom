@@ -33,6 +33,66 @@ function schoolBoardText() {
   }).join("\n\n");
 }
 
+// 안내도 글자를 색 상자 위에 그린다. x·y는 상자 가운데다.
+function drawBoardLabel(context, text, x, y, background, color) {
+  const font = SCHOOL_DATA.boardMap.labelFont, height = font * 1.5, width = context.measureText(text).width + font;
+  context.fillStyle = background;
+  context.fillRect(x - width / 2, y - height / 2, width, height);
+  context.fillStyle = color;
+  context.fillText(text, x, y);
+}
+
+// 반 배치 게시판의 안내도를 그린다. 층마다 학교 그림을 놓고 방 이름·계단·현위치를 표기한다.
+function renderSchoolBoardMap() {
+  const panel = document.getElementById("school-board-panel");
+  panel.hidden = inspectionUiState.mode !== "board";
+  if (panel.hidden) return;
+  const picture = document.getElementById("school-board-map"), config = SCHOOL_DATA.boardMap;
+  const size = config.floorSize, floors = SCHOOL_DATA.floors;
+  picture.width = size * floors.length + config.gap * (floors.length - 1);
+  picture.height = size + config.titleHeight;
+  // 그림을 볼 수 없는 경우를 위해 같은 내용을 글로도 넣어 둔다.
+  picture.setAttribute("aria-label", schoolBoardText());
+  const context = picture.getContext("2d");
+  context.clearRect(0, 0, picture.width, picture.height);
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  floors.forEach((floor, index) => {
+    const left = index * (size + config.gap), top = config.titleHeight, crop = floor.crop;
+    const unit = size / SCHOOL_DATA.floorSize;
+    const toX = x => left + x * unit, toY = y => top + (y - crop.top) * unit;
+    context.font = `bold ${config.titleFont}px 'Malgun Gothic', sans-serif`;
+    context.fillStyle = "#403a32";
+    context.fillText(floor.name, left + size / 2, config.titleHeight / 2);
+    if (schoolImageReady("closed") && schoolImageReady("open")) {
+      context.drawImage(schoolImages.closed, crop.left, crop.top, crop.right - crop.left, crop.bottom - crop.top, left, top, size, size);
+      for (const rect of floor.alwaysOpen) context.drawImage(schoolImages.open, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, toX(rect.left), toY(rect.top), (rect.right - rect.left) * unit, (rect.bottom - rect.top) * unit);
+    } else {
+      // 그림을 불러오지 못하면 바닥만 색 블록으로 그린다.
+      context.fillStyle = "#6c6a60";
+      context.fillRect(left, top, size, size);
+      context.fillStyle = "#efe8d5";
+      for (const rect of floor.walkable) context.fillRect(toX(rect.left), toY(rect.top), (rect.right - rect.left) * unit, (rect.bottom - rect.top) * unit);
+    }
+    context.font = `bold ${config.labelFont}px 'Malgun Gothic', sans-serif`;
+    for (const room of floor.rooms) drawBoardLabel(context, room.name, toX((room.floor.left + room.floor.right) / 2), toY((room.floor.top + room.floor.bottom) / 2), "#26342de6", "#fff8e9");
+    drawBoardLabel(context, config.stairs[floor.number], toX(floor.stairs.x / floor.scale), toY(floor.stairs.y / floor.scale + crop.top), "#3f6f8fe6", "#fff8e9");
+    for (const label of config.labels.filter(label => label.floor === floor.number)) drawBoardLabel(context, label.name, toX(label.x), toY(label.y), "#fff8e9e6", "#403a32");
+    // 현위치: 게시판 자리에 빨간 점과 글자를 표시한다.
+    if (config.herePoint.floor === floor.number) {
+      const x = toX(config.herePoint.x), y = toY(config.herePoint.y);
+      context.fillStyle = "#d62f2a";
+      context.beginPath();
+      context.arc(x, y, 14, 0, Math.PI * 2);
+      context.fill();
+      context.strokeStyle = "#fff8e9";
+      context.lineWidth = 4;
+      context.stroke();
+      drawBoardLabel(context, config.here, x, y - 44, "#d62f2a", "#ffffff");
+    }
+  });
+}
+
 function inspectionObjectsFor(interior) {
   return [...INSPECTION_OBJECTS, ...SCHOOL_DATA.objects, ...classroomObjects()].filter(object =>
     object.placeId === interior.placeId && (!object.floor || object.floor === scene.schoolFloor));
@@ -93,10 +153,30 @@ function nearestSchoolDoor() {
     .sort((a, b) => schoolDoorDistance(a) - schoolDoorDistance(b))[0] || null;
 }
 
-// 문 열기 키(기본 E): 학교 안에서 가장 가까운 문을 열고 닫는다. 가까운 문이 없으면 아무 일도 하지 않는다.
-function interactNearbyDoor() {
-  const door = nearestSchoolDoor();
-  return door ? toggleSchoolDoor(door) : false;
+// 상호작용 키가 반응할 대상을 고른다. 계단 옆에 교실 문이 붙어 있으므로 계단과 문 중 더 가까운 쪽이다.
+// 계단이면 "stairs", 문이면 그 문, 둘 다 멀면 null을 돌려준다.
+function schoolKeyTarget() {
+  if (scene.interiorId !== SCHOOL_DATA.placeId) return null;
+  const door = nearestSchoolDoor(), stairsDistance = schoolStairsDistance();
+  if (stairsDistance > SCHOOL_DATA.interactDistance) return door;
+  return door && schoolDoorDistance(door) < stairsDistance ? door : "stairs";
+}
+
+// 상호작용 키(기본 E): 학교 안에서 가까운 문을 열고 닫거나 계단으로 이동한다. 가까운 것이 없으면 false를 돌려준다.
+function interactNearbySchool() {
+  const target = schoolKeyTarget();
+  if (!target) return false;
+  if (target !== "stairs") return toggleSchoolDoor(target);
+  // 층을 옮긴 직후 연속 입력으로 되돌아가지 않게 한다.
+  if (Date.now() >= scene.nextTransitionAt) changeSchoolFloor();
+  return true;
+}
+
+// 머리 위에 보여 줄 학교 안내 문구.
+function schoolKeyHint() {
+  const target = schoolKeyTarget();
+  if (!target) return "";
+  return target === "stairs" ? schoolStairsHint() : schoolDoorHint();
 }
 
 // 상호작용 키의 화면 표시 이름. 키가 지정되지 않았으면 null이다.
@@ -131,7 +211,9 @@ function schoolStairsDistance() {
 // 계단을 클릭할 수 있는 거리 안이면 이동 안내 문구를 돌려준다.
 function schoolStairsHint() {
   if (scene.interiorId !== SCHOOL_DATA.placeId || schoolStairsDistance() > SCHOOL_DATA.interactDistance) return "";
-  return scene.schoolFloor === 1 ? SCHOOL_DATA.text.stairsUpHint : SCHOOL_DATA.text.stairsDownHint;
+  const text = SCHOOL_DATA.text, up = scene.schoolFloor === 1, key = interactKeyLabel();
+  if (!key) return up ? text.stairsUpHint : text.stairsDownHint;
+  return (up ? text.stairsUpKeyHint : text.stairsDownKeyHint).replace("{key}", key);
 }
 
 function handleSchoolStairs(x, y) {
@@ -142,13 +224,18 @@ function handleSchoolStairs(x, y) {
     showDoorMessage(SCHOOL_DATA.text.near);
     return true;
   }
+  changeSchoolFloor();
+  return true;
+}
+
+// 다른 층의 계단 앞으로 옮긴다.
+function changeSchoolFloor() {
   scene.schoolFloor = scene.schoolFloor === 1 ? 2 : 1;
   const arrival = schoolStairs().arrival;
   player.x = arrival.x;
   player.y = arrival.footY - player.footOffset;
   player.facing = "down";
   finishMapTransition();
-  return true;
 }
 
 // 그림 좌표 사각형(rect)을 열린 그림에서 잘라 같은 자리에 덮어 그린다.

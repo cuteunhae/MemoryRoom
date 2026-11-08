@@ -33,7 +33,6 @@ canvas {
 #inventory-dialog::backdrop, #inspection-dialog::backdrop, #achievement-dialog::backdrop, #hint-dialog::backdrop, #settings-dialog::backdrop, #map-dialog::backdrop { background: #18231cb3; }
 #settings-launcher { position: fixed; right: 16px; bottom: 16px; }
 .settings-open, #settings-dialog button { padding: 10px 14px; border: 1px solid #96856d; border-radius: 8px; background: #f8f1e4; color: #403a32; font: inherit; cursor: pointer; }
-dialog > .settings-open { margin-top: 16px; }
 #settings-keys { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
 #settings-keys [aria-pressed="true"] { background: #d7e7d6; border: 2px solid #45675c; }
 .volume-row { display: grid; grid-template-columns: 90px 1fr 50px; gap: 8px; align-items: center; margin-top: 20px; }
@@ -99,6 +98,8 @@ dialog > .settings-open { margin-top: 16px; }
 .infirmary-map span:last-child { background: #d2e5d7; border-color: #45675c; }
 
 #inspection-dialog[data-mode="cabinet"] { width: min(820px, calc(100vw - 32px)); }
+#inspection-dialog[data-mode="board"] { width: min(920px, calc(100vw - 32px)); }
+#school-board-map { display: block; width: 100%; height: auto; }
 .cabinet-layout { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 24px; align-items: start; }
 /* 열린 진열장 그림 위에 칸 버튼을 겹친다. 그림과 칸 위치는 data/cabinet.js에 있다. */
 #cabinet-slots { position: relative; width: 100%; background: center / 100% 100% no-repeat; }

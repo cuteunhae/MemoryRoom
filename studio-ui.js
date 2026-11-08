@@ -43,11 +43,11 @@ function drawPhotoRoads() {
 function renderInspection() {
   const { mode, object, item, back } = inspectionUiState;
   inspectionDialog.dataset.mode = mode;
-  // 대화창은 상호작용 키로도 닫을 수 있어 버튼에 키 이름을 함께 보여 준다.
-  inspectionClose.textContent = mode === "dialogue" ? bindingCloseLabel("interact") : SETTINGS_DATA.text.close;
+  // 대화창·게시판은 상호작용 키로도 닫을 수 있어 버튼에 키 이름을 함께 보여 준다.
+  inspectionClose.textContent = object?.messages?.keyHint ? bindingCloseLabel("interact") : SETTINGS_DATA.text.close;
   const collected = mode === "album" && gameState.photoCollected;
   inspectionTitle.textContent = item && ["photo", "infirmary", "playgroundMemo", "diary"].includes(mode) ? item.name : object.name;
-  inspectionMessage.textContent = mode === "board" ? schoolBoardText() : mode === "dialogue" ? object.messages.dialogue :
+  inspectionMessage.textContent = mode === "board" ? SCHOOL_DATA.boardMap.hint : mode === "dialogue" ? object.messages.dialogue :
     mode === "photo" ? STUDIO_TEXT.flip : collected ? STUDIO_TEXT.emptyAlbum : STUDIO_TEXT.albumPrompt;
   photoButton.hidden = !["photo", "album"].includes(mode) || collected;
   emptyPhoto.hidden = !collected;
@@ -57,6 +57,7 @@ function renderInspection() {
   photoDate.textContent = item?.date || "";
   photoButton.setAttribute("aria-label", mode === "album" ? STUDIO_TEXT.collect : back ? STUDIO_TEXT.back : STUDIO_TEXT.front);
   if (mode === "photo" && back) drawPhotoRoads();
+  renderSchoolBoardMap();
   renderClassroomPanel();
   renderRegistry();
   renderCarouselPanel();

@@ -10,7 +10,7 @@ const assert = require("node:assert/strict");
 let now = 10000;
 const canvasHandlers = {};
 const windowHandlers = {};
-const context = new Proxy({}, { get: (target, key) => target[key] ?? (() => {}) });
+const context = new Proxy({ measureText: () => ({ width: 100 }) }, { get: (target, key) => target[key] ?? (() => {}) });
 const canvas = {
   width: 1280, height: 720,
   getContext: () => context,
@@ -67,13 +67,14 @@ choose('map');key('Escape');assert.equal(a.run('userPreferences.keys.settings'),
 a.elements['settings-close'].handlers.click();key('KeyW');assert.equal(a.run('pressedKeys.has("ArrowUp")'),true);a.run('update(.05)');release('KeyW');assert.equal(a.run('pressedKeys.size'),0);
 key('ArrowUp');assert.equal(a.run('pressedKeys.size'),0);
 key('Tab');assert.equal(a.run('inventoryUiState.open'),true);
-// 설정 키를 해제해도 각 창의 마우스 버튼으로 설정에 접근한다.
-a.elements['inventory-dialog'].children.find(b=>b.className==='settings-open').handlers.click();
+// 상세창에는 설정 버튼이 없고, 화면 오른쪽 아래에만 있다. 설정 키를 해제해도 이 버튼으로 설정을 연다.
+for(const id of ['inventory-dialog','inspection-dialog','achievement-dialog','hint-dialog','map-dialog']) assert.equal((a.elements[id]?.children||[]).some(b=>b.className==='settings-open'),false,id);
+a.elements['settings-launcher'].children.find(b=>b.className==='settings-open').handlers.click();
 assert.equal(a.run('settingsUi.open'),true);assert.equal(a.run('inventoryUiState.open'),true);
 key('Tab');assert.equal(a.run('inventoryUiState.open'),true);
 a.elements['settings-close'].handlers.click();assert.equal(a.run('inventoryUiState.open'),true);key('Tab');assert.equal(a.run('inventoryUiState.open'),false);
 key('Escape');assert.equal(a.run('mapUi.open'),true);assert.equal(a.elements['map-picture'].width,a.run('city.width'));assert.equal(a.elements['map-picture'].height,a.run('city.height'));
-a.elements['map-dialog'].children.find(b=>b.className==='settings-open').handlers.click();assert.equal(a.run('settingsUi.open'),true);
+a.run('toggleSettings()');assert.equal(a.run('settingsUi.open'),true);
 a.run('setSoundVolume("bgm",25);setSoundVolume("sfx",70)');assert.equal(a.run('getSoundVolume("bgm")'),.25);assert.equal(a.run('getSoundVolume("sfx")'),.7);
 a.elements['settings-restore'].handlers.click();assert.deepEqual(a.read('userPreferences.keys'),a.read('SETTINGS_DATA.keys'));assert.equal(a.run('getSoundVolume("bgm")'),.25);
 key('Escape');assert.equal(a.run('settingsUi.open'),false);assert.equal(a.run('mapUi.open'),true);key('KeyM');assert.equal(a.run('mapUi.open'),false);

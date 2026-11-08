@@ -65,8 +65,9 @@ document.getElementById("settings-restore").addEventListener("click",()=>{
   if(savePreferences({...userPreferences,keys:{...SETTINGS_DATA.keys}})) {settingsUi.listening=null;pressedKeys.clear();heldMovementCodes.clear();renderSettings();}
   else document.getElementById("settings-message").textContent=SETTINGS_DATA.text.failed;
 });
-// 다른 창이 열려 있어도 마우스로 설정을 열 수 있도록 각 화면에 버튼을 둔다.
-for(const id of ["settings-launcher","inventory-dialog","inspection-dialog","achievement-dialog","hint-dialog","map-dialog"]) {
+// 사용자 결정: 마우스 설정 버튼은 화면 오른쪽 아래에만 둔다. 상세창에는 넣지 않는다.
+// 설정 키가 할당 없음이어도 창을 닫기 버튼으로 닫은 뒤 이 버튼으로 설정을 열 수 있다.
+{
   const button=document.createElement("button");button.type="button";button.className="settings-open";button.textContent=SETTINGS_DATA.text.title;
-  button.addEventListener("click",toggleSettings);document.getElementById(id).append(button);
+  button.addEventListener("click",toggleSettings);document.getElementById("settings-launcher").append(button);
 }

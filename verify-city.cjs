@@ -33,7 +33,7 @@ function segmentRectangleDistance(a, b, rectangle) {
 
 assert.equal(segmentRectangleDistance([-5, 0], [5, 0], { x: 0, y: 0, width: 2, height: 2 }), 0);
 assert.equal(segmentRectangleDistance([-5, 4], [5, 4], { x: 0, y: 0, width: 2, height: 2 }), 3);
-const context = new Proxy({}, { get: (target, key) => target[key] ?? (() => {}) });
+const context = new Proxy({ measureText: () => ({ width: 100 }) }, { get: (target, key) => target[key] ?? (() => {}) });
 const canvas = { width: 1280, height: 720, getContext: () => context, addEventListener() {} };
 const sandbox = {
   document: { getElementById: () => canvas, addEventListener() {} },

@@ -10,7 +10,7 @@ const assert = require("node:assert/strict");
 let now = 10000;
 const canvasHandlers = {};
 const windowHandlers = {};
-const context = new Proxy({}, { get: (target, key) => target[key] ?? (() => {}) });
+const context = new Proxy({ measureText: () => ({ width: 100 }) }, { get: (target, key) => target[key] ?? (() => {}) });
 const canvas = {
   width: 1280, height: 720,
   getContext: () => context,

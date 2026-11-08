@@ -30,7 +30,8 @@ const SCHOOL_DATA = {
         { left: 170, top: 575, right: 265, bottom: 620 }, { left: 618, top: 575, right: 715, bottom: 620 }, // 벤치
         { left: 275, top: 540, right: 312, bottom: 612 }, { left: 572, top: 540, right: 610, bottom: 612 }, // 화분
         { left: 605, top: 495, right: 715, bottom: 555 }, // 오른쪽 게시판(왼쪽 게시판은 반 배치 게시판 물체)
-        { left: 135, top: 265, right: 312, bottom: 355 }, { left: 88, top: 345, right: 180, bottom: 410 }, // 교무실 책상·탁자
+        // 교무실 책상·탁자. 사용자 요청: 둘 사이로 지나가도록 탁자 둘레 의자와 책상 아래쪽 끝은 지나갈 수 있게 줄였다.
+        { left: 135, top: 265, right: 312, bottom: 345 }, { left: 95, top: 366, right: 172, bottom: 410 },
         { left: 48, top: 265, right: 100, bottom: 340 }, // 교무실 복사기
         { left: 555, top: 262, right: 595, bottom: 305 }, { left: 548, top: 312, right: 580, bottom: 395 }, // 보건실 수레·침상
         { left: 648, top: 356, right: 680, bottom: 395 }, { left: 800, top: 295, right: 840, bottom: 380 }, // 보건실 의자·가림막
@@ -98,14 +99,36 @@ const SCHOOL_DATA = {
     doorOpenHint: "{key} 키를 누르거나 문을 클릭해 열기", doorCloseHint: "{key} 키를 누르거나 문을 클릭해 닫기",
     doorOpenClickHint: "문을 클릭해 열기", doorCloseClickHint: "문을 클릭해 닫기",
     // 계단 가까이에 가면 나오는 이동 안내.
+    // ...KeyHint의 {key}는 설정에서 지정한 상호작용 키로 바뀐다. 키가 할당 없음이면 stairsUpHint·stairsDownHint를 쓴다.
+    stairsUpKeyHint: "{key} 키를 누르거나 계단을 클릭해 2층으로 올라가기", stairsDownKeyHint: "{key} 키를 누르거나 계단을 클릭해 1층으로 내려가기",
     stairsUpHint: "계단을 클릭해 2층으로 올라가기", stairsDownHint: "계단을 클릭해 1층으로 내려가기",
     boardIntro: "층마다 위쪽 줄과 아래쪽 줄로 나누어 왼쪽 → 오른쪽 순서로 적었습니다.\n\n" },
+  // 반 배치 게시판을 열면 나오는 안내도. 학교 그림을 바탕으로 방 이름·계단·현위치를 표기한다.
+  // labels의 x·y는 학교 그림(887×1774) 픽셀이다. 방 이름은 rooms, 계단은 stairs, 현위치는 게시판 자리에 자동으로 놓는다.
+  // 플레이어 도시 지도(M)가 아니라 학교 안에 걸린 안내도이므로 장소명과 현위치를 표기한다.
+  // TODO: 크기와 글자 크기는 임시 값이다. 단위는 안내도 캔버스 픽셀이다.
+  boardMap: {
+    floorSize: 800, gap: 40, titleHeight: 60, labelFont: 30, titleFont: 36,
+    hint: "왼쪽이 1층, 오른쪽이 2층입니다.", here: "현위치",
+    // 현위치 표시 자리. 학교 그림의 왼쪽 게시판 가운데다.
+    herePoint: { floor: 1, x: 226, y: 525 },
+    stairs: { 1: "2층 계단", 2: "1층 계단" },
+    labels: [
+      { floor: 1, name: "로비", x: 443, y: 620 },
+      { floor: 1, name: "출입구", x: 444, y: 790 },
+      { floor: 2, name: "복도", x: 230, y: 1315 },
+    ],
+  },
   objects: [
     // 반 배치 게시판은 로비 왼쪽 게시판 그림이다. 그림이 있으므로 따로 그리지 않는다(hidden).
     { id: "school-board", placeId: "C02", floor: 1, type: "board", name: "반 배치 게시판", hidden: true, solid: true,
-      rect: { left: 172, top: 495, right: 280, bottom: 555 }, interactDistance: 160, color: "#97744b", messages: { tooFar: "게시판 가까이에서 클릭해 주세요." } },
+      // 게시판 앞에 벤치가 있어 플레이어가 게시판에 붙어 설 수 없다. 사용자 요청으로 클릭·조사 범위를 벤치까지 넓혔다.
+      // picture는 게시판 그림 범위다. 키 안내를 이 가운데에 표시한다.
+      rect: { left: 170, top: 495, right: 280, bottom: 620 }, picture: { left: 172, top: 495, right: 280, bottom: 555 }, interactDistance: 160, color: "#97744b", messages: { tooFar: "게시판 가까이에서 클릭해 주세요.",
+      keyHint: "{key} 키를 누르거나 클릭해 안내도 보기", keyHintClick: "클릭해 안내도 보기" } },
     { id: "school-teacher", placeId: "C02", floor: 1, type: "dialogue", name: "선생님",
-      rect: { left: 322, top: 612, right: 337, bottom: 634 }, interactDistance: 140, color: "#557d78", sprite: { src: "assets/npc-teacher.png", width: 40, height: 72 }, messages: {
+      // 사용자 요청: 선생님 그림을 2.5배로 키웠다. rect는 클릭 범위이며 커진 그림을 덮는다.
+      rect: { left: 318, top: 583, right: 341, bottom: 634 }, interactDistance: 140, color: "#557d78", sprite: { src: "assets/npc-teacher.png", width: 100, height: 180 }, messages: {
       tooFar: "선생님 가까이에서 클릭해 주세요.",
       // 가까이 가면 나오는 안내. {key}는 설정에서 지정한 상호작용 키로 바뀐다. keyHintClick은 키가 할당 없음일 때 쓴다.
       keyHint: "{key} 키를 누르거나 클릭해 대화하기", keyHintClick: "클릭해 대화하기",
@@ -138,6 +161,7 @@ for (const floor of SCHOOL_DATA.floors) {
 for (const object of SCHOOL_DATA.objects) {
   const floor = SCHOOL_DATA.floors[object.floor - 1];
   Object.assign(object, schoolRect(object.rect, floor.crop.top, floor.scale));
+  if (object.picture) object.pictureRect = schoolRect(object.picture, floor.crop.top, floor.scale);
 }
 
 // 학교 실내 크기·정문·시작 위치를 1층 그림에 맞춘다. 2층 크기는 currentInterior()에서 층마다 바꾼다.

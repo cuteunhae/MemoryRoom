@@ -8,7 +8,7 @@ const assert = require("node:assert/strict");
 let now = 10000;
 const canvasHandlers = {};
 const windowHandlers = {};
-const context = new Proxy({}, { get: (target, key) => target[key] ?? (() => {}) });
+const context = new Proxy({ measureText: () => ({ width: 100 }) }, { get: (target, key) => target[key] ?? (() => {}) });
 const canvas = {
   width: 1280, height: 720,
   getContext: () => context,
@@ -116,7 +116,9 @@ pressKey('KeyE'); assert.equal(run('schoolDoorUi.open.has("door-office")'), true
 run('player.x = currentInterior().spawn.x; player.y = currentInterior().spawn.footY - player.footOffset; updateCamera()');
 click(office.pictureRect); assert.equal(run('schoolDoorUi.open.has("door-office")'), true);
 assert.equal(run('schoolDoorHint()'), '', '문에서 멀리 있는데 안내가 나옵니다.');
-pressKey('KeyE'); assert.equal(run('schoolDoorUi.open.size'), 1);
+// 시작 위치는 출구 앞이라 E 키로 나가진다. 출구·문·선생님에서 모두 먼 로비에서 검사한다.
+run('player.x = 443 * schoolFloor().scale; player.y = 600 * schoolFloor().scale - player.footOffset; updateCamera()');
+pressKey('KeyE'); assert.equal(run('schoolDoorUi.open.size'), 1); assert.equal(run('scene.interiorId'), run('SCHOOL_DATA.placeId'));
 // E 키도 설정에서 바꿀 수 있는 기능이다.
 assert.equal(run('currentBindings().interact'), 'KeyE');
 const board = read('SCHOOL_DATA.objects[0]');
@@ -130,8 +132,10 @@ for (const object of [board, teacher]) {
   assert.equal(elements['studio-photo'].hidden, true);
   if (object.type === 'dialogue') assert.equal(elements['inspection-message'].textContent, object.messages.dialogue);
   else for (const floor of read('SCHOOL_DATA.floors')) {
-    assert.ok(elements['inspection-message'].textContent.includes(floor.name));
-    for (const room of floor.rooms) assert.ok(elements['inspection-message'].textContent.includes(room.name));
+    // 안내도 그림과 함께, 같은 내용을 글로도 넣어 둔다.
+    assert.equal(elements['school-board-panel'].hidden, false);
+    assert.ok(elements['school-board-map'].attributes['aria-label'].includes(floor.name));
+    for (const room of floor.rooms) assert.ok(elements['school-board-map'].attributes['aria-label'].includes(room.name));
   }
   const before = run('player.y');
   run("pressedKeys.add('ArrowUp'); update(1)");
@@ -151,7 +155,7 @@ for (const zoom of [1, 1.5, 3]) {
     run('player.x = schoolStairs().arrival.x; player.y = schoolStairs().arrival.footY - player.footOffset; updateCamera()');
     assert.ok(run('canStand(player.x, player.y)'));
     // 계단 가까이에 서면 이동 안내가 나온다.
-    assert.equal(run('schoolStairsHint()'), run(floorNumber === 1 ? 'SCHOOL_DATA.text.stairsUpHint' : 'SCHOOL_DATA.text.stairsDownHint'));
+    assert.equal(run('schoolStairsHint()'), run(floorNumber === 1 ? 'SCHOOL_DATA.text.stairsUpKeyHint' : 'SCHOOL_DATA.text.stairsDownKeyHint').replace('{key}', 'E'));
     advance(); click(stairs, 2); assert.equal(run('scene.schoolFloor'), floorNumber);
     click(stairs); assert.equal(run('scene.schoolFloor'), 3 - floorNumber);
     assert.ok(run('canStand(player.x, player.y)'));
@@ -181,6 +185,74 @@ assert.equal(run('keyObjectHint()'),'E 키를 누르거나 클릭해 대화하�
 assert.equal(run('interactNearbyObject()'),true);assert.equal(run('inspectionUiState.mode'),'dialogue');run('closeInspection()');
 run('player.x=schoolStairs().arrival.x;player.y=schoolStairs().arrival.footY-player.footOffset');
 assert.equal(run('keyObjectHint()'),'');
+// E 키로 계단을 오르내린다. 층을 옮긴 직후 연속 입력으로는 되돌아가지 않고, 키가 할당 없음이면 클릭 안내만 나온다.
+run('scene.interiorId=SCHOOL_DATA.placeId;scene.schoolFloor=1;schoolDoorUi.open.clear();finishMapTransition();player.x=schoolStairs().arrival.x;player.y=schoolStairs().arrival.footY-player.footOffset;updateCamera()');
+advance();assert.equal(run('schoolKeyHint()'),'E 키를 누르거나 계단을 클릭해 2층으로 올라가기');
+run('currentBindings().interact=null');assert.equal(run('schoolKeyHint()'),run('SCHOOL_DATA.text.stairsUpHint'));run('currentBindings().interact="KeyE"');
+pressKey('KeyE');assert.equal(run('scene.schoolFloor'),2);assert.ok(run('canStand(player.x,player.y)'));
+pressKey('KeyE');assert.equal(run('scene.schoolFloor'),2,'층을 옮긴 직후 되돌아갔습니다.');
+advance();assert.equal(run('schoolKeyHint()'),'E 키를 누르거나 계단을 클릭해 1층으로 내려가기');
+pressKey('KeyE');assert.equal(run('scene.schoolFloor'),1);advance();
+// 계단 옆 문 앞에서는 더 가까운 문이 먼저 반응한다.
+run('scene.schoolFloor=2;finishMapTransition()');advance();
+const nearStairsDoor=read('[...schoolFloor().doors].sort((a,b)=>Math.hypot(a.openingRect.x-schoolStairs().x,a.openingRect.y-schoolStairs().y)-Math.hypot(b.openingRect.x-schoolStairs().x,b.openingRect.y-schoolStairs().y))[0]');
+run(`player.x=${nearStairsDoor.openingRect.x};player.y=${nearStairsDoor.openingRect.y}-player.footOffset;updateCamera()`);
+assert.equal(run('schoolKeyTarget().id'),nearStairsDoor.id);
+assert.equal(run('schoolKeyHint()'),'E 키를 누르거나 문을 클릭해 열기');
+pressKey('KeyE');assert.equal(run('scene.schoolFloor'),2);assert.equal(run(`schoolDoorUi.open.has(${JSON.stringify(nearStairsDoor.id)})`),true);
+// 학교에서만 플레이어를 1.5배로 그린다. 선생님 그림은 클릭 범위 안에 있다.
+assert.equal(run('playerDrawScale()'),1.5);
+run('scene.interiorId=null');assert.equal(run('playerDrawScale()'),1);run('scene.interiorId="C01"');assert.equal(run('playerDrawScale()'),1);run('scene.interiorId=SCHOOL_DATA.placeId');
+assert.deepEqual(read('SCHOOL_DATA.objects.find(object=>object.id==="school-teacher").sprite'),{src:'assets/npc-teacher.png',width:100,height:180});
+assert.ok(run('(() => { const t = SCHOOL_DATA.objects.find(object=>object.id==="school-teacher"); return t.height >= 170 && t.width >= 75; })()'));
+// 벤치 앞에 서서 게시판과 벤치 어느 쪽을 클릭해도 반 배치 게시판이 열린다.
+run('if (inspectionUiState.mode) closeInspection(); scene.interiorId=SCHOOL_DATA.placeId; scene.schoolFloor=1; finishMapTransition()');
+{
+  const scale = run('schoolFloor().scale');
+  run(`player.x = ${226 * scale}; player.y = ${626 * scale} - player.footOffset; updateCamera()`);
+  assert.ok(run('canStand(player.x, player.y)'), '벤치 앞에 설 수 없습니다.');
+  for (const [name, px, py] of [['게시판', 226, 505], ['벤치', 226, 600]]) {
+    advance(); click({ x: px * scale, y: py * scale });
+    assert.equal(run('inspectionUiState.mode'), 'board', name + ' 클릭으로 열리지 않았습니다.');
+    run('closeInspection()');
+  }
+}
+// 키 안내는 플레이어가 아니라 대상 위에 나온다. 게시판은 E 키로 열고 닫는다. 선생님과 함께 가까우면 더 가까운 쪽이다.
+{
+  const anchor = () => read('(() => { const hint = currentKeyHint(); return hint && { text: hint.text, x: hint.x, y: hint.y, center: !!hint.center }; })()');
+  const boardObject = read('SCHOOL_DATA.objects.find(object => object.type === "board")');
+  const teacherNow = read('SCHOOL_DATA.objects.find(object => object.id === "school-teacher")');
+  const scale = run('schoolFloor().scale');
+  run(`scene.schoolFloor = 1; finishMapTransition(); player.x = ${226 * scale}; player.y = ${626 * scale} - player.footOffset; updateCamera()`);
+  // 게시판은 벤치를 뺀 게시판 그림의 한가운데다.
+  assert.deepEqual(anchor(), { text: 'E 키를 누르거나 클릭해 안내도 보기', x: boardObject.pictureRect.x, y: boardObject.pictureRect.y, center: true });
+  run('currentBindings().interact = null'); assert.equal(anchor().text, '클릭해 안내도 보기'); run('currentBindings().interact = "KeyE"');
+  advance(); pressKey('KeyE'); assert.equal(run('inspectionUiState.mode'), 'board');
+  assert.equal(elements['inspection-close'].textContent, '닫기 (E)');
+  pressKey('KeyE'); assert.equal(run('inspectionUiState.mode'), null);
+  run(`player.x = ${teacherNow.x}; player.y = ${teacherNow.y + teacherNow.height / 2 + 40} - player.footOffset; updateCamera()`);
+  assert.deepEqual(anchor(), { text: 'E 키를 누르거나 클릭해 대화하기', x: teacherNow.x, y: teacherNow.y + teacherNow.height / 2 - teacherNow.sprite.height, center: false });
+  // 문과 계단은 한가운데다.
+  const officeDoor = read('schoolFloor().doors[0]');
+  run(`player.x = ${officeDoor.openingRect.x}; player.y = ${officeDoor.openingRect.y + officeDoor.openingRect.height / 2 + 30} - player.footOffset; updateCamera()`);
+  assert.deepEqual(anchor(), { text: 'E 키를 누르거나 문을 클릭해 열기', x: officeDoor.pictureRect.x, y: officeDoor.pictureRect.y, center: true });
+  run('player.x = schoolStairs().arrival.x; player.y = schoolStairs().arrival.footY - player.footOffset; updateCamera()');
+  const stairsNow = read('schoolStairs()');
+  assert.deepEqual(anchor(), { text: 'E 키를 누르거나 계단을 클릭해 2층으로 올라가기', x: stairsNow.x, y: stairsNow.y, center: true });
+}
+// 교무실: 탁자와 책상 사이로 왼쪽 끝까지 걸어가고, 왼쪽 세로 통로를 따라 위로 올라갈 수 있다.
+{
+  run('scene.interiorId=SCHOOL_DATA.placeId;scene.schoolFloor=1;schoolDoorUi.open.add("door-office");finishMapTransition()');
+  const scale = run('schoolFloor().scale');
+  run(`player.x = ${230 * scale}; player.y = ${356 * scale} - player.footOffset; pressedKeys.clear(); pressedKeys.add('ArrowLeft'); update(1); pressedKeys.clear()`);
+  assert.ok(run('player.x') / scale < 80, '탁자와 책상 사이로 지나가지 못했습니다: ' + run('player.x') / scale);
+  run(`player.x = ${118 * scale}; player.y = ${356 * scale} - player.footOffset; pressedKeys.add('ArrowUp'); update(0.5); pressedKeys.clear()`);
+  assert.ok((run('player.y') + run('player.footOffset')) / scale < 280, '왼쪽 세로 통로로 올라가지 못했습니다.');
+  // 탁자와 책상 자체는 계속 막혀 있다.
+  assert.equal(run(`canStand(${130 * scale}, ${385 * scale} - player.footOffset)`), false);
+  assert.equal(run(`canStand(${220 * scale}, ${310 * scale} - player.footOffset)`), false);
+  run('schoolDoorUi.open.clear()');
+}
 console.log('통과: 그림 기준 문 닫힘 차단·문 가까이 안내 문구·E/클릭 열고 닫기·문 틈 닫기 방지·퇴장 시 닫힘, 문을 열면 모든 방·정문 도달, 벽/가구 충돌, 게시판·확정 대사·입력 차단, 줌별 계단 왕복·연속 클릭 방지, 2층 퇴장 차단, 입구 복귀');
 
 // 실제 입력 처리로 거리·중복·모달 차단·선택 유지·재입장을 확인한다.

@@ -8,7 +8,7 @@ const assert = require("node:assert/strict");
 let now = 10000;
 const canvasHandlers = {};
 const windowHandlers = {};
-const context = new Proxy({}, { get: (target, key) => target[key] ?? (() => {}) });
+const context = new Proxy({ measureText: () => ({ width: 100 }) }, { get: (target, key) => target[key] ?? (() => {}) });
 const canvas = {
   width: 1280, height: 720,
   getContext: () => context,
@@ -137,10 +137,13 @@ assert.equal(elements['inspection-message'].textContent, staff.messages.dialogue
 // 가까이 가면 키 안내가 나오고, 상호작용 키로도 대화가 열린다. 키가 할당 없음이면 클릭 안내만 나온다.
 run('closeInspection()');
 assert.equal(run('keyObjectHint()'), 'E 키를 누르거나 클릭해 대화하기');
-// 키 안내 상자는 플레이어 머리 바로 위에 있고, 화면 가장자리에서는 화면 안으로 밀려 들어온다.
-assert.ok(run(`(() => { const box = keyHintBox(200); return box.y + box.height <= box.headY && box.headY - (box.y + box.height) <= 20 && box.x <= box.headX && box.headX <= box.x + box.width; })()`));
-assert.ok(run(`(() => { const x = player.x; player.x = camera.x - 500; const box = keyHintBox(200); player.x = x; return box.x === KEY_HINT_BOX.margin; })()`));
-assert.ok(run(`(() => { const x = player.x; player.x = camera.x + 9000; const box = keyHintBox(200); player.x = x; return box.x + box.width === canvas.width - KEY_HINT_BOX.margin; })()`));
+// 키 안내는 인물의 머리 바로 위를 가리키고, 화면 가장자리에서는 화면 안으로 밀려 들어온다.
+assert.deepEqual(read('(() => { const hint = currentKeyHint(); return { x: hint.x, y: hint.y }; })()'), { x: staff.x, y: staff.y + staff.height / 2 - staff.sprite.height });
+assert.ok(run(`(() => { const box = keyHintBox(200, { x: camera.x + 300 / settings.cameraZoom, y: camera.y + 300 / settings.cameraZoom }); return box.y + box.height <= box.anchorY && box.anchorY - (box.y + box.height) <= 20 && box.x <= box.anchorX && box.anchorX <= box.x + box.width; })()`));
+// center면 상자 가운데가 그 점에 맞는다.
+assert.ok(run(`(() => { const anchor = { x: camera.x + 300 / settings.cameraZoom, y: camera.y + 300 / settings.cameraZoom, center: true }; const box = keyHintBox(200, anchor); return Math.abs(box.x + box.width / 2 - box.anchorX) < 0.001 && Math.abs(box.y + box.height / 2 - box.anchorY) < 0.001; })()`));
+assert.equal(run(`keyHintBox(200, { x: camera.x - 500, y: camera.y + 100 }).x`), run('KEY_HINT_BOX.margin'));
+assert.equal(run(`(() => { const box = keyHintBox(200, { x: camera.x + 9000, y: camera.y + 100 }); return box.x + box.width; })()`), run('canvas.width - KEY_HINT_BOX.margin'));
 run('currentBindings().interact = null');assert.equal(run('keyObjectHint()'), '클릭해 대화하기');run('currentBindings().interact = "KeyE"');
 assert.equal(run('interactNearbyObject()'), true);assert.equal(run('inspectionUiState.mode'), 'dialogue');
 assert.equal(elements['inspection-message'].textContent, staff.messages.dialogue);
@@ -168,5 +171,42 @@ assert.equal(run("gameState.inventory.itemIds.length"), 20);
 assert.equal(Object.keys(read("gameState.acquiredItems")).length, 20);
 key("KeyI", "i");
 assert.equal(elements["inventory-list"].children.length, 20);
+// E 키로 건물에 들어가고 나온다. 입구에서 멀면 반응하지 않고, 잠긴 문은 잠금 안내만 나온다.
+run('if (inspectionUiState.mode) closeInspection(); if (inventoryUiState.open) closeInventory(); scene.interiorId = null; scene.returnPoint = null; scene.schoolFloor = 1; finishMapTransition()');
+for (const door of read('outdoorDoors()')) {
+  run('player.x = city.spawn.x * settings.worldScale; player.y = city.spawn.y * settings.worldScale; updateCamera()');
+  advance(); key('KeyE', 'e');
+  assert.equal(run('scene.interiorId'), null, '멀리서 E 키로 들어갔습니다.');
+  assert.equal(run('entranceKeyHint()'), '');
+  run(`player.x = ${door.approach.x}; player.y = ${door.approach.footY} - player.footOffset; player.facing = "up"; updateCamera()`);
+  advance();
+  if (door.kind === 'locked') {
+    assert.equal(run('entranceKeyHint()'), '');
+    key('KeyE', 'e');
+    assert.equal(run('scene.interiorId'), null);
+    assert.equal(run('scene.message'), run('city.interiorUi.locked'));
+    continue;
+  }
+  assert.equal(run('entranceKeyHint()'), 'E키를 클릭해 들어가기');
+  // 입구 안내는 그림 속 문 자리에 나오고, 문 앞에 선 플레이어의 머리를 가리지 않는다.
+  assert.deepEqual(read('(() => { const hint = currentKeyHint(); return { x: hint.x, y: hint.y, center: hint.center }; })()'), { x: door.hintX, y: door.hintY, center: true });
+  assert.ok(run(`(() => { const box = keyHintBox(ctx.measureText(currentKeyHint().text).width, currentKeyHint()); return box.y + box.height <= (player.y + PLAYER_SPRITE.feetOffset - PLAYER_SPRITE.height - camera.y) * settings.cameraZoom; })()`), door.placeId + ' 입구 안내가 플레이어 머리를 가립니다.');
+  run('currentBindings().interact = null');assert.equal(run('entranceKeyHint()'), '문을 클릭해 들어가기');run('currentBindings().interact = "KeyE"');
+  key('KeyE', 'e');
+  assert.equal(run('scene.interiorId'), door.placeId, 'E 키로 들어가지 못했습니다: ' + door.placeId);
+  assert.ok(run('canStand(player.x, player.y)'));
+  // 들어온 직후 연속 입력으로 바로 나가지 않는다.
+  key('KeyE', 'e');assert.equal(run('scene.interiorId'), door.placeId);
+  advance();
+  assert.equal(run('entranceKeyHint()'), 'E키를 클릭해 나가기');
+  // 출구 안내는 출구 한가운데에 나온다.
+  assert.equal(run('currentKeyHint().x'), run('currentInterior().exit.x'));
+  assert.equal(run('currentKeyHint().y'), run('currentInterior().exit.y'));
+  assert.equal(run('currentKeyHint().center'), true);
+  key('KeyE', 'e');
+  assert.equal(run('scene.interiorId'), null, 'E 키로 나오지 못했습니다: ' + door.placeId);
+  assert.equal(run('player.x'), door.approach.x);
+  assert.equal(run('player.y'), door.approach.footY - run('player.footOffset'));
+}
 console.log("통과: 직원 확정 대사·선택적 대화, 사진첩 열기→사진 획득, photoCollected·중복 방지·빈 자리, 날짜·앞뒤 전환·앞면 초기화, 모달 입력 차단·I 닫기, 선택 유지·재입장·아이템 20종");
 
