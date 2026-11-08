@@ -144,7 +144,7 @@
 4. 가림 영역의 70% 이상을 지우면 전체 단서가 공개됩니다. 같은 곳을 반복해서 문질러도 비율이 중복 계산되지 않습니다.
 5. 완료 전에 닫거나 새로고침하면 문지른 부분이 초기화됩니다. 완료한 결과는 자동 저장되어 다시 열어도 전체 단서가 보입니다.
 
-- `data/registry.js`: 기획서 3.2의 단서 원문, 명부(`paper`, 그림 크기이자 클릭 범위)·책상(`desk`) 위치(학교 그림 픽셀)·조사 거리, 명부 그림 `sprite`(`assets/school-registry.png`, 원본 `에셋/보건실 명부.png`를 잘라 낸 사본), 완료 비율 `solvedRatio: 0.7`, 붓 지름 `brushDiameter: 60`. 붓 지름은 명부 캔버스 좌표 기준입니다.
+- `data/registry.js`: 명부 문구 `clue`(사용자 결정으로 기획서 3.2의 길 안내 대신 장식장 배치 순서를 암시), 명부(`paper`, 그림 크기이자 클릭 범위)·책상(`desk`) 위치(학교 그림 픽셀)·조사 거리, 명부 그림 `sprite`(`assets/school-registry.png`, 원본 `에셋/보건실 명부.png`를 잘라 낸 사본), 완료 비율 `solvedRatio: 0.7`, 붓 지름 `brushDiameter: 60`. 붓 지름은 명부 캔버스 좌표 기준입니다.
 - `registry.js`: 가림층 픽셀 지우기와 드래그·중단 처리. 중간 진행량은 `gameState`에 저장하지 않습니다.
 - 완료 기록: `gameState.registrySolved`.
 - `data/achievement-conditions.js`: 업적 6개의 이름·조건·안내 순서와 알림 시간. 알림장·크레파스 획득과 명부 해결을 모두 완료하면 ACH-02가 달성됩니다. 알림장 약도 확인은 조건이 아닙니다.
