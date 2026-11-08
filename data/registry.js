@@ -5,9 +5,12 @@ const REGISTRY_DATA = {
   // TODO: 붓 지름과 화면 크기, 명부·테이블 위치 및 조사 거리는 임시 설정이다.
   brushDiameter: 60, width: 600, height: 320,
   roomName: "보건실",
-  // 보건실 그림의 책상 위에 명부를 둔다. 학교 그림의 픽셀 좌표이며 SCHOOL_DATA.scale을 곱해 쓴다.
-  paper: { left: 697, top: 362, right: 727, bottom: 380 },
-  desk: { left: 683, top: 338, right: 790, bottom: 398 },
+  // 보건실 그림의 책상 위에 명부를 둔다. 학교 그림의 픽셀 좌표이며 1층 배율을 곱해 쓴다.
+  // 명부 그림(세로로 긴 클립보드)을 책상 윗면 왼쪽에 세운다. 이 범위가 그림 크기이자 클릭 범위다.
+  paper: { left: 694, top: 340, right: 712, bottom: 363 },
+  // 책상 위에 그리는 명부 그림. 그림이 없으면 회색 사각형으로 그린다.
+  sprite: { src: "assets/school-registry.png" },
+  desk: { left: 683, top: 338, right: 790, bottom: 395 },
   text: {
     name: "보건실 명부", near: "명부 가까이에서 클릭해 주세요.",
     instruction: "가려진 명부입니다.",
@@ -18,8 +21,8 @@ INSPECTION_OBJECTS.push({
   id: "school-registry", placeId: SCHOOL_DATA.placeId, floor: 1, type: "registry",
   roomName: REGISTRY_DATA.roomName, name: REGISTRY_DATA.text.name,
   // 책상 위아래 어느 쪽에서도 닿도록 조사 거리를 넉넉히 둔다.
-  ...schoolRect(REGISTRY_DATA.paper), color: "#737c86", interactDistance: 180,
+  ...schoolRect(REGISTRY_DATA.paper, 0, SCHOOL_DATA.floors[0].scale), color: "#737c86", interactDistance: 180, sprite: REGISTRY_DATA.sprite,
   // 책상은 그림에 있으므로 그리지 않고(hidden) 충돌에만 쓴다.
-  table: { ...schoolRect(REGISTRY_DATA.desk), color: "#b58b65", hidden: true },
+  table: { ...schoolRect(REGISTRY_DATA.desk, 0, SCHOOL_DATA.floors[0].scale), color: "#b58b65", hidden: true },
   messages: { tooFar: REGISTRY_DATA.text.near },
 });

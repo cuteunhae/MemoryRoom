@@ -9,6 +9,10 @@ const CLASSROOM_DATA = {
   // TODO: 책상 크기, 쌍 사이 통로, 행 사이 통로, 조사 거리·클릭 여유는 임시 설정이다. 단위는 게임 속 픽셀이다.
   deskWidth: 64, deskHeight: 48, pairAisle: 80, rowAisle: 100,
   interactDistance: 180, clickPadding: 16,
+  // 학생 자리 그림. 칠판(아래쪽)을 보도록 위아래를 뒤집어 저장했다(의자가 위, 책상이 아래).
+  // 그림 아래쪽을 책상 범위 아래쪽에 맞추고, 의자는 위쪽 통로로 조금 튀어나온다. 번호는 책상 윗면(아래쪽에서 labelOffset 위)에 쓴다.
+  // TODO: 그림 크기와 번호 위치는 임시 설정이다. 단위는 게임 속 픽셀이다.
+  sprite: { src: "assets/school-desk.png", width: 64, height: 72, labelOffset: 10 },
   // 자리 배치도는 뒤쪽(문 쪽) 벽 오른쪽에 둔다. 칠판은 앞쪽(아래쪽) 벽에 그린다.
   board: { width: 150, height: 40, rearMargin: 40, sideMargin: 110 },
   blackboard: { width: 400, height: 40, margin: 40 },

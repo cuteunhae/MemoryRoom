@@ -61,7 +61,8 @@ canvas.addEventListener("pointerdown", handleDoorClick);
 
 function currentInterior() {
   const interior = city.interiors.find(interior => interior.placeId === scene.interiorId) || null;
-  if (interior?.placeId === SCHOOL_DATA.placeId) return { ...interior, name: schoolFloor().name, exit: scene.schoolFloor === 1 ? interior.exit : null };
+  // 학교는 층마다 크기가 다르다(1층만 작게). 정문은 1층에만 있다.
+  if (interior?.placeId === SCHOOL_DATA.placeId) return { ...interior, name: schoolFloor().name, width: schoolFloor().size, height: schoolFloor().size, exit: scene.schoolFloor === 1 ? interior.exit : null };
   return interior;
 }
 
@@ -656,6 +657,15 @@ function drawInterior(interior) {
     }
     // hidden 물체는 그림에 이미 있으므로 그리지 않는다(클릭·충돌은 그대로).
     if (object.hidden) continue;
+    // 그림이 있는 물체는 그림을 그리고, 번호(label)가 있으면 그 위에 쓴다.
+    if (object.sprite && drawObjectSprite(object)) {
+      if (object.label) {
+        ctx.fillStyle = "#4a2f1c";
+        ctx.font = "bold 14px 'Malgun Gothic', sans-serif";
+        ctx.fillText(object.label, object.x, object.y + object.height / 2 - (object.sprite.labelOffset ?? object.height / 2));
+      }
+      continue;
+    }
     ctx.fillStyle = object.color;
     ctx.fillRect(object.x - object.width / 2, object.y - object.height / 2, object.width, object.height);
     ctx.fillStyle = "#fff8e9";
@@ -664,10 +674,35 @@ function drawInterior(interior) {
   }
 }
 
+// 조사 물체 그림을 경로마다 한 번만 불러 둔다. 다 불러오지 못했으면 null이다.
+const objectSpriteImages = {};
+function objectSpriteImage(src) {
+  if (typeof Image !== "function") return null;
+  if (!objectSpriteImages[src]) {
+    const image = new Image();
+    image.src = src;
+    objectSpriteImages[src] = image;
+  }
+  const image = objectSpriteImages[src];
+  return image.complete && image.naturalWidth > 0 ? image : null;
+}
+
+// 그림을 sprite 크기(없으면 물체 크기) 안에 비율대로 맞추고, 그림 아래쪽을 물체 범위 아래쪽에 맞춰 그린다.
+function drawObjectSprite(object) {
+  const image = objectSpriteImage(object.sprite.src);
+  if (!image) return false;
+  const boxWidth = object.sprite.width ?? object.width, boxHeight = object.sprite.height ?? object.height;
+  const scale = Math.min(boxWidth / image.naturalWidth, boxHeight / image.naturalHeight);
+  const width = image.naturalWidth * scale, height = image.naturalHeight * scale;
+  ctx.drawImage(image, object.x - width / 2, object.y + object.height / 2 - height, width, height);
+  return true;
+}
+
 function drawDoorHint() {
   const interior = currentInterior();
   let message = scene.messageUntil > Date.now() ? scene.message : "";
   if (!message && interior && nearInteriorExit(interior)) message = city.interiorUi.exit;
+  if (!message && interior?.placeId === SCHOOL_DATA.placeId) message = schoolStairsHint() || schoolDoorHint();
   if (!message && !interior) {
     const target = outdoorDoors().find(nearOutdoorDoor);
     if (target) message = target.kind === "locked" ? city.interiorUi.locked : city.interiorUi.enter;

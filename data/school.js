@@ -5,17 +5,17 @@
 // - assets/school-doors-open.png: 문이 모두 열린 그림
 // 닫힌 그림을 깔고, 열린 문 자리만 열린 그림에서 잘라 덮어 그린다.
 // 아래 좌표는 모두 그림 전체(887×1774)의 픽셀 위치이며, 사각형은 { left, top, right, bottom }으로 적는다.
-// 파일 맨 아래에서 층이 그림에서 시작하는 위치(crop.top)를 빼고 scale을 곱해 게임 속 픽셀(가운데 x·y, width·height)로 바꾼다.
+// 파일 맨 아래에서 층이 그림에서 시작하는 위치(crop.top)를 빼고 그 층의 scale을 곱해 게임 속 픽셀(가운데 x·y, width·height)로 바꾼다.
 // TODO: 걸을 수 있는 곳·장애물·문·계단 좌표는 그림을 눈으로 재서 맞춘 임시 값이다. 플레이 테스트에서 조정한다.
 const SCHOOL_DATA = {
   placeId: "C02",
   images: { closed: "assets/school-doors-closed.png", open: "assets/school-doors-open.png" },
-  // 그림 1픽셀을 게임 속 몇 픽셀로 키울지 정한다.
-  scale: 4.5,
   floorSize: 887,
   interactDistance: 140,
   floors: [
-    { number: 1, name: "학교 1층", crop: { left: 0, top: 0, right: 887, bottom: 887 },
+    // scale: 그림 1픽셀을 게임 속 몇 픽셀로 키울지 층마다 정한다. 사용자 요청으로 1층만 작게 했다.
+    // TODO: 층별 배율은 임시 값이다. 플레이 테스트에서 조정한다.
+    { number: 1, name: "학교 1층", scale: 3.5, crop: { left: 0, top: 0, right: 887, bottom: 887 },
       // 걸을 수 있는 바닥. 여러 사각형을 합친 모양이다. 문 틈은 doors에 따로 적고, 열렸을 때만 걸을 수 있다.
       walkable: [
         { left: 352, top: 310, right: 535, bottom: 462 }, // 계단 앞 가운데 통로
@@ -50,7 +50,8 @@ const SCHOOL_DATA = {
       // 계단은 클릭하면 다른 층으로 간다. arrival은 이 층에 도착했을 때 발밑 위치다.
       stairs: { left: 385, top: 130, right: 500, bottom: 312, arrival: { x: 443, footY: 330 } },
     },
-    { number: 2, name: "학교 2층", crop: { left: 0, top: 887, right: 887, bottom: 1774 },
+    // 2층 배율은 9반 책상 30개가 들어가도록 유지한다.
+    { number: 2, name: "학교 2층", scale: 4.5, crop: { left: 0, top: 887, right: 887, bottom: 1774 },
       walkable: [
         { left: 38, top: 1232, right: 850, bottom: 1398 }, // 가운데 복도
         { left: 398, top: 1172, right: 488, bottom: 1236 }, // 계단 앞
@@ -93,6 +94,11 @@ const SCHOOL_DATA = {
   spawn: { x: 444, footY: 795 },
   text: { up: "2층으로 올라가기", down: "1층으로 내려가기", near: "계단 가까이에서 클릭해 주세요.", corridor: "복도",
     doorNear: "문 가까이에서 클릭해 주세요.", doorBlocked: "문 앞에서 비켜 주세요.",
+    // 열 수 있는 문 가까이에 가면 나오는 안내. {key}는 설정에서 지정한 문 열기 키로 바뀐다.
+    doorOpenHint: "{key} 키를 누르거나 문을 클릭해 열기", doorCloseHint: "{key} 키를 누르거나 문을 클릭해 닫기",
+    doorOpenClickHint: "문을 클릭해 열기", doorCloseClickHint: "문을 클릭해 닫기",
+    // 계단 가까이에 가면 나오는 이동 안내.
+    stairsUpHint: "계단을 클릭해 2층으로 올라가기", stairsDownHint: "계단을 클릭해 1층으로 내려가기",
     boardIntro: "층마다 위쪽 줄과 아래쪽 줄로 나누어 왼쪽 → 오른쪽 순서로 적었습니다.\n\n" },
   objects: [
     // 반 배치 게시판은 로비 왼쪽 게시판 그림이다. 그림이 있으므로 따로 그리지 않는다(hidden).
@@ -107,34 +113,39 @@ const SCHOOL_DATA = {
   ],
 };
 
-// 그림 좌표 사각형을 게임 속 픽셀의 가운데 기준 사각형으로 바꾼다. top은 그 층이 그림에서 시작하는 세로 위치다.
-function schoolRect(rect, top = 0) {
-  const scale = SCHOOL_DATA.scale;
+// 그림 좌표 사각형을 게임 속 픽셀의 가운데 기준 사각형으로 바꾼다. top은 그 층이 그림에서 시작하는 세로 위치, scale은 그 층의 배율이다.
+function schoolRect(rect, top, scale) {
   return { x: (rect.left + rect.right) / 2 * scale, y: ((rect.top + rect.bottom) / 2 - top) * scale,
     width: (rect.right - rect.left) * scale, height: (rect.bottom - rect.top) * scale };
 }
 for (const floor of SCHOOL_DATA.floors) {
-  const top = floor.crop.top;
-  floor.walkableRects = floor.walkable.map(rect => schoolRect(rect, top));
-  floor.obstacleRects = floor.obstacles.map(rect => schoolRect(rect, top));
+  const top = floor.crop.top, scale = floor.scale;
+  // 이 층의 게임 속 가로·세로 크기.
+  floor.size = SCHOOL_DATA.floorSize * scale;
+  floor.walkableRects = floor.walkable.map(rect => schoolRect(rect, top, scale));
+  floor.obstacleRects = floor.obstacles.map(rect => schoolRect(rect, top, scale));
   // 방은 왼쪽 위 기준(x, y)과 크기를 쓴다. 방 안에 있는지 검사할 때 사용한다.
   floor.rooms = floor.rooms.map(room => {
-    const rect = schoolRect(room.floor, top);
+    const rect = schoolRect(room.floor, top, scale);
     return { ...room, x: rect.x - rect.width / 2, y: rect.y - rect.height / 2, width: rect.width, height: rect.height };
   });
-  floor.doors = floor.doors.map(door => ({ ...door, floorNumber: floor.number, openingRect: schoolRect(door.opening, top), pictureRect: schoolRect(door.picture, top) }));
-  const stairs = schoolRect(floor.stairs, top);
-  floor.stairs = { ...stairs, arrival: { x: floor.stairs.arrival.x * SCHOOL_DATA.scale, footY: (floor.stairs.arrival.footY - top) * SCHOOL_DATA.scale } };
+  floor.doors = floor.doors.map(door => ({ ...door, floorNumber: floor.number, openingRect: schoolRect(door.opening, top, scale), pictureRect: schoolRect(door.picture, top, scale) }));
+  const stairs = schoolRect(floor.stairs, top, scale);
+  floor.stairs = { ...stairs, arrival: { x: floor.stairs.arrival.x * scale, footY: (floor.stairs.arrival.footY - top) * scale } };
 }
 // 물체는 모두 1층에 있다.
-for (const object of SCHOOL_DATA.objects) Object.assign(object, schoolRect(object.rect, SCHOOL_DATA.floors[object.floor - 1].crop.top));
+for (const object of SCHOOL_DATA.objects) {
+  const floor = SCHOOL_DATA.floors[object.floor - 1];
+  Object.assign(object, schoolRect(object.rect, floor.crop.top, floor.scale));
+}
 
-// 학교 실내 크기·정문·시작 위치를 그림 크기에 맞춘다.
+// 학교 실내 크기·정문·시작 위치를 1층 그림에 맞춘다. 2층 크기는 currentInterior()에서 층마다 바꾼다.
 const schoolInterior = CITY_DATA.interiors.find(room => room.placeId === SCHOOL_DATA.placeId);
+const schoolFirstFloor = SCHOOL_DATA.floors[0];
 Object.assign(schoolInterior, {
-  width: SCHOOL_DATA.floorSize * SCHOOL_DATA.scale,
-  height: SCHOOL_DATA.floorSize * SCHOOL_DATA.scale,
+  width: schoolFirstFloor.size,
+  height: schoolFirstFloor.size,
   wall: 0,
-  exit: { ...schoolRect(SCHOOL_DATA.exit), side: "south" },
-  spawn: { x: SCHOOL_DATA.spawn.x * SCHOOL_DATA.scale, footY: SCHOOL_DATA.spawn.footY * SCHOOL_DATA.scale, facing: "up" },
+  exit: { ...schoolRect(SCHOOL_DATA.exit, 0, schoolFirstFloor.scale), side: "south" },
+  spawn: { x: SCHOOL_DATA.spawn.x * schoolFirstFloor.scale, footY: SCHOOL_DATA.spawn.footY * schoolFirstFloor.scale, facing: "up" },
 });

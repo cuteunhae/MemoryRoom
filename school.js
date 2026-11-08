@@ -85,13 +85,27 @@ function handleSchoolDoorClick(x, y) {
   return true;
 }
 
+// 열고 닫을 수 있는 거리 안에서 가장 가까운 문. 없으면 null이다.
+function nearestSchoolDoor() {
+  if (scene.interiorId !== SCHOOL_DATA.placeId) return null;
+  return schoolFloor().doors
+    .filter(door => schoolDoorDistance(door) <= SCHOOL_DATA.interactDistance)
+    .sort((a, b) => schoolDoorDistance(a) - schoolDoorDistance(b))[0] || null;
+}
+
 // 문 열기 키(기본 E): 학교 안에서 가장 가까운 문을 열고 닫는다. 가까운 문이 없으면 아무 일도 하지 않는다.
 function interactNearbyDoor() {
-  if (scene.interiorId !== SCHOOL_DATA.placeId) return false;
-  const door = schoolFloor().doors
-    .filter(door => schoolDoorDistance(door) <= SCHOOL_DATA.interactDistance)
-    .sort((a, b) => schoolDoorDistance(a) - schoolDoorDistance(b))[0];
+  const door = nearestSchoolDoor();
   return door ? toggleSchoolDoor(door) : false;
+}
+
+// 가까운 문이 있으면 화면 안내 문구를 돌려준다. 문 열기 키가 지정되지 않았으면 클릭 안내만 보여 준다.
+function schoolDoorHint() {
+  const door = nearestSchoolDoor();
+  if (!door) return "";
+  const open = schoolDoorUi.open.has(door.id), code = currentBindings().interact, text = SCHOOL_DATA.text;
+  if (!code) return open ? text.doorCloseClickHint : text.doorOpenClickHint;
+  return (open ? text.doorCloseHint : text.doorOpenHint).replace("{key}", code.replace(/^Key/, "").replace(/^Digit/, ""));
 }
 
 // 저장에서 이어 할 때 문 틈에 서 있었다면 그 문을 열어 둔다.
@@ -102,13 +116,23 @@ function openSchoolDoorsAtPlayer() {
   }
 }
 
+// 플레이어 발밑에서 계단 사각형 가장자리까지의 거리.
+function schoolStairsDistance() {
+  const stairs = schoolStairs(), footY = player.y + player.footOffset;
+  return Math.hypot(Math.max(0, Math.abs(player.x - stairs.x) - stairs.width / 2), Math.max(0, Math.abs(footY - stairs.y) - stairs.height / 2));
+}
+
+// 계단을 클릭할 수 있는 거리 안이면 이동 안내 문구를 돌려준다.
+function schoolStairsHint() {
+  if (scene.interiorId !== SCHOOL_DATA.placeId || schoolStairsDistance() > SCHOOL_DATA.interactDistance) return "";
+  return scene.schoolFloor === 1 ? SCHOOL_DATA.text.stairsUpHint : SCHOOL_DATA.text.stairsDownHint;
+}
+
 function handleSchoolStairs(x, y) {
   const stairs = schoolStairs();
   if (Math.abs(x - stairs.x) > stairs.width / 2 || Math.abs(y - stairs.y) > stairs.height / 2) return false;
   // 계단 사각형 가장자리까지의 거리로 가까운지 판단한다.
-  const footY = player.y + player.footOffset;
-  const distance = Math.hypot(Math.max(0, Math.abs(player.x - stairs.x) - stairs.width / 2), Math.max(0, Math.abs(footY - stairs.y) - stairs.height / 2));
-  if (distance > SCHOOL_DATA.interactDistance) {
+  if (schoolStairsDistance() > SCHOOL_DATA.interactDistance) {
     showDoorMessage(SCHOOL_DATA.text.near);
     return true;
   }
@@ -122,20 +146,20 @@ function handleSchoolStairs(x, y) {
 }
 
 // 그림 좌표 사각형(rect)을 열린 그림에서 잘라 같은 자리에 덮어 그린다.
-function drawOpenPicture(rect, top) {
-  const scale = SCHOOL_DATA.scale, width = rect.right - rect.left, height = rect.bottom - rect.top;
+function drawOpenPicture(rect, top, scale) {
+  const width = rect.right - rect.left, height = rect.bottom - rect.top;
   ctx.drawImage(schoolImages.open, rect.left, rect.top, width, height, rect.left * scale, (rect.top - top) * scale, width * scale, height * scale);
 }
 
 // 학교 바닥을 그린다. 그림이 있으면 닫힌 그림 위에 열린 문·정문만 열린 그림으로 덮고, 없으면 임시 색 블록으로 그린다.
 function drawSchool() {
   const floor = schoolFloor(), crop = floor.crop;
-  const size = SCHOOL_DATA.floorSize * SCHOOL_DATA.scale;
+  const size = floor.size;
   ctx.save();
   if (schoolImageReady("closed") && schoolImageReady("open")) {
     ctx.drawImage(schoolImages.closed, crop.left, crop.top, crop.right - crop.left, crop.bottom - crop.top, 0, 0, size, size);
-    for (const rect of floor.alwaysOpen) drawOpenPicture(rect, crop.top);
-    for (const door of floor.doors) if (schoolDoorUi.open.has(door.id)) drawOpenPicture(door.picture, crop.top);
+    for (const rect of floor.alwaysOpen) drawOpenPicture(rect, crop.top, floor.scale);
+    for (const door of floor.doors) if (schoolDoorUi.open.has(door.id)) drawOpenPicture(door.picture, crop.top, floor.scale);
   } else {
     ctx.fillStyle = "#6c6a60";
     ctx.fillRect(0, 0, size, size);

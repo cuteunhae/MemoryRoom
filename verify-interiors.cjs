@@ -70,7 +70,7 @@ for (const target of doors.filter(door => door.kind !== "locked")) {
     assert.equal(run("scene.interiorId"), target.placeId);
 
     for (const direction of ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]) {
-      run(`player.x = ${interior.width / 2}; player.y = ${interior.placeId === "C02" ? run('650 * SCHOOL_DATA.scale') : interior.height / 2}; pressedKeys.clear(); pressedKeys.add("${direction}"); update(5)`);
+      run(`player.x = ${interior.width / 2}; player.y = ${interior.placeId === "C02" ? run('650 * SCHOOL_DATA.floors[0].scale') : interior.height / 2}; pressedKeys.clear(); pressedKeys.add("${direction}"); update(5)`);
       assert.ok(run("canStand(player.x, player.y)"));
       assert.equal(run("scene.interiorId"), target.placeId, "걷기만으로 맵이 바뀌었습니다.");
     }

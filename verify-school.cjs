@@ -85,7 +85,7 @@ for (const floorNumber of [1, 2]) {
 // 벽·가구·바닥 밖에는 설 수 없다(그림 좌표 × 배율).
 for (const [floorNumber, x, y, name] of [[1, 200, 210, '교무실 책장'], [1, 443, 200, '계단 위'], [1, 100, 560, '사물함'], [1, 345, 380, '교무실과 계단 사이 벽'], [1, 282, 430, '닫힌 교무실 문'], [2, 150, 318, '1반 앞 벽'], [2, 209, 663, '5반과 6반 사이 벽'], [2, 443, 803, '2층 아래쪽 벽']]) {
   run(`scene.schoolFloor = ${floorNumber}`);
-  assert.equal(run(`canStand(${x} * SCHOOL_DATA.scale, ${y} * SCHOOL_DATA.scale - player.footOffset)`), false, name);
+  assert.equal(run(`canStand(${x} * schoolFloor().scale, ${y} * schoolFloor().scale - player.footOffset)`), false, name);
 }
 run('scene.schoolFloor = 1');
 // 9반은 그림의 오른쪽 아래 교실이며 책상 통로 폭을 유지한다.
@@ -101,6 +101,10 @@ const insideDoor = `canStand(${office.openingRect.x}, ${office.openingRect.y} - 
 run(`player.x = ${office.openingRect.x}; player.y = ${office.openingRect.y + office.openingRect.height / 2 + 30} - player.footOffset; updateCamera()`);
 assert.ok(run('canStand(player.x, player.y)'));
 assert.equal(run(insideDoor), false, '닫힌 문 틈에 설 수 있습니다.');
+// 문 가까이에 가면 E 키·클릭 안내가 나오고, 열린 문 앞에서는 닫기 안내로 바뀐다.
+assert.equal(run('schoolDoorHint()'), 'E 키를 누르거나 문을 클릭해 열기');
+run('currentBindings().interact = null'); assert.equal(run('schoolDoorHint()'), '문을 클릭해 열기'); run('currentBindings().interact = "KeyE"');
+pressKey('KeyE'); assert.equal(run('schoolDoorHint()'), 'E 키를 누르거나 문을 클릭해 닫기'); pressKey('KeyE');
 pressKey('KeyE'); assert.equal(run('schoolDoorUi.open.has("door-office")'), true); assert.equal(run(insideDoor), true);
 pressKey('KeyE'); assert.equal(run('schoolDoorUi.open.has("door-office")'), false);
 click(office.pictureRect); assert.equal(run('schoolDoorUi.open.has("door-office")'), true);
@@ -111,6 +115,7 @@ pressKey('KeyE'); assert.equal(run('schoolDoorUi.open.has("door-office")'), true
 // 멀리서 클릭하면 안내만 하고 그대로다. 멀리서 E를 누르면 아무 문도 바뀌지 않는다.
 run('player.x = currentInterior().spawn.x; player.y = currentInterior().spawn.footY - player.footOffset; updateCamera()');
 click(office.pictureRect); assert.equal(run('schoolDoorUi.open.has("door-office")'), true);
+assert.equal(run('schoolDoorHint()'), '', '문에서 멀리 있는데 안내가 나옵니다.');
 pressKey('KeyE'); assert.equal(run('schoolDoorUi.open.size'), 1);
 // E 키도 설정에서 바꿀 수 있는 기능이다.
 assert.equal(run('currentBindings().interact'), 'KeyE');
@@ -145,6 +150,8 @@ for (const zoom of [1, 1.5, 3]) {
     const stairs = read('schoolStairs()');
     run('player.x = schoolStairs().arrival.x; player.y = schoolStairs().arrival.footY - player.footOffset; updateCamera()');
     assert.ok(run('canStand(player.x, player.y)'));
+    // 계단 가까이에 서면 이동 안내가 나온다.
+    assert.equal(run('schoolStairsHint()'), run(floorNumber === 1 ? 'SCHOOL_DATA.text.stairsUpHint' : 'SCHOOL_DATA.text.stairsDownHint'));
     advance(); click(stairs, 2); assert.equal(run('scene.schoolFloor'), floorNumber);
     click(stairs); assert.equal(run('scene.schoolFloor'), 3 - floorNumber);
     assert.ok(run('canStand(player.x, player.y)'));
@@ -165,6 +172,6 @@ assert.equal(run('player.x'), savedReturn.x);
 assert.equal(run('player.y'), savedReturn.y);
 assert.equal(run('gameState.photoCollected'), false);
 assert.equal(run('gameState.inventory.itemIds.length'), 0);
-console.log('통과: 그림 기준 문 닫힘 차단·E/클릭 열고 닫기·문 틈 닫기 방지·퇴장 시 닫힘, 문을 열면 모든 방·정문 도달, 벽/가구 충돌, 게시판·확정 대사·입력 차단, 줌별 계단 왕복·연속 클릭 방지, 2층 퇴장 차단, 입구 복귀');
+console.log('통과: 그림 기준 문 닫힘 차단·문 가까이 안내 문구·E/클릭 열고 닫기·문 틈 닫기 방지·퇴장 시 닫힘, 문을 열면 모든 방·정문 도달, 벽/가구 충돌, 게시판·확정 대사·입력 차단, 줌별 계단 왕복·연속 클릭 방지, 2층 퇴장 차단, 입구 복귀');
 
 // 실제 입력 처리로 거리·중복·모달 차단·선택 유지·재입장을 확인한다.

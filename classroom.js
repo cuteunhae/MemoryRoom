@@ -20,7 +20,7 @@ function classroomObjects() {
     x: flip ? left + totalWidth - offsetX(c) : left + offsetX(c),
     y: flip ? top + totalHeight - offsetY(r) : top + offsetY(r),
     width: config.deskWidth, height: config.deskHeight, clickPadding: config.clickPadding,
-    color: "#ba946d", solid: true, itemIds: config.assignments[number],
+    color: "#ba946d", solid: true, sprite: config.sprite, itemIds: config.assignments[number],
   })));
   // 자리 배치도는 뒤쪽 벽(문이 있는 쪽)에 붙인다.
   const rearY = flip ? room.y + config.board.rearMargin : room.y + room.height - config.board.rearMargin;
