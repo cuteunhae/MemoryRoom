@@ -103,6 +103,12 @@ const SCHOOL_DATA = {
     stairsUpKeyHint: "{key} 키를 누르거나 계단을 클릭해 2층으로 올라가기", stairsDownKeyHint: "{key} 키를 누르거나 계단을 클릭해 1층으로 내려가기",
     stairsUpHint: "계단을 클릭해 2층으로 올라가기", stairsDownHint: "계단을 클릭해 1층으로 내려가기",
     boardIntro: "층마다 위쪽 줄과 아래쪽 줄로 나누어 왼쪽 → 오른쪽 순서로 적었습니다.\n\n" },
+  // 문을 열 때 열린 그림으로 덮는 범위. picture(클릭 범위)보다 이만큼 넓혀 문짝 전체와 그림자를 덮는다. 단위는 학교 그림 픽셀이다.
+  // assets/school-doors-open.png는 닫힌 그림 위에 이 범위만 열린 원본을 합성한 사본이라, 이 값을 바꾸면 그림도 다시 만들어야 한다.
+  doorOverlay: { side: 8, top: 8, bottom: 22 },
+  // 2층 교실 문 앞 복도에 그리는 반 번호 표지. 문구는 rooms의 name을 쓴다. 단위는 게임 속 픽셀이다.
+  // TODO: 표지 크기와 문까지의 간격은 임시 값이다.
+  doorPlate: { floor: 2, width: 96, height: 46, gap: 8, font: 30 },
   // 반 배치 게시판을 열면 나오는 안내도. 학교 그림을 바탕으로 방 이름·계단·현위치를 표기한다.
   // labels의 x·y는 학교 그림(887×1774) 픽셀이다. 방 이름은 rooms, 계단은 stairs, 현위치는 게시판 자리에 자동으로 놓는다.
   // 플레이어 도시 지도(M)가 아니라 학교 안에 걸린 안내도이므로 장소명과 현위치를 표기한다.

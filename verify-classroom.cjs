@@ -135,6 +135,37 @@ run('player.x=40; player.y=60; updateCamera()');
 assert.equal(run('camera.x'), 0);
 assert.equal(run('camera.y'), 0);
 assert.equal(run('canStand(-1,60)'), false);
+// 책상 위에는 번호를 쓰지 않는다. 물건 창 제목에는 번호가 남는다.
+assert.ok(read('classroomObjects().filter(object => object.type === "desk")').every(desk => desk.label === '' && desk.name.endsWith(' 책상') || desk.label === '' && /번 책상$/.test(desk.name)));
+// 9반이 아닌 8개 교실에도 책상 30개씩 있다. 방 안에 있고 부딪히며, 조사 물체가 아니고, 문에서 가장 먼 책상 옆까지 걸어갈 수 있다.
+{
+  run('scene.interiorId=SCHOOL_DATA.placeId;scene.schoolFloor=CLASSROOM_DATA.floor;finishMapTransition()');
+  const decor = read('classroomDecorDesks().map(({ roomName, x, y, width, height }) => ({ roomName, x, y, width, height }))');
+  const rooms = read('schoolFloor().rooms.filter(room => room.name !== CLASSROOM_DATA.roomName)');
+  assert.equal(rooms.length, 8);
+  assert.equal(decor.length, 240);
+  for (const room of rooms) {
+    const desks = decor.filter(desk => desk.roomName === room.name);
+    assert.equal(desks.length, 30, room.name);
+    for (const desk of desks) {
+      assert.ok(desk.x - desk.width / 2 >= room.x && desk.x + desk.width / 2 <= room.x + room.width && desk.y - desk.height / 2 >= room.y && desk.y + desk.height / 2 <= room.y + room.height, room.name + ' 책상이 교실 밖에 있습니다.');
+      assert.equal(run(`canStand(${desk.x}, ${desk.y} - player.footOffset)`), false, room.name + ' 책상을 통과합니다.');
+    }
+  }
+  assert.equal(run('inspectionObjectsFor(currentInterior()).filter(object => object.type === "desk").length'), 30);
+  assert.ok(run(`(() => {
+    for (const door of schoolFloor().doors) schoolDoorUi.open.add(door.id);
+    const start = schoolStairs().arrival, step = 15, seen = new Set(['0,0']), queue = [[0, 0]];
+    for (let i = 0; i < queue.length; i++) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const gx = queue[i][0] + dx, gy = queue[i][1] + dy, key = gx + ',' + gy;
+      if (seen.has(key) || !canStand(start.x + gx * step, start.footY + gy * step - player.footOffset)) continue;
+      seen.add(key); queue.push([gx, gy]);
+    }
+    const ok = classroomDecorDesks().every(desk => queue.some(([gx, gy]) => Math.hypot(start.x + gx * step - desk.x, start.footY + gy * step - desk.y) < 110));
+    schoolDoorUi.open.clear();
+    return ok;
+  })()`), '걸어서 닿지 못하는 책상이 있습니다.');
+}
 console.log('통과: 정확한 30석·전 책상 접근 경로·빈 책상·종류별 중복 방지·개별 획득·확대 배치도·알림장 약도·카메라 경계');
 
 // 실제 입력 처리로 거리·중복·모달 차단·선택 유지·재입장을 확인한다.

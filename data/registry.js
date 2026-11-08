@@ -24,5 +24,6 @@ INSPECTION_OBJECTS.push({
   ...schoolRect(REGISTRY_DATA.paper, 0, SCHOOL_DATA.floors[0].scale), color: "#737c86", interactDistance: 180, sprite: REGISTRY_DATA.sprite,
   // 책상은 그림에 있으므로 그리지 않고(hidden) 충돌에만 쓴다.
   table: { ...schoolRect(REGISTRY_DATA.desk, 0, SCHOOL_DATA.floors[0].scale), color: "#b58b65", hidden: true },
-  messages: { tooFar: REGISTRY_DATA.text.near },
+  // keyHint의 {key}는 설정에서 지정한 상호작용 키로 바뀐다. keyHintClick은 키가 할당 없음일 때 쓴다.
+  messages: { tooFar: REGISTRY_DATA.text.near, keyHint: "{key} 키를 누르거나 클릭해 명부 보기", keyHintClick: "클릭해 명부 보기" },
 });

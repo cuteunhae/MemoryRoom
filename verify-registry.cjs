@@ -108,5 +108,23 @@ assert.equal(run('gameState.registrySolved'),true);
 assert.equal(run('gameState.achievementConditions[ACHIEVEMENT_CONDITIONS[0].id]'),true);
 assert.ok(!JSON.stringify(read('gameState')).includes('mask'));
 close();
+// 명부 가까이에서 키 안내가 나오고 E 키로 열고 닫는다. 보건실 밖 벽 너머에서는 거리가 가까워도 반응하지 않는다.
+{
+  const pressE = () => { for (const fn of windowHandlers.keydown) fn({ code: 'KeyE', key: 'e', preventDefault() {} }); };
+  run('if (inspectionUiState.mode) closeInspection(); scene.interiorId = SCHOOL_DATA.placeId; scene.schoolFloor = 1; finishMapTransition()');
+  const registryObject = read('INSPECTION_OBJECTS.find(object => object.type === "registry")');
+  const scale = run('schoolFloor().scale');
+  run(`player.x = ${registryObject.x}; player.y = ${400 * scale} - player.footOffset; updateCamera()`);
+  assert.ok(run('canStand(player.x, player.y)'), '명부 책상 앞에 설 수 없습니다.');
+  assert.equal(run('keyObjectHint()'), 'E 키를 누르거나 클릭해 명부 보기');
+  assert.deepEqual(read('(() => { const hint = currentKeyHint(); return { x: hint.x, y: hint.y, center: hint.center }; })()'), { x: registryObject.x, y: registryObject.y, center: true });
+  run('currentBindings().interact = null'); assert.equal(run('keyObjectHint()'), '클릭해 명부 보기'); run('currentBindings().interact = "KeyE"');
+  pressE(); assert.equal(run('inspectionUiState.mode'), 'registry');
+  assert.equal(elements['inspection-close'].textContent, '닫기 (E)');
+  pressE(); assert.equal(run('inspectionUiState.mode'), null);
+  run(`player.y = ${412 * scale} - player.footOffset; updateCamera()`);
+  assert.equal(run('nearbyKeyObject()'), null, '보건실 밖 벽 너머에서 명부 안내가 나옵니다.');
+  pressE(); assert.equal(run('inspectionUiState.mode'), null);
+}
 console.log('통과: 크레파스 보유·선택 제한, 실제 드래그·픽셀 중복 제외·70% 경계, 취소·미완료 초기화·완료 재열기, 순서 독립·업적 조건');
 

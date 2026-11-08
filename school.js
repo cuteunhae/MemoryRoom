@@ -113,7 +113,9 @@ function insideSchoolFloor(x, y) {
 function schoolCanStand(x, footY, radius) {
   const points = [[x, footY], [x - radius, footY], [x + radius, footY], [x, footY - radius], [x, footY + radius]];
   if (!points.every(([px, py]) => insideSchoolFloor(px, py))) return false;
-  return !schoolFloor().obstacleRects.some(rect => circleHitsRectangle(x, footY, radius, rect));
+  if (schoolFloor().obstacleRects.some(rect => circleHitsRectangle(x, footY, radius, rect))) return false;
+  // 9반이 아닌 교실의 배경 책상도 지나갈 수 없다.
+  return scene.schoolFloor !== CLASSROOM_DATA.floor || !classroomDecorDesks().some(desk => circleHitsRectangle(x, footY, radius, desk));
 }
 
 // 플레이어 발밑에서 문(틈)까지의 거리.
@@ -238,10 +240,45 @@ function changeSchoolFloor() {
   finishMapTransition();
 }
 
+// 문을 열 때 열린 그림으로 덮을 범위(문짝 전체와 그림자).
+function schoolDoorOverlay(door) {
+  const margin = SCHOOL_DATA.doorOverlay, rect = door.picture;
+  return { left: rect.left - margin.side, top: rect.top - margin.top, right: rect.right + margin.side, bottom: rect.bottom + margin.bottom };
+}
+
 // 그림 좌표 사각형(rect)을 열린 그림에서 잘라 같은 자리에 덮어 그린다.
 function drawOpenPicture(rect, top, scale) {
   const width = rect.right - rect.left, height = rect.bottom - rect.top;
   ctx.drawImage(schoolImages.open, rect.left, rect.top, width, height, rect.left * scale, (rect.top - top) * scale, width * scale, height * scale);
+}
+
+// 현재 층의 반 번호 표지 위치. 위쪽 줄 교실은 문 아래, 아래쪽 줄 교실은 문 위에 놓아 복도에서 보이게 한다.
+function schoolDoorPlates() {
+  const plate = SCHOOL_DATA.doorPlate, floor = schoolFloor();
+  if (floor.number !== plate.floor) return [];
+  return floor.doors.map(door => {
+    const rect = door.pictureRect, upperRow = floor.rooms.find(room => room.name === door.room).row === "위쪽";
+    const y = upperRow ? rect.y + rect.height / 2 + plate.gap + plate.height / 2 : rect.y - rect.height / 2 - plate.gap - plate.height / 2;
+    return { text: door.room, x: rect.x, y, width: plate.width, height: plate.height };
+  });
+}
+
+// 반 번호 표지를 그린다.
+function drawSchoolDoorPlates() {
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `bold ${SCHOOL_DATA.doorPlate.font}px 'Malgun Gothic', sans-serif`;
+  for (const plate of schoolDoorPlates()) {
+    ctx.fillStyle = "#26342d";
+    ctx.fillRect(plate.x - plate.width / 2, plate.y - plate.height / 2, plate.width, plate.height);
+    ctx.strokeStyle = "#f4d774";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(plate.x - plate.width / 2, plate.y - plate.height / 2, plate.width, plate.height);
+    ctx.fillStyle = "#fff8e9";
+    ctx.fillText(plate.text, plate.x, plate.y);
+  }
+  ctx.restore();
 }
 
 // 학교 바닥을 그린다. 그림이 있으면 닫힌 그림 위에 열린 문·정문만 열린 그림으로 덮고, 없으면 임시 색 블록으로 그린다.
@@ -252,7 +289,7 @@ function drawSchool() {
   if (schoolImageReady("closed") && schoolImageReady("open")) {
     ctx.drawImage(schoolImages.closed, crop.left, crop.top, crop.right - crop.left, crop.bottom - crop.top, 0, 0, size, size);
     for (const rect of floor.alwaysOpen) drawOpenPicture(rect, crop.top, floor.scale);
-    for (const door of floor.doors) if (schoolDoorUi.open.has(door.id)) drawOpenPicture(door.picture, crop.top, floor.scale);
+    for (const door of floor.doors) if (schoolDoorUi.open.has(door.id)) drawOpenPicture(schoolDoorOverlay(door), crop.top, floor.scale);
   } else {
     ctx.fillStyle = "#6c6a60";
     ctx.fillRect(0, 0, size, size);
@@ -274,8 +311,10 @@ function drawSchool() {
     ctx.fillText(scene.schoolFloor === 1 ? SCHOOL_DATA.text.up : SCHOOL_DATA.text.down, stairs.x, stairs.y);
     for (const room of floor.rooms) ctx.fillText(room.name, room.x + room.width / 2, room.y + 30);
   }
+  drawSchoolDoorPlates();
   // 9반 그림은 빈 교실이므로 앞쪽 벽에 임시 칠판을 그린다.
   if (scene.schoolFloor === CLASSROOM_DATA.floor) {
+    drawClassroomDecorDesks();
     const room = classroomRoom(), board = CLASSROOM_DATA.blackboard;
     const y = CLASSROOM_DATA.frontSide === "south" ? room.y + room.height - board.margin - board.height : room.y + board.margin;
     ctx.fillStyle = "#416553";

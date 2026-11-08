@@ -43,7 +43,7 @@ function drawPhotoRoads() {
 function renderInspection() {
   const { mode, object, item, back } = inspectionUiState;
   inspectionDialog.dataset.mode = mode;
-  // 대화창·게시판은 상호작용 키로도 닫을 수 있어 버튼에 키 이름을 함께 보여 준다.
+  // 대화창·게시판·명부는 상호작용 키로도 닫을 수 있어 버튼에 키 이름을 함께 보여 준다.
   inspectionClose.textContent = object?.messages?.keyHint ? bindingCloseLabel("interact") : SETTINGS_DATA.text.close;
   const collected = mode === "album" && gameState.photoCollected;
   inspectionTitle.textContent = item && ["photo", "infirmary", "playgroundMemo", "diary"].includes(mode) ? item.name : object.name;

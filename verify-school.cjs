@@ -253,6 +253,25 @@ run('if (inspectionUiState.mode) closeInspection(); scene.interiorId=SCHOOL_DATA
   assert.equal(run(`canStand(${220 * scale}, ${310 * scale} - player.footOffset)`), false);
   run('schoolDoorUi.open.clear()');
 }
+// 2층에는 1~9반 번호 표지가 모두 있고, 표지는 복도 바닥 위에 있으며 서로 겹치지 않는다. 1층에는 없다.
+{
+  run('scene.interiorId=SCHOOL_DATA.placeId;scene.schoolFloor=2;finishMapTransition()');
+  const plates = read('schoolDoorPlates()');
+  assert.deepEqual(plates.map(plate => plate.text).sort(), ['1반', '2반', '3반', '4반', '5반', '6반', '7반', '8반', '9반']);
+  const corridor = read('schoolFloor().walkableRects[0]');
+  for (const plate of plates) assert.ok(Math.abs(plate.y - corridor.y) + plate.height / 2 <= corridor.height / 2 + 1, plate.text + ' 표지가 복도 밖에 있습니다.');
+  for (const a of plates) for (const b of plates) if (a !== b) assert.ok(Math.abs(a.x - b.x) >= a.width || Math.abs(a.y - b.y) >= a.height, a.text + '·' + b.text + ' 표지가 겹칩니다.');
+  run('scene.schoolFloor=1;finishMapTransition()');
+  assert.equal(run('schoolDoorPlates().length'), 0);
+}
+// 문을 열 때 덮는 범위는 문 그림과 문 틈 전체를 포함하고 그림 안에 있다. 클릭 범위는 그대로다.
+for (const floorIndex of [0, 1]) {
+  for (const door of read(`SCHOOL_DATA.floors[${floorIndex}].doors.map(door => ({ id: door.id, picture: door.picture, opening: door.opening, overlay: schoolDoorOverlay(door) }))`)) {
+    assert.ok(door.overlay.left < door.picture.left && door.overlay.right > door.picture.right && door.overlay.top < door.picture.top && door.overlay.bottom > door.picture.bottom, door.id);
+    assert.ok(door.overlay.left <= door.opening.left && door.overlay.right >= door.opening.right && door.overlay.bottom >= door.opening.bottom, door.id + ' 문 틈이 덮는 범위 밖에 있습니다.');
+    assert.ok(door.overlay.left >= 0 && door.overlay.right <= 887 && door.overlay.top >= 0 && door.overlay.bottom <= 1774, door.id);
+  }
+}
 console.log('통과: 그림 기준 문 닫힘 차단·문 가까이 안내 문구·E/클릭 열고 닫기·문 틈 닫기 방지·퇴장 시 닫힘, 문을 열면 모든 방·정문 도달, 벽/가구 충돌, 게시판·확정 대사·입력 차단, 줌별 계단 왕복·연속 클릭 방지, 2층 퇴장 차단, 입구 복귀');
 
 // 실제 입력 처리로 거리·중복·모달 차단·선택 유지·재입장을 확인한다.

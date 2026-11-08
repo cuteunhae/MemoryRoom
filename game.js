@@ -703,15 +703,8 @@ function drawInterior(interior) {
     }
     // hidden 물체는 그림에 이미 있으므로 그리지 않는다(클릭·충돌은 그대로).
     if (object.hidden) continue;
-    // 그림이 있는 물체는 그림을 그리고, 번호(label)가 있으면 그 위에 쓴다.
-    if (object.sprite && drawObjectSprite(object)) {
-      if (object.label) {
-        ctx.fillStyle = "#4a2f1c";
-        ctx.font = "bold 14px 'Malgun Gothic', sans-serif";
-        ctx.fillText(object.label, object.x, object.y + object.height / 2 - (object.sprite.labelOffset ?? object.height / 2));
-      }
-      continue;
-    }
+    // 그림이 있는 물체는 그림만 그린다.
+    if (object.sprite && drawObjectSprite(object)) continue;
     ctx.fillStyle = object.color;
     ctx.fillRect(object.x - object.width / 2, object.y - object.height / 2, object.width, object.height);
     ctx.fillStyle = "#fff8e9";
@@ -744,18 +737,19 @@ function drawObjectSprite(object) {
   return true;
 }
 
-// 상호작용 키로 열 수 있는 가까운 물체(messages.keyHint가 있는 인물·게시판). 없으면 null이다.
+// 상호작용 키로 열 수 있는 가까운 물체(messages.keyHint가 있는 인물·게시판·명부). 없으면 null이다.
 function nearbyKeyObject() {
   const interior = currentInterior();
   if (!interior) return null;
   const footY = player.y + player.footOffset;
   const distance = object => Math.hypot(Math.max(0, Math.abs(player.x - object.x) - object.width / 2), Math.max(0, Math.abs(footY - object.y) - object.height / 2));
   // 여럿이 가까우면 가장 가까운 대상에 반응한다.
-  return inspectionObjectsFor(interior).filter(object => object.messages?.keyHint && distance(object) <= object.interactDistance)
+  // 특정 방 안에서만 조사할 수 있는 물체는 벽 너머에서 반응하지 않는다.
+  return inspectionObjectsFor(interior).filter(object => object.messages?.keyHint && distance(object) <= object.interactDistance && canInspectSchoolObject(object))
     .sort((a, b) => distance(a) - distance(b))[0] || null;
 }
 
-// 상호작용 키: 가까운 인물과 대화하거나 게시판을 연다. 열었으면 true를 돌려준다.
+// 상호작용 키: 가까운 인물과 대화하거나 게시판·명부를 연다. 열었으면 true를 돌려준다.
 function interactNearbyObject() {
   const object = nearbyKeyObject();
   if (!object) return false;
@@ -763,7 +757,7 @@ function interactNearbyObject() {
   return true;
 }
 
-// 가까운 인물·게시판의 화면 안내 문구. 키가 지정되지 않았으면 클릭 안내만 보여 준다.
+// 가까운 인물·게시판·명부의 화면 안내 문구. 키가 지정되지 않았으면 클릭 안내만 보여 준다.
 function keyObjectHint() {
   const object = nearbyKeyObject();
   if (!object) return "";
