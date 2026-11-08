@@ -50,8 +50,8 @@ const click = (target, button = 0) => {
 const side=read('outdoorDoors().find(d=>d.placeId===HOUSE_DATA.placeId&&d.kind==="side")');
 positionAt(side);advance();click(side);
 const cabinet=read('HOUSE_DATA.cabinet');
-run('player.x=600;player.y=550-player.footOffset;updateCamera()');advance();click(cabinet);assert.equal(run('inspectionUiState.mode'),null);
-run('player.x=600;player.y=190-player.footOffset;updateCamera()');click(cabinet);
+run('player.x=600;player.y=900-player.footOffset;updateCamera()');advance();click(cabinet);assert.equal(run('inspectionUiState.mode'),null);
+run('player.x=832;player.y=700-player.footOffset;updateCamera()');click(cabinet);
 assert.equal(run('inspectionUiState.mode'),'cabinet');assert.equal(run('isGameInputBlocked()'),true);
 run('CABINET_DATA.answer.forEach(acquireItem);acquireItem("ITM-02");acquireItem("DOLL-ITEM-02");renderCabinetPanel()');
 assert.equal(run('selectCabinetInventory("ITM-02")'),false);
@@ -65,7 +65,7 @@ run('selectCabinetInventory("ITM-01");clickCabinetSlot(4);clickCabinetSlot(0);cl
 assert.equal(run('gameState.cabinet.slots[0]'),'ITM-01');assert.equal(run('gameState.cabinet.slots[4]'),'ITM-03');
 run('closeInspection();restoreUnsolvedCabinet();restoreUnsolvedCabinet()');conserved();assert.deepEqual(read('gameState.cabinet.slots'),[null,null,null,null,null]);assert.equal(run('gameState.cabinetSolved'),false);
 click(cabinet);run('selectCabinetInventory("ITM-07");clickCabinetSlot(0);player.x=currentInterior().spawn.x;player.y=currentInterior().spawn.footY-player.footOffset;exitInterior()');conserved();assert.equal(run('inspectionUiState.mode'),null);assert.ok(read('gameState.cabinet.slots').every(x=>x===null));
-positionAt(side);advance();click(side);advance();run('player.x=600;player.y=190-player.footOffset;updateCamera()');click(cabinet);
+positionAt(side);advance();click(side);advance();run('player.x=832;player.y=700-player.footOffset;updateCamera()');click(cabinet);
 run('CABINET_DATA.answer.forEach((id,i)=>{selectCabinetInventory(id);clickCabinetSlot(4-i)})');conserved();assert.equal(run('gameState.cabinetSolved'),false);
 run('clickCabinetSlot(0);clickCabinetSlot(4);clickCabinetSlot(1);clickCabinetSlot(3)');conserved();
 assert.equal(run('gameState.cabinetSolved'),true);assert.equal(run('gameState.cabinetKeyGranted'),true);assert.equal(run('gameState.achievementConditions["ACH-05"]'),true);
@@ -73,5 +73,5 @@ assert.deepEqual(read('gameState.cabinet.slots'),read('CABINET_DATA.answer'));
 assert.equal(read('gameState.inventory.itemIds').filter(id=>id==='ITM-09').length,1);
 assert.equal(run('clickCabinetSlot(0)'),false);assert.equal(run('acquireItem("ITM-09")'),false);
 run('closeInspection();restoreUnsolvedCabinet()');click(cabinet);assert.deepEqual(read('gameState.cabinet.slots'),read('CABINET_DATA.answer'));conserved();
-run('closeInspection();player.x=600;player.y=590-player.footOffset;updateCamera()');click(read('houseDoor(HOUSE_DATA.rooms.find(r=>r.id==="child"))'));assert.equal(run('gameState.childRoomUnlocked'),true);
+run('closeInspection();player.x=270;player.y=579-player.footOffset;updateCamera()');click(read('houseDoor(HOUSE_DATA.rooms.find(r=>r.id==="child"))'));assert.equal(run('gameState.childRoomUnlocked'),true);
 console.log('통과: 장식장 거리·입력 차단, 자유 배치·교환·반환, 닫기/퇴장 복구, 아이템 보존·중복 방지, 정답 고정·열쇠 1회·ACH-05·아이 방 개방');

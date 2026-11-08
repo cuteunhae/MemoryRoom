@@ -67,7 +67,14 @@ function drawBearBubbles() {
     ctx.scale(BUBBLE_DATA.radius / 52, BUBBLE_DATA.radius / 52);
     const x = 0, y = 0;
     ctx.globalAlpha = Math.min(1,(BUBBLE_DATA.lifetimeMs/1000-age)*2);
-    // TODO: 둥근 귀·갈색 털·파란 리본을 가진 곰 인형 임시 그림.
+    const image = objectSpriteImage(BUBBLE_DATA.image);
+    if (image) {
+      const height = 104, width = height * image.naturalWidth / image.naturalHeight;
+      ctx.drawImage(image, -width / 2, -height / 2, width, height);
+      ctx.restore();
+      continue;
+    }
+    // 그림을 불러오지 못했을 때의 임시 곰 인형.
     fillEllipse(x,y,52,52,"#d3eff34d");
     ctx.strokeStyle = "#d8f5ff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,52,0,Math.PI*2);ctx.stroke();
     drawBearDoll();

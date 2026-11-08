@@ -2,9 +2,10 @@
 
 const DIARY_DATA = {
   itemId: "ITM-10",
+  // 집 그림 기준 위치다. 침대는 별 이불 침대, 일기장은 책상 위에 놓는다.
   // TODO: 침대·일기장 위치와 크기, 조사 거리와 클릭 여유는 임시 설정이다.
-  bed: { x: 703, y: 771, width: 90, height: 140 },
-  book: { x: 697, y: 785, width: 34, height: 42 },
+  bed: { x: 90, y: 281, width: 120, height: 182 },
+  book: { x: 223, y: 190, width: 42, height: 34, sprite: { src: "assets/item-diary.png" } },
   interactDistance: 100,
   clickPadding: 10,
   text: { title: "일기장", next: "다음 페이지", last: "이야기를 다 읽었다면 공책이나 닫기 버튼을 한 번 더 눌러주세요.", page: "페이지" },

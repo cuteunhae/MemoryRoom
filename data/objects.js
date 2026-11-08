@@ -1,11 +1,11 @@
 "use strict";
 
-// TODO: 임시 실내 기준 픽셀 좌표·크기·조사 거리. 최종 실내 제작 시 조정한다.
+// 사진관 그림을 0.8배로 그린 게임 좌표다. 사진첩은 소파 앞 탁자 위, 사진작가는 안내 데스크 오른쪽에 둔다.
+// TODO: 위치·크기·조사 거리는 임시 값이다. 플레이 테스트에서 조정한다.
 const INSPECTION_OBJECTS = [{
   id: "studio-album", placeId: "C01", name: "사진첩", type: "album", rewardId: "ITM-01",
-  x: 820, y: 370, width: 64, height: 44, interactDistance: 140,
+  x: 225, y: 515, width: 64, height: 44, interactDistance: 140,
   color: "#785e79",
-  table: { x: 820, y: 370, width: 200, height: 110, color: "#b58b65" },
   messages: {
     tooFar: "사진첩 가까이에서 클릭해 주세요.",
     acquired: "돌잔치 사진을 획득했습니다. (I: 인벤토리)",
@@ -13,9 +13,8 @@ const INSPECTION_OBJECTS = [{
   },
 }, {
   id: "studio-staff", placeId: "C01", name: "직원", type: "dialogue",
-  x: 280, y: 370, width: 42, height: 54, interactDistance: 140,
-  color: "#557d78",
-  table: { x: 280, y: 410, width: 220, height: 70, color: "#b58b65" },
+  x: 408, y: 273, width: 42, height: 54, interactDistance: 140, solid: true,
+  color: "#557d78", sprite: { src: "assets/npc-photographer.png", width: 44, height: 72 },
   messages: {
     tooFar: "직원 가까이에서 클릭해 주세요.",
     dialogue: "드디어 사진을 찾으러 오셨군요! 사진은 사진첩 안에 들어있습니다. 오신 김에 사진관도 둘러보고 가세요.",

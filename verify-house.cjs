@@ -57,26 +57,26 @@ assert.equal(new Set(dolls.map(doll=>doll.id)).size,5);
 assert.equal(new Set(dolls.map(doll=>doll.itemId)).size,5);
 const child=read('HOUSE_DATA.rooms.find(room=>room.id==="child")');
 const door=read('houseDoor(HOUSE_DATA.rooms.find(room=>room.id==="child"))');
-// 실제 보행 판정으로 쪽문에서 안방·부엌·인형까지 도달하고 아이 방은 막히는지 확인한다.
+// 실제 보행 판정으로 쪽문에서 마루·복도·안방까지 도달하고 인형에 손이 닿으며, 아이 방과 부엌(사용자 결정)은 막히는지 확인한다.
 const reach=read(`(() => {
- const queue=[[600,112]],seen=new Set(['600,112']),step=10;
+ const start=currentInterior().spawn,queue=[[start.x,start.footY]],seen=new Set([start.x+','+start.footY]),step=10;
  for(let i=0;i<queue.length;i++)for(const [dx,dy] of [[step,0],[-step,0],[0,step],[0,-step]]) {
   const x=queue[i][0]+dx,y=queue[i][1]+dy,key=x+','+y;
   if(seen.has(key)||!canStand(x,y-player.footOffset))continue;
   seen.add(key);queue.push([x,y]);
  }
  const near=(x,y)=>queue.some(([qx,qy])=>Math.hypot(qx-x,qy-y)<16);
- return { dolls:HOUSE_DATA.dolls.every(doll=>near(doll.x,doll.y+doll.height/2+30)),kitchen:near(1000,450),child:near(600,760) };
+ return { dolls:HOUSE_DATA.dolls.every(doll=>queue.some(([qx,qy])=>qx>945&&qy<497&&Math.hypot(Math.max(0,Math.abs(qx-doll.x)-doll.width/2),Math.max(0,Math.abs(qy-doll.y)-doll.height/2))<=HOUSE_DATA.interactDistance)),bedroom:near(1080,420),corridor:near(375,300),kitchen:near(680,280),child:near(150,420) };
 })()`);
-assert.equal(reach.dolls,true);assert.equal(reach.kitchen,true);assert.equal(reach.child,false);
-run(`player.x=${door.x};player.y=${door.y-60}-player.footOffset;updateCamera()`);advance();click(door);
+assert.equal(reach.dolls,true);assert.equal(reach.bedroom,true);assert.equal(reach.corridor,true);assert.equal(reach.kitchen,false);assert.equal(reach.child,false);
+run(`player.x=${door.x};player.y=${door.y+60}-player.footOffset;updateCamera()`);advance();click(door);
 assert.equal(run('gameState.childRoomUnlocked'),false);
-run("pressedKeys.add('ArrowDown');update(1);pressedKeys.clear()");
-assert.ok(run('player.y+player.footOffset')<child.y);
+run("pressedKeys.add('ArrowUp');update(1);pressedKeys.clear()");
+assert.ok(run('player.y+player.footOffset')>child.y+child.height);
 for(const doll of dolls) {
  run('player.x=600;player.y=450-player.footOffset;updateCamera()');click(doll);
  assert.equal(run(`gameState.acquiredItems[${JSON.stringify(doll.itemId)}]===true`),false);
- run(`player.x=${doll.x};player.y=${doll.y+doll.height/2+30}-player.footOffset;updateCamera()`);
+ run(`player.x=${doll.x};player.y=390-player.footOffset;updateCamera()`);
  assert.ok(run('canStand(player.x,player.y)'));
  click(doll,2);assert.equal(run(`gameState.acquiredItems[${JSON.stringify(doll.itemId)}]===true`),false);
  click(doll);click(doll);
@@ -86,10 +86,10 @@ for(const doll of dolls) {
 assert.equal(run('gameState.inventory.itemIds.length'),5);
 assert.equal(run('gameState.childRoomUnlocked'),false);
 // 실제 플레이에서는 다음 장식장 단계에서 지급할 열쇠를 검사에서만 주입한다.
-run('acquireItem(HOUSE_DATA.keyId);player.x=600;player.y=590-player.footOffset;updateCamera()');
+run(`acquireItem(HOUSE_DATA.keyId);player.x=${door.x};player.y=${door.y+70}-player.footOffset;updateCamera()`);
 assert.equal(run('gameState.childRoomUnlocked'),false);
 click(door);assert.equal(run('gameState.childRoomUnlocked'),true);
-run("pressedKeys.add('ArrowDown');update(0.25);pressedKeys.clear()");assert.ok(run('player.y+player.footOffset')>child.y+30);
+run("pressedKeys.add('ArrowUp');update(0.25);pressedKeys.clear()");assert.ok(run('player.y+player.footOffset')<child.y+child.height);
 assert.ok(run('canStand(player.x,player.y)'));
 run('player.x=currentInterior().spawn.x;player.y=currentInterior().spawn.footY-player.footOffset;updateCamera()');
 advance();click(read('currentInterior().exit'));assert.equal(run('scene.interiorId'),null);

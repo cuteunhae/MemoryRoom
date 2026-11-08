@@ -37,5 +37,7 @@ const PLAYGROUND_DATA = {
 const BUBBLE_DATA = {
   // TODO: 임시 비눗방울 크기·수명·생성 간격. 집의 곰 인형도 아래 외형을 공유한다.
   lifetimeMs: 3000, intervalMs: 180, maxCount: 24, radius: 52, riseSpeed: 34,
+  // 곰 인형 모양 비눗방울 그림. 그림이 없으면 아래 bear 색으로 임시 도형을 그린다.
+  image: "assets/bear-bubble.png",
   bear: { fur: "#96643f", muzzle: "#d0a775", ribbon: "#4a8fc5", outline: "#65432f" },
 };

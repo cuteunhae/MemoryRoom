@@ -21,6 +21,11 @@ function renderInventoryList(container, onSelect) {
     const icon = document.createElement("span");
     icon.className = "item-icon";
     icon.setAttribute("aria-hidden", "true");
+    // 그림이 있는 아이템은 칸 안에 그림을 보여 준다.
+    if (item.icon) {
+      icon.className = "item-icon has-image";
+      icon.setAttribute("style", `background-image: url("${item.icon}")`);
+    }
     const name = document.createElement("span");
     name.textContent = item.name;
     const badge = document.createElement("span");

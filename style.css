@@ -66,6 +66,7 @@ dialog > .settings-open { margin-top: 16px; }
 .inventory-item[aria-pressed="true"] { border-color: #45675c; background: #e0ecdf; }
 .inventory-item:focus-visible, #inventory-close:focus-visible { outline: 3px solid #45675c; outline-offset: 2px; }
 .item-icon { width: 36px; height: 36px; flex-shrink: 0; border: 5px solid #c9b792; background: #8ca49a; }
+.item-icon.has-image { border: 0; width: 46px; height: 46px; background: center / contain no-repeat transparent; }
 .selection-badge { margin-left: auto; font-size: 13px; color: #36594c; }
 
 #inspection-message { line-height: 1.8; white-space: pre-line; }

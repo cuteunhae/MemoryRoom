@@ -62,19 +62,19 @@ document.getElementById("diary-paper").addEventListener("click",()=>{
   if(inspectionUiState.mode==="diary" && !settingsUi.open && diaryUi.page===DIARY_DATA.pages.length-1)closeInspection({confirmDiary:true});
 });
 
-function drawChildRoomFurniture() {
+// 침대는 집 그림에 있으므로 그림이 있으면(hasPicture) 일기장만 그린다.
+function drawChildRoomFurniture(hasPicture) {
   const bed = DIARY_DATA.bed, book = DIARY_DATA.book;
-  ctx.fillStyle = "#a88364";
-  ctx.fillRect(bed.x-bed.width/2, bed.y-bed.height/2, bed.width, bed.height);
-  ctx.fillStyle = "#c5d7cf";
-  ctx.fillRect(bed.x-bed.width/2+6, bed.y-bed.height/2+6, bed.width-12, bed.height-12);
-  ctx.fillStyle = "#fff3df";
-  ctx.fillRect(bed.x-bed.width/2+12, bed.y-bed.height/2+12, bed.width-24, 28);
+  if (!hasPicture) {
+    ctx.fillStyle = "#a88364";
+    ctx.fillRect(bed.x-bed.width/2, bed.y-bed.height/2, bed.width, bed.height);
+    ctx.fillStyle = "#c5d7cf";
+    ctx.fillRect(bed.x-bed.width/2+6, bed.y-bed.height/2+6, bed.width-12, bed.height-12);
+  }
+  if (drawObjectSprite(book)) return;
   ctx.fillStyle = "#8a646b";
   ctx.fillRect(book.x-book.width/2, book.y-book.height/2, book.width, book.height);
-  ctx.fillStyle = "#f7e8c8";
-  ctx.fillRect(book.x-book.width/2+5, book.y-book.height/2+5, 3, book.height-10);
   ctx.fillStyle = "#4e443c";
   ctx.font = "14px 'Malgun Gothic', sans-serif";
-  ctx.fillText(DIARY_DATA.text.title, book.x, bed.y+bed.height/2+14);
+  ctx.fillText(DIARY_DATA.text.title, book.x, book.y+book.height/2+14);
 }

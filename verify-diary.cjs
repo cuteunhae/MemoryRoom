@@ -57,12 +57,12 @@ for(const [index,page] of read('DIARY_DATA.pages').entries()) {
   const line=specification.split(/\r?\n/).find(line=>line.startsWith(`- [${index+1}페이지]: `));
   assert.equal(line.split(']: ')[1].replace(/\s/g,""),(page.title ? `${page.title} / ${page.body}` : page.body).replace(/\s/g,""));
 }
-run('player.x=600;player.y=590-player.footOffset;updateCamera()');click(door);
+run('player.x=270;player.y=579-player.footOffset;updateCamera()');click(door);
 assert.equal(run('gameState.childRoomUnlocked'),false);click(book);
 assert.equal(run('gameState.diaryDiscovered'),false);assert.equal(run('inspectionUiState.mode'),null);
 run('acquireItem(HOUSE_DATA.keyId)');click(door);assert.equal(run('gameState.childRoomUnlocked'),true);
 click(book);assert.equal(run('gameState.diaryDiscovered'),false);
-run('player.x=620;player.y=785-player.footOffset;updateCamera()');assert.equal(run('canStand(player.x,player.y)'),true);
+run('player.x=223;player.y=280-player.footOffset;updateCamera()');assert.equal(run('canStand(player.x,player.y)'),true);
 assert.equal(run('canStand(DIARY_DATA.bed.x,DIARY_DATA.bed.y-player.footOffset)'),false);
 click(book,2);assert.equal(run('gameState.diaryDiscovered'),false);
 click(book);assert.equal(run('inspectionUiState.mode'),'diary');assert.equal(run('diaryUi.page'),0);

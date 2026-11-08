@@ -1,32 +1,14 @@
 "use strict";
 
+// 방 문의 걸어서 지나는 틈.
 function houseDoor(room) {
-  const door=room.door,t=HOUSE_DATA.wallThickness;
-  return door.side === "north" ? { x:door.center,y:room.y+t/2,width:door.width,height:t } :
-    { x:door.side === "east" ? room.x+room.width-t/2 : room.x+t/2,y:door.center,width:t,height:door.width };
+  return room.door;
 }
 
-function houseWalls() {
-  const result=[],t=HOUSE_DATA.wallThickness;
-  const add=(x,y,width,height)=>result.push({x:x+width/2,y:y+height/2,width,height});
-  for(const room of HOUSE_DATA.rooms) {
-    const {x,y,width,height,door}=room;
-    for(const side of ["north","south","west","east"]) {
-      const horizontal=side==="north"||side==="south";
-      const start=horizontal?x:y, length=horizontal?width:height;
-      const segments=side===door.side ? [[start,door.center-door.width/2-start],[door.center+door.width/2,start+length-door.center-door.width/2]] : [[start,length]];
-      for(const [from,size] of segments) {
-        if(horizontal)add(from,side==="north"?y:y+height-t,size,t);
-        else add(side==="west"?x:x+width-t,from,t,size);
-      }
-    }
-    if(room.id==="child"&&!gameState.childRoomUnlocked)result.push(houseDoor(room));
-  }
-  return result;
-}
-
+// 벽과 가구는 집 그림 데이터(city-data.js)에서 막고, 여기서는 게임 상태에 따라 달라지는 것만 돌려준다.
 function houseObstacles() {
-  return [...houseWalls(),HOUSE_DATA.cabinet,DIARY_DATA.bed,...HOUSE_DATA.dolls.filter(doll=>!gameState.acquiredItems[doll.itemId])];
+  const child=HOUSE_DATA.rooms.find(room=>room.id==="child");
+  return [HOUSE_DATA.cabinet,DIARY_DATA.bed,...HOUSE_DATA.dolls.filter(doll=>!gameState.acquiredItems[doll.itemId]),...(gameState.childRoomUnlocked?[]:[child.door])];
 }
 
 function handleHouseClick(x,y) {
@@ -42,7 +24,7 @@ function handleHouseClick(x,y) {
     return true;
   }
   const doll=HOUSE_DATA.dolls.find(hit);
-  const target=hit(door)?door:doll || (hit(HOUSE_DATA.cabinet)?HOUSE_DATA.cabinet:null);
+  const target=hit(door.picture)?door:doll || (hit(HOUSE_DATA.cabinet)?HOUSE_DATA.cabinet:null);
   if(!target)return false;
   const footY=player.y+player.footOffset;
   const distance=Math.hypot(Math.max(0,Math.abs(player.x-target.x)-target.width/2),Math.max(0,Math.abs(footY-target.y)-target.height/2));
@@ -74,11 +56,11 @@ function drawHouseDoll(doll) {
     tracePath([[-4,-8],[8,-27],[17,-8]],true);ctx.fill();
     fillEllipse(30,-1,15,6,"#809eae");fillEllipse(17,-6,3,3,"#37444e");
   } else {
-    const color=doll.kind==="rabbit"?"#e7d9c7":doll.kind==="dog"?"#b79473":"#93969c";
+    const color=doll.kind==="rabbit"?"#e7d9c7":doll.kind==="dog"?"#b79473":"#e9b3bd";
     fillEllipse(0,16,20,24,color);
     if(doll.kind==="rabbit")for(const side of [-1,1])fillEllipse(side*13,-30,8,21,color);
     if(doll.kind==="dog")for(const side of [-1,1])fillEllipse(side*23,-12,10,20,"#795b46");
-    if(doll.kind==="cat")for(const side of [-1,1]) {
+    if(doll.kind==="pig")for(const side of [-1,1]) {
       ctx.fillStyle=color;tracePath([[side*22,-8],[side*24,-37],[side*5,-20]],true);ctx.fill();
     }
     fillEllipse(0,-8,23,21,color);
@@ -88,24 +70,33 @@ function drawHouseDoll(doll) {
   ctx.restore();
 }
 
+// 문이 열려 있으면 문 그림 위에 근처 바닥 그림을 덮어 지나갈 수 있게 보여 준다.
+function drawOpenHouseDoor(image,door) {
+  const rect=door.picture;
+  ctx.drawImage(image,door.floor.x,door.floor.y,rect.width,rect.height,rect.x-rect.width/2,rect.y-rect.height/2,rect.width,rect.height);
+}
+
 function drawHouse() {
+  const interior=city.interiors.find(room=>room.placeId===HOUSE_DATA.placeId);
+  const image=objectSpriteImage(interior.picture.src);
+  const child=HOUSE_DATA.rooms.find(room=>room.id==="child"),bedroom=HOUSE_DATA.rooms.find(room=>room.id==="bedroom");
   ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="18px 'Malgun Gothic', sans-serif";
-  for(const room of HOUSE_DATA.rooms) {
-    ctx.fillStyle=room.id==="kitchen"?"#e1dfca":"#e3cfb4";ctx.fillRect(room.x,room.y,room.width,room.height);
-    ctx.fillStyle="#5b4b3b";ctx.fillText(room.name,room.x+room.width/2,room.y+40);
+  if(image) {
+    drawOpenHouseDoor(image,bedroom.door);
+    if(gameState.childRoomUnlocked)drawOpenHouseDoor(image,child.door);
+  } else {
+    // 그림을 불러오지 못했을 때의 임시 표시.
+    ctx.fillStyle="#5b4b3b";
+    for(const room of HOUSE_DATA.rooms)ctx.fillText(room.name,room.x+room.width/2,room.y+40);
+    ctx.fillText(HOUSE_DATA.text.hall,600,800);
+    const cabinet=HOUSE_DATA.cabinet;
+    ctx.fillStyle="#a98664";ctx.fillRect(cabinet.x-cabinet.width/2,cabinet.y-cabinet.height/2,cabinet.width,cabinet.height);
+    ctx.fillStyle="#5b4b3b";ctx.fillText(HOUSE_DATA.text.cabinet,cabinet.x,cabinet.y+cabinet.height/2+20);
+    if(!gameState.childRoomUnlocked){const door=child.door;ctx.fillStyle="#705346";ctx.fillRect(door.x-door.width/2,door.y-door.height/2,door.width,door.height);}
   }
-  ctx.fillStyle="#998674";
-  for(const wall of houseWalls())ctx.fillRect(wall.x-wall.width/2,wall.y-wall.height/2,wall.width,wall.height);
-  const door=houseDoor(HOUSE_DATA.rooms.find(room=>room.id==="child"));
-  drawChildRoomFurniture();
-  if(!gameState.childRoomUnlocked){ctx.fillStyle="#705346";ctx.fillRect(door.x-door.width/2,door.y-door.height/2,door.width,door.height);}
-  ctx.fillStyle="#5b4b3b";ctx.fillText(HOUSE_DATA.text.hall,600,180);
-  const cabinet=HOUSE_DATA.cabinet;
-  ctx.fillStyle="#a98664";ctx.fillRect(cabinet.x-cabinet.width/2,cabinet.y-cabinet.height/2,cabinet.width,cabinet.height);
-  ctx.strokeStyle="#6c5139";ctx.lineWidth=2;
-  for(let i=1;i<5;i++){tracePath([[cabinet.x-cabinet.width/2,cabinet.y-cabinet.height/2+i*cabinet.height/5],[cabinet.x+cabinet.width/2,cabinet.y-cabinet.height/2+i*cabinet.height/5]]);ctx.stroke();}
-  ctx.fillStyle="#5b4b3b";ctx.fillText(HOUSE_DATA.text.cabinet,cabinet.x,cabinet.y+cabinet.height/2+20);
+  drawChildRoomFurniture(!!image);
   for(const doll of HOUSE_DATA.dolls)if(!gameState.acquiredItems[doll.itemId]) {
+    if(drawObjectSprite(doll))continue;
     drawHouseDoll(doll);ctx.fillStyle="#4e443c";ctx.font="14px 'Malgun Gothic', sans-serif";ctx.fillText(doll.name,doll.x,doll.y+doll.height/2+18);
   }
   ctx.restore();

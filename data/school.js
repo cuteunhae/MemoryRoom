@@ -104,9 +104,8 @@ const SCHOOL_DATA = {
     // 반 배치 게시판은 로비 왼쪽 게시판 그림이다. 그림이 있으므로 따로 그리지 않는다(hidden).
     { id: "school-board", placeId: "C02", floor: 1, type: "board", name: "반 배치 게시판", hidden: true, solid: true,
       rect: { left: 172, top: 495, right: 280, bottom: 555 }, interactDistance: 160, color: "#97744b", messages: { tooFar: "게시판 가까이에서 클릭해 주세요." } },
-    // TODO: 선생님 그림이 없어 임시 도형으로 그린다.
     { id: "school-teacher", placeId: "C02", floor: 1, type: "dialogue", name: "선생님",
-      rect: { left: 324, top: 622, right: 335, bottom: 634 }, interactDistance: 140, color: "#557d78", messages: {
+      rect: { left: 322, top: 612, right: 337, bottom: 634 }, interactDistance: 140, color: "#557d78", sprite: { src: "assets/npc-teacher.png", width: 40, height: 72 }, messages: {
       tooFar: "선생님 가까이에서 클릭해 주세요.",
       dialogue: "오랜만이구나! 졸업하고 어떻게 지내는지 궁금했단다. 아참, 저 게시판에는 새로 입학한 학생들을 위한 반 배치도가 있단다. 한번 살펴보렴.",
     } },

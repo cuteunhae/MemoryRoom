@@ -94,17 +94,76 @@ const CITY_DATA = {
     tooFar: "문 가까이 이동하세요.",
   },
   interiors: [
-    { placeId: "C01", name: "사진관", width: 1100, height: 800, wall: 32,
-      floorColor: "#e4d8c8", wallColor: "#a38774", tileSize: 64,
-      exit: { x: 550, y: 784, width: 96, height: 32, side: "south" },
-      spawn: { x: 550, footY: 688, facing: "up" } },
+    // 사진관은 그림(1671×941)을 0.8배로 그린다. walkable·obstacles는 그림 픽셀 좌표이고, 아래에서 게임 좌표로 바꾼다.
+    // TODO: 배율과 걷는 범위는 임시 값이다. 플레이 테스트에서 조정한다.
+    { placeId: "C01", name: "사진관", wall: 0, floorColor: "#e4d8c8", wallColor: "#a38774", tileSize: 64,
+      picture: { src: "assets/studio-interior.png", imageWidth: 1671, imageHeight: 941, scale: 0.8,
+        walkable: [
+          { left: 42, top: 275, right: 1628, bottom: 840 },
+          // 아래쪽 문 틈.
+          { left: 785, top: 840, right: 885, bottom: 915 },
+        ],
+        obstacles: [
+          { left: 85, top: 285, right: 468, bottom: 420 }, // 안내 데스크
+          { left: 815, top: 200, right: 890, bottom: 402 }, // 가운데 칸막이
+          { left: 42, top: 525, right: 178, bottom: 785 }, // 소파
+          { left: 218, top: 597, right: 345, bottom: 690 }, // 탁자
+          { left: 212, top: 703, right: 350, bottom: 790 }, // 발받침
+          { left: 1048, top: 275, right: 1118, bottom: 332 }, // 왼쪽 조명
+          { left: 1550, top: 275, right: 1615, bottom: 332 }, // 오른쪽 조명
+          { left: 1302, top: 275, right: 1378, bottom: 308 }, // 촬영 의자
+          { left: 1272, top: 335, right: 1380, bottom: 505 }, // 카메라
+        ] },
+      exit: { x: 668, y: 716, width: 96, height: 32, side: "south" },
+      spawn: { x: 668, footY: 650, facing: "up" } },
     { placeId: "C02", name: "학교 1층", width: 1600, height: 1000, wall: 32,
       floorColor: "#e6dfc6", wallColor: "#a59c7d", tileSize: 64,
       exit: { x: 800, y: 984, width: 96, height: 32, side: "south" },
       spawn: { x: 800, footY: 888, facing: "up" } },
-    { placeId: "C05", name: "집", width: 1200, height: 900, wall: 32,
-      floorColor: "#d7c5ac", wallColor: "#998674", tileSize: 64,
-      exit: { x: 600, y: 16, width: 96, height: 32, side: "north" },
-      spawn: { x: 600, footY: 112, facing: "down" } },
+    // 집은 그림(1254×1254) 픽셀이 곧 게임 좌표다. 사용자 결정(2026-11-08): 부엌은 그림에서 벽으로 막혀 있어 들어가지 못한다.
+    // TODO: 걷는 범위는 임시 값이다. 플레이 테스트에서 조정한다.
+    { placeId: "C05", name: "집", wall: 0, floorColor: "#d7c5ac", wallColor: "#998674", tileSize: 64,
+      picture: { src: "assets/house-interior.png", imageWidth: 1254, imageHeight: 1254, scale: 1,
+        walkable: [
+          { left: 18, top: 232, right: 312, bottom: 497 }, // 아이 방
+          { left: 238, top: 497, right: 302, bottom: 521 }, // 아이 방 문 틈
+          { left: 945, top: 232, right: 1238, bottom: 497 }, // 안방
+          { left: 952, top: 497, right: 1018, bottom: 521 }, // 안방 문 틈
+          { left: 332, top: 232, right: 418, bottom: 372 }, // 부엌 왼쪽 복도
+          { left: 332, top: 372, right: 925, bottom: 521 }, // 마루 위쪽
+          { left: 212, top: 520, right: 1042, bottom: 932 }, // 마루
+          { left: 212, top: 930, right: 353, bottom: 952 }, // 마루 왼쪽 아래
+          { left: 897, top: 930, right: 1042, bottom: 952 }, // 마루 오른쪽 아래
+          { left: 382, top: 930, right: 868, bottom: 1130 }, // 현관
+          { left: 575, top: 1130, right: 665, bottom: 1215 }, // 현관문 틈
+        ],
+        obstacles: [
+          { left: 168, top: 165, right: 302, bottom: 262 }, // 아이 방 책상과 의자
+          { left: 995, top: 170, right: 1172, bottom: 372 }, // 안방 침대(인형이 놓여 있다)
+          { left: 1170, top: 205, right: 1232, bottom: 305 }, // 안방 협탁
+          { left: 463, top: 455, right: 742, bottom: 521 }, // 벽 그림과 시계
+          { left: 333, top: 585, right: 398, bottom: 768 }, // TV
+          { left: 472, top: 558, right: 678, bottom: 672 }, // 소파
+          { left: 675, top: 600, right: 755, bottom: 725 }, // 1인 소파
+          { left: 502, top: 695, right: 650, bottom: 762 }, // 거실 탁자
+          { left: 387, top: 950, right: 498, bottom: 1088 }, // 옷장
+          { left: 730, top: 950, right: 858, bottom: 1070 }, // 신발장
+        ] },
+      exit: { x: 620, y: 1180, width: 96, height: 32, side: "south" },
+      spawn: { x: 620, footY: 1110, facing: "up" } },
   ],
 };
+
+// 그림을 쓰는 실내: 크기를 그림에 맞추고, 그림 픽셀 사각형을 게임 좌표(가운데 x·y, width·height)로 바꾼다.
+for (const interior of CITY_DATA.interiors) {
+  const picture = interior.picture;
+  if (!picture) continue;
+  const convert = rect => ({
+    x: (rect.left + rect.right) / 2 * picture.scale, y: (rect.top + rect.bottom) / 2 * picture.scale,
+    width: (rect.right - rect.left) * picture.scale, height: (rect.bottom - rect.top) * picture.scale,
+  });
+  interior.width = Math.round(picture.imageWidth * picture.scale);
+  interior.height = Math.round(picture.imageHeight * picture.scale);
+  picture.walkableRects = picture.walkable.map(convert);
+  picture.obstacleRects = picture.obstacles.map(convert);
+}

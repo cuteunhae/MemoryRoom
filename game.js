@@ -231,11 +231,13 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 
 function update(deltaSeconds) {
+  player.moving = false;
   if (isGameInputBlocked()) return;
   let dx = Number(pressedKeys.has("ArrowRight")) - Number(pressedKeys.has("ArrowLeft"));
   let dy = Number(pressedKeys.has("ArrowDown")) - Number(pressedKeys.has("ArrowUp"));
   const length = Math.hypot(dx, dy);
   if (length === 0) return;
+  player.moving = true;
 
   if (dy !== 0) player.facing = dy > 0 ? "down" : "up";
   else player.facing = dx > 0 ? "right" : "left";
@@ -319,11 +321,20 @@ function canStand(x, y) {
   return interior ? canStandInterior(x, y, interior) : canStandCity(x, y);
 }
 
+// 발밑 원의 가운데와 상하좌우 끝점이 모두 바닥 안이고 가구에 닿지 않으면 설 수 있다.
+function pictureCanStand(x, footY, radius, picture) {
+  const points = [[x, footY], [x - radius, footY], [x + radius, footY], [x, footY - radius], [x, footY + radius]];
+  if (!points.every(([px, py]) => picture.walkableRects.some(rect => insideRect(px, py, rect)))) return false;
+  return !picture.obstacleRects.some(rect => circleHitsRectangle(x, footY, radius, rect));
+}
+
 function canStandInterior(x, y, interior) {
   const footY = y + player.footOffset;
   if (interior.placeId === HOUSE_DATA.placeId && houseObstacles().some(rectangle => circleHitsRectangle(x, footY, player.collisionRadius, rectangle))) return false;
   // 학교는 그림의 바닥 사각형 안만 걸을 수 있다.
   if (interior.placeId === SCHOOL_DATA.placeId && !schoolCanStand(x, footY, player.collisionRadius)) return false;
+  // 사진관·집은 그림의 바닥 사각형 안만 걸을 수 있고 가구는 지나가지 못한다.
+  if (interior.picture && !pictureCanStand(x, footY, player.collisionRadius, interior.picture)) return false;
   if (inspectionObjectsFor(interior).some(object => object.solid && circleHitsRectangle(x, footY, player.collisionRadius, object))) return false;
   if (inspectionObjectsFor(interior).some(object => object.table &&
       circleHitsRectangle(x, footY, player.collisionRadius, object.table))) return false;
@@ -570,6 +581,33 @@ function drawDebug() {
   for (const point of city.accessPoints) ctx.fillRect(point.x - 1, point.y - 1, 2, 2);
 }
 
+// 플레이어 그림. 걷기 그림은 4칸×4줄이며 줄 순서는 아래·위·왼쪽·오른쪽이다. 아래를 보고 서 있을 때만 정면 그림을 쓴다.
+// TODO: 그림 높이와 걸음 속도는 임시 값이다. 플레이 테스트에서 조정한다.
+const PLAYER_SPRITE = {
+  front: "assets/player-front.png", walk: "assets/player-walk.png",
+  columns: 4, rows: { down: 0, up: 1, left: 2, right: 3 }, rowCount: 4,
+  height: 56, feetOffset: 24, frameMs: 140,
+};
+
+// 플레이어 그림을 발끝에 맞춰 그린다. 그림이 준비되지 않았으면 false를 돌려준다.
+function drawPlayerSprite(x, y) {
+  const config = PLAYER_SPRITE;
+  const front = objectSpriteImage(config.front), walk = objectSpriteImage(config.walk);
+  const top = y + config.feetOffset - config.height;
+  if (!player.moving && player.facing === "down") {
+    if (!front) return false;
+    const width = config.height * front.naturalWidth / front.naturalHeight;
+    ctx.drawImage(front, x - width / 2, top, width, config.height);
+    return true;
+  }
+  if (!walk) return false;
+  const cellWidth = walk.naturalWidth / config.columns, cellHeight = walk.naturalHeight / config.rowCount;
+  const frame = player.moving ? Math.floor(Date.now() / config.frameMs) % config.columns : 0;
+  const width = config.height * cellWidth / cellHeight;
+  ctx.drawImage(walk, frame * cellWidth, config.rows[player.facing] * cellHeight, cellWidth, cellHeight, x - width / 2, top, width, config.height);
+  return true;
+}
+
 function drawPlayer() {
   const x = Math.round(player.x);
   const y = Math.round(player.y);
@@ -578,6 +616,7 @@ function drawPlayer() {
   ctx.beginPath();
   ctx.ellipse(x, y + 20, 16, 4, 0, 0, Math.PI * 2);
   ctx.fill();
+  if (drawPlayerSprite(x, y)) return;
 
   // 임시 캐릭터: 신발, 바지, 상의, 얼굴, 머리카락.
   ctx.fillStyle = "#485159";
@@ -603,45 +642,33 @@ function drawPlayer() {
   }
 }
 
-function drawInterior(interior) {
-  // 학교는 층 그림이 바닥·벽을 모두 그린다.
-  const school = interior.placeId === SCHOOL_DATA.placeId;
-  if (school) drawSchool();
-  else {
+// 실내 그림을 그린다. 그림을 불러오지 못하면 바닥과 가구를 임시 색 블록으로 그린다.
+function drawInteriorPicture(interior) {
+  const picture = interior.picture, image = objectSpriteImage(picture.src);
+  if (image) {
+    ctx.drawImage(image, 0, 0, interior.width, interior.height);
+    return;
+  }
   ctx.fillStyle = interior.wallColor;
   ctx.fillRect(0, 0, interior.width, interior.height);
   ctx.fillStyle = interior.floorColor;
-  ctx.fillRect(interior.wall, interior.wall, interior.width - interior.wall * 2, interior.height - interior.wall * 2);
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(interior.wall, interior.wall, interior.width - interior.wall * 2, interior.height - interior.wall * 2);
-  ctx.clip();
-  ctx.strokeStyle = "#ffffff30";
-  ctx.lineWidth = 1;
-  for (let x = interior.wall; x < interior.width; x += interior.tileSize) {
-    tracePath([[x, interior.wall], [x, interior.height - interior.wall]]);
-    ctx.stroke();
-  }
-  for (let y = interior.wall; y < interior.height; y += interior.tileSize) {
-    tracePath([[interior.wall, y], [interior.width - interior.wall, y]]);
-    ctx.stroke();
-  }
-  ctx.restore();
-  ctx.fillStyle = "#f5eee3";
-  ctx.font = "16px 'Malgun Gothic', sans-serif";
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  ctx.fillText(interior.name, interior.wall + 12, interior.wall / 2);
-  }
+  for (const rect of picture.walkableRects) ctx.fillRect(rect.x - rect.width / 2, rect.y - rect.height / 2, rect.width, rect.height);
+  ctx.fillStyle = interior.wallColor;
+  for (const rect of picture.obstacleRects) ctx.fillRect(rect.x - rect.width / 2, rect.y - rect.height / 2, rect.width, rect.height);
+}
+
+function drawInterior(interior) {
+  // 학교·사진관·집은 그림이 바닥·벽을 모두 그린다.
+  if (interior.placeId === SCHOOL_DATA.placeId) drawSchool();
+  else drawInteriorPicture(interior);
   if (interior.placeId === HOUSE_DATA.placeId) drawHouse();
   const exit = interior.exit;
   if (exit) {
   ctx.font = "16px 'Malgun Gothic', sans-serif";
   ctx.textBaseline = "middle";
   ctx.fillStyle = "#45675c";
-  // 학교 정문은 그림에 있으므로 '나가기' 글자 상자만 작게 그린다.
-  if (school) ctx.fillRect(exit.x - 48, exit.y - 16, 96, 32);
-  else ctx.fillRect(exit.x - exit.width / 2, exit.y - exit.height / 2, exit.width, exit.height);
+  // 출입문은 그림에 있으므로 '나가기' 글자 상자만 작게 그린다.
+  ctx.fillRect(exit.x - 48, exit.y - 16, 96, 32);
   ctx.fillStyle = "#f5eee3";
   ctx.textAlign = "center";
   ctx.fillText(city.interiorUi.exitLabel, exit.x, exit.y);

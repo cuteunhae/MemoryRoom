@@ -56,7 +56,7 @@ positionAt(entrance); advance(); click(entrance); advance();
 click(album);
 assert.equal(run("gameState.inventory.itemIds.length"), 0);
 assert.equal(run("scene.message"), album.messages.tooFar);
-run(`player.x = ${album.x}; player.y = ${album.y + 90} - player.footOffset; updateCamera()`);
+run(`player.x = ${album.x}; player.y = ${album.y - 80} - player.footOffset; updateCamera()`);
 assert.ok(run("canStand(player.x, player.y)"));
 assert.equal(run(`canStand(${album.x}, ${album.y} - player.footOffset)`), false);
 click(album, 2);
@@ -119,7 +119,7 @@ run("player.x = currentInterior().spawn.x; player.y = currentInterior().spawn.fo
 click(read("currentInterior().exit"));
 assert.equal(run("scene.interiorId"), null);
 advance(); click(entrance); advance();
-run(`player.x = ${album.x}; player.y = ${album.y + 90} - player.footOffset; updateCamera()`);
+run(`player.x = ${album.x}; player.y = ${album.y - 80} - player.footOffset; updateCamera()`);
 click(album);
 assert.deepEqual(read("gameState.inventory.itemIds"), [album.rewardId]);
 assert.equal(run("gameState.inventory.selectedItemId"), album.rewardId);

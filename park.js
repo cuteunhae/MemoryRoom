@@ -87,11 +87,13 @@ function drawPark() {
   // 도시 그림에 이미 울타리가 있으면 충돌용 울타리는 그리지 않는다.
   if (!cityMapReady()) for (const fence of parkFences(layout)) rectangle(fence, "#8f7861");
   ctx.font = "18px 'Malgun Gothic', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  for (const [rect, name, color, kind] of [[layout.ticket, PARK_DATA.text.ticket, "#b38c72", "ticket"], [layout.shop, PARK_DATA.text.shop, "#86a493", "shop"], [layout.stand, PARK_DATA.text.stand, "#a1947d", null]]) {
-    if (!kind || !drawParkSprite(kind, rect)) rectangle(rect, color);
+  for (const [rect, name, color, kind] of [[layout.ticket, PARK_DATA.text.ticket, "#b38c72", "ticket"], [layout.shop, PARK_DATA.text.shop, "#86a493", "shop"], [layout.stand, PARK_DATA.text.stand, "#a1947d", "stand"]]) {
+    if (!drawParkSprite(kind, rect)) rectangle(rect, color);
     ctx.fillStyle = "#403a32"; ctx.fillText(name, rect.x, rect.y - rect.height / 2 - 22);
   }
-  if (!gameState.acquiredItems[PARK_DATA.headbandId]) {
+  // 머리띠 그림이 있으면 매표소 위에 그리고, 없으면 임시 도형으로 그린다.
+  if (!gameState.acquiredItems[PARK_DATA.headbandId] &&
+      !drawObjectSprite({ x: layout.ticket.x, y: layout.ticket.y + 12, width: 48, height: 48, sprite: PARK_DATA.headbandSprite })) {
     ctx.strokeStyle = "#efd682"; ctx.lineWidth = 12; ctx.beginPath();
     ctx.arc(layout.ticket.x, layout.ticket.y + 12, 24, Math.PI, Math.PI * 2); ctx.stroke();
   }
@@ -112,7 +114,9 @@ function drawPark() {
   fillEllipse(layout.center.x, layout.center.y, config.coreRadius * settings.worldScale, config.coreRadius * settings.worldScale, "#9c7d72");
   ctx.fillStyle = "#fff4df"; ctx.fillText(PARK_DATA.text.carousel, layout.center.x, layout.center.y);
   }
-  if (gameState.carouselSolved && !gameState.acquiredItems[PARK_DATA.balloonId]) {
+  const balloon = PARK_DATA.balloon;
+  if (gameState.carouselSolved && !gameState.acquiredItems[PARK_DATA.balloonId] &&
+      !drawObjectSprite({ x: layout.stand.x, y: layout.stand.y + balloon.offsetY, width: balloon.radiusX * 2, height: balloon.radiusY * 2, sprite: balloon.sprite })) {
     ctx.strokeStyle = "#61584c"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(layout.stand.x, layout.stand.y); ctx.lineTo(layout.stand.x, layout.stand.y - 90); ctx.stroke();
     fillEllipse(layout.stand.x, layout.stand.y + PARK_DATA.balloon.offsetY, PARK_DATA.balloon.radiusX, PARK_DATA.balloon.radiusY, "#d88b8b");
   }
