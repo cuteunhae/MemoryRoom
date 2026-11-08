@@ -53,6 +53,12 @@ const cabinet=read('HOUSE_DATA.cabinet');
 run('player.x=600;player.y=900-player.footOffset;updateCamera()');advance();click(cabinet);assert.equal(run('inspectionUiState.mode'),null);
 run('player.x=832;player.y=700-player.footOffset;updateCamera()');click(cabinet);
 assert.equal(run('inspectionUiState.mode'),'cabinet');assert.equal(run('isGameInputBlocked()'),true);
+// 칸 위치가 칸 수만큼 있고, 열린 진열장 그림 안에 있으며, 버튼마다 번호와 위치가 들어간다.
+assert.equal(run('CABINET_DATA.slotRects.length'),run('CABINET_DATA.rules.slotCount'));
+assert.ok(run('CABINET_DATA.slotRects.every(r=>r.left>=0&&r.top>=0&&r.right<=CABINET_DATA.openImage.width&&r.bottom<=CABINET_DATA.openImage.height&&r.left<r.right&&r.top<r.bottom)'));
+assert.ok(elements['cabinet-slots'].attributes.style.includes(run('CABINET_DATA.openImage.src')));
+assert.equal(elements['cabinet-slots'].children.length,5);
+elements['cabinet-slots'].children.forEach((button,index)=>{assert.ok(button.attributes.style.includes('left:'));assert.ok(button.attributes['aria-label'].startsWith(`${index+1}번 칸`));});
 run('CABINET_DATA.answer.forEach(acquireItem);acquireItem("ITM-02");acquireItem("DOLL-ITEM-02");renderCabinetPanel()');
 assert.equal(run('selectCabinetInventory("ITM-02")'),false);
 assert.equal(run('selectCabinetInventory("DOLL-ITEM-02")'),false);

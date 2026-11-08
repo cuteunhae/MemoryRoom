@@ -84,6 +84,7 @@ function drawHouse() {
   if(image) {
     drawOpenHouseDoor(image,bedroom.door);
     if(gameState.childRoomUnlocked)drawOpenHouseDoor(image,child.door);
+    drawObjectSprite(HOUSE_DATA.cabinet);
   } else {
     // 그림을 불러오지 못했을 때의 임시 표시.
     ctx.fillStyle="#5b4b3b";

@@ -87,7 +87,7 @@ a=session();a.run('city.debug=true');tick(179999);assert.equal(a.elements['hint-
 a=session();const take=()=>{a.elements['hint-gift'].handlers.click();const id=a.run('hintUi.current');a.run('closeHints()');return id;};
 tick(180000);const first=take();assert.equal(a.elements['hint-gift'].hidden,false);assert.equal(a.run('newHintAvailable()'),false);
 tick(179999);assert.equal(a.run('newHintAvailable()'),false);tick(1);assert.equal(a.run('newHintAvailable()'),true);const second=take();
-tick(180000);const third=take();assert.deepEqual([first,second,third],['HNT-01','HNT-02','HNT-17']);assert.deepEqual(a.read('gameState.hints.received'),[first,second,third]);
+tick(180000);const third=take();assert.deepEqual([first,second,third],['HNT-01','HNT-02','HNT-18']);assert.deepEqual(a.read('gameState.hints.received'),[first,second,third]);
 // 9분 이후에는 새 힌트가 없고, 선물상자를 누르면 누적된 3개만 보인다.
 tick(600000);assert.equal(a.run('newHintAvailable()'),false);assert.equal(a.elements['hint-gift'].hidden,false);
 a.run('openHints()');assert.equal(a.run('hintUi.current'),null);assert.equal(a.elements['hint-current'].hidden,true);assert.equal(a.elements['hint-list'].children.length,3);a.run('closeHints()');
@@ -106,8 +106,8 @@ a.run('player.x=playgroundLayout().swing.x;player.y=playgroundLayout().swing.y')
 a.run('scene.interiorId=HOUSE_DATA.placeId');assert.equal(a.run('chooseHint().id'),'HNT-01');a.run('scene.interiorId=null');
 a.run('gameState.acquiredItems[HINT_DATA.items.photo]=true');assert.equal(a.run('chooseHint().id'),'HNT-02');
 a.run('gameState.hints.clues.push("class-nine")');assert.equal(a.run('chooseHint().id'),'HNT-03');
-// 크레파스 힌트(HNT-17)는 게시판·배치도 힌트 다음이다.
-a.run('gameState.hints.received.push("HNT-03")');assert.equal(a.run('chooseHint().id'),'HNT-17');a.run('gameState.hints.received=[]');
+// 크레파스 힌트(HNT-18)는 게시판·배치도 힌트 다음이다.
+a.run('gameState.hints.received.push("HNT-03")');assert.equal(a.run('chooseHint().id'),'HNT-18');a.run('gameState.hints.received=[]');
 a.run('gameState.acquiredItems[HINT_DATA.items.notebook]=true;gameState.acquiredItems[HINT_DATA.items.crayon]=true');assert.equal(a.run('chooseHint().id'),'HNT-04');
 a.run('delete gameState.acquiredItems[HINT_DATA.items.crayon]');assert.equal(a.run('chooseHint().id'),'HNT-03');
 a.run('gameState.acquiredItems[HINT_DATA.items.crayon]=true;gameState.registrySolved=true');
@@ -119,12 +119,16 @@ a.run('gameState.hints.received=[];gameState.acquiredItems[PARK_DATA.headbandId]
 a.run('gameState.carouselSolved=true');assert.equal(a.run('chooseHint().id'),'HNT-10');
 a.run('gameState.acquiredItems[PARK_DATA.balloonId]=true;gameState.acquiredItems[PARK_DATA.memoId]=true;gameState.playgroundMemoViewed=true');assert.equal(a.run('chooseHint().id'),'HNT-06');
 a.run('gameState.swingUsed=true;gameState.seesawUsed=true');assert.equal(a.run('chooseHint().id'),'HNT-12');
-a.run('gameState.acquiredItems[PLAYGROUND_DATA.toyId]=true');assert.equal(a.run('chooseHint().id'),'HNT-13');
-a.run('gameState.slideUsed=true');assert.equal(a.run('chooseHint().id'),'HNT-07');
-a.run('scene.interiorId=HOUSE_DATA.placeId');assert.equal(a.run('chooseHint().id'),'HNT-14');
+// 집에 들어가기 전에는 집 힌트(HNT-07→HNT-13)를 먼저 주고, 그다음 미끄럼틀 힌트(HNT-14)를 준다.
+a.run('gameState.acquiredItems[PLAYGROUND_DATA.toyId]=true');assert.equal(a.run('chooseHint().id'),'HNT-07');
+a.run('gameState.hints.received.push("HNT-07")');assert.equal(a.run('chooseHint().id'),'HNT-13');
+a.run('gameState.hints.received.push("HNT-13")');assert.equal(a.run('chooseHint().id'),'HNT-14');
+a.run('gameState.hints.received=[];gameState.slideUsed=true');assert.equal(a.run('chooseHint().id'),'HNT-07');
+// 집 안에서는 집 외곽 힌트가 나오지 않는다.
+a.run('scene.interiorId=HOUSE_DATA.placeId');assert.equal(a.run('chooseHint().id'),'HNT-15');assert.equal(a.run('hintCandidates().some(c=>c.id==="HNT-13")'),false);
 a.run('CABINET_DATA.answer.forEach(id=>gameState.acquiredItems[id]=true)');assert.equal(a.run('chooseHint().id'),'HNT-08');
-a.run('gameState.cabinetSolved=true');assert.equal(a.run('chooseHint().id'),'HNT-15');
-a.run('gameState.childRoomUnlocked=true');assert.equal(a.run('chooseHint().id'),'HNT-16');
+a.run('gameState.cabinetSolved=true');assert.equal(a.run('chooseHint().id'),'HNT-16');
+a.run('gameState.childRoomUnlocked=true');assert.equal(a.run('chooseHint().id'),'HNT-17');
 // 마지막 활동까지 끝나면 새 힌트를 만들지 않으며 기존 기록은 유지된다.
 a.run('HINT_DATA.progressFlags.forEach(flag=>gameState[flag]=true);Object.values(HINT_DATA.items).forEach(id=>gameState.acquiredItems[id]=true)');assert.equal(a.run('chooseHint()'),null);
 const exact=[
@@ -137,9 +141,9 @@ const exact=[
  '집의 앞문만 보지 말고 옆으로 이어지는 길도 살펴보세요.',
  '다섯 장소에서 얻은 추억의 물건을 순서에 맞게 놓아보세요.',
 ];assert.deepEqual(a.read('HINT_DATA.entries.slice(0,8).map(e=>e.text)'),exact);
-// HNT-05는 놀이공원 회전목마 힌트, 크레파스 힌트는 학교의 HNT-17이다. ID는 겹치지 않는다.
+// HNT-05는 놀이공원 회전목마 힌트, 크레파스 힌트는 학교의 HNT-18이다. ID는 겹치지 않는다.
 assert.equal(a.run('HINT_DATA.entries.find(e=>e.id==="HNT-05").placeId'),'C03');
-assert.deepEqual(a.read('HINT_DATA.entries.find(e=>e.id==="HNT-17")'),{id:'HNT-17',placeId:'C02',text:'크레파스는 학생의 자리에 있겠죠? 돌잔치 사진과 연결해보세요.'});
+assert.deepEqual(a.read('HINT_DATA.entries.find(e=>e.id==="HNT-18")'),{id:'HNT-18',placeId:'C02',text:'크레파스는 학생의 자리에 있겠죠? 돌잔치 사진과 연결해보세요.'});
 assert.equal(a.run('new Set(HINT_DATA.entries.map(e=>e.id)).size'),a.run('HINT_DATA.entries.length'));
 console.log('PASS: exact hints, 3-minute boundaries in normal/debug modes, extra hints at 6/9 minutes (max 3), gift stays for accumulated hints, visible time only, progress deduplication, saved timer/history, v1 migration, place-order selection (C01→C05, finish a place before the next), modal blocking');
 

@@ -75,9 +75,32 @@ function renderCabinetPanel() {
   document.getElementById("cabinet-inventory-title").textContent = CABINET_DATA.text.inventory;
   document.getElementById("cabinet-reset-notice").textContent = gameState.cabinetSolved ? "" : CABINET_DATA.text.resetNotice;
   const slots = document.getElementById("cabinet-slots"); slots.replaceChildren();
+  const picture = CABINET_DATA.openImage;
+  slots.setAttribute("style", `background-image: url("${picture.src}"); aspect-ratio: ${picture.width} / ${picture.height}`);
   gameState.cabinet.slots.forEach((id, index) => {
     const button = document.createElement("button"); button.type = "button"; button.className = "cabinet-slot";
-    button.textContent = `${index + 1}${CABINET_DATA.text.slot} · ${id ? ITEM_DATA.find(item => item.id === id).name : CABINET_DATA.text.empty}`;
+    const item = id ? ITEM_DATA.find(item => item.id === id) : null;
+    // 그림 속 칸 위치에 버튼을 올린다.
+    const rect = CABINET_DATA.slotRects[index];
+    button.setAttribute("style", `left: ${rect.left / picture.width * 100}%; top: ${rect.top / picture.height * 100}%; width: ${(rect.right - rect.left) / picture.width * 100}%; height: ${(rect.bottom - rect.top) / picture.height * 100}%`);
+    button.setAttribute("aria-label", `${index + 1}${CABINET_DATA.text.slot} · ${item ? item.name : CABINET_DATA.text.empty}`);
+    if (item) button.title = item.name;
+    const label = document.createElement("span");
+    label.className = "cabinet-slot-label";
+    label.textContent = `${index + 1}${CABINET_DATA.text.slot}`;
+    button.append(label);
+    // 아이템 그림이 있으면 그림을, 없으면 이름을 칸 안에 보여 준다.
+    if (item?.icon) {
+      const icon = document.createElement("span");
+      icon.className = "cabinet-slot-icon";
+      icon.setAttribute("style", `background-image: url("${item.icon}")`);
+      button.append(icon);
+    } else if (item) {
+      const name = document.createElement("span");
+      name.className = "cabinet-slot-name";
+      name.textContent = item.name;
+      button.append(name);
+    }
     button.setAttribute("aria-pressed", String(cabinetUi.selectedSlot === index));
     button.disabled = gameState.cabinetSolved;
     button.addEventListener("click", () => { clickCabinetSlot(index); document.getElementById("cabinet-slots").children[index]?.focus(); });

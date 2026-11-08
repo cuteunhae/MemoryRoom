@@ -12,7 +12,8 @@ const HOUSE_DATA = {
     { id: "child", name: "아이 방", x: 18, y: 232, width: 294, height: 265,
       door: { x: 270, y: 509, width: 64, height: 24, picture: { x: 270, y: 465, width: 80, height: 100 }, floor: { x: 120, y: 380 } } },
   ],
-  cabinet: { x: 832, y: 590, width: 135, height: 170 },
+  // 집 그림의 진열장 자리에 닫힌 진열장 그림을 덮어 그린다. 위쪽은 부딪히는 범위보다 조금 튀어나온다.
+  cabinet: { x: 832, y: 590, width: 135, height: 170, sprite: { src: "assets/cabinet-closed.png", width: 142, height: 190 } },
   text: { hall: "마루", cabinet: "장식장", locked: "아이 방 문이 잠겨 있습니다.", unlocked: "열쇠로 아이 방 문을 열었습니다.", near: "가까이에서 클릭해 주세요.", acquired: "획득했습니다.", already: "이미 가져간 인형입니다." },
   // 인형은 안방 침대 위에 놓는다. 사용자 결정(2026-11-08): 고양이 인형 그림이 없어 돼지 인형으로 바꿨다(기획서와 다름).
   dolls: [
