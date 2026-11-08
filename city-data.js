@@ -91,8 +91,8 @@ const CITY_DATA = {
     messageDurationMs: 1800,
   },
   interiorUi: {
-    enter: "문을 클릭해 들어가기",
-    exit: "출구를 클릭해 나가기",
+    enter: "E키를 클릭해 들어가기",
+    exit: "E키를 클릭해 나가기",
     exitLabel: "나가기",
     locked: "잠긴 문입니다.",
     tooFar: "문 가까이 이동하세요.",

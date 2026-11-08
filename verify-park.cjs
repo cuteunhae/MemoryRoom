@@ -102,17 +102,26 @@ for(const zoom of [1,1.5,3]) {
 standAt(layout.shop);click(layout.shop);
 const horses=elements['carousel-horses'],carriages=elements['carousel-carriages'];
 const submit=()=>elements['carousel-panel'].handlers.submit({preventDefault(){}});
+const result=elements['carousel-result'];
+// 처음 열면 결과 안내가 없다.
+assert.equal(result.hidden,true);
 const message=elements['inspection-message'].textContent;
 for(const [h,c] of [['',''],['6','3'],['5','4'],['5x','3'],['5.0','3']]) {
  horses.value=h;carriages.value=c;submit();
  assert.equal(run('gameState.carouselSolved'),false);
  assert.equal(horses.value,h);assert.equal(carriages.value,c);
  assert.equal(elements['inspection-message'].textContent,message);
+ // 오답마다 빨간 안내가 나온다.
+ assert.equal(result.hidden,false);assert.equal(result.dataset.result,'wrong');assert.equal(result.textContent,run('PARK_DATA.text.wrong'));
 }
+// 창을 닫았다 다시 열면 오답 안내는 사라진다.
+elements['inspection-close'].handlers.click();standAt(layout.shop);click(layout.shop);assert.equal(result.hidden,true);
 // 관찰 이력이나 머리띠 보유 여부가 정답 처리를 막으면 안 된다.
 run('gameState.inventory.itemIds=[];gameState.acquiredItems={}');
 horses.value='5';carriages.value='3';submit();submit();
 assert.equal(run('gameState.carouselSolved'),true);
+// 정답이면 초록 안내가 나온다.
+assert.equal(result.hidden,false);assert.equal(result.dataset.result,'correct');assert.equal(result.textContent,run('PARK_DATA.text.correct'));
 assert.equal(run('gameState.inventory.itemIds.length'),0);
 elements['inspection-close'].handlers.click();
 standAt(layout.stand);click(layout.stand);

@@ -83,6 +83,9 @@ dialog > .settings-open { margin-top: 16px; }
 #carousel-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: center; }
 #carousel-panel input { width: 100%; min-width: 0; padding: 12px; font: inherit; }
 #carousel-confirm { grid-column: 1 / -1; padding: 12px; font: inherit; cursor: pointer; }
+#carousel-result { grid-column: 1 / -1; margin: 0; padding: 12px; border: 2px solid; border-radius: 6px; font-weight: 700; text-align: center; }
+#carousel-result[data-result="wrong"] { border-color: #c0392b; background: #fbe3e0; color: #a3231a; }
+#carousel-result[data-result="correct"] { border-color: #2e8b4e; background: #e0f3e4; color: #1f6b34; }
 .desk-item { display: block; width: 100%; padding: 18px; margin: 10px 0; font: inherit; cursor: pointer; }
 #registry-panel { position: relative; width: 100%; min-height: 320px; aspect-ratio: 600 / 320; background: #f3ebd8; border: 1px solid #a59c7d; overflow: hidden; }
 #registry-clue { margin: 0; padding: 24px; min-height: 320px; display: flex; align-items: center; white-space: pre-line; line-height: 1.9; color: #403a32; user-select: none; }

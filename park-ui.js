@@ -4,6 +4,14 @@ const carouselPanel = document.getElementById("carousel-panel");
 const horseInput = document.getElementById("carousel-horses");
 const carriageInput = document.getElementById("carousel-carriages");
 const carouselConfirm = document.getElementById("carousel-confirm");
+const carouselResult = document.getElementById("carousel-result");
+
+// 확인 버튼 아래 결과 안내. kind는 "wrong"(빨강), "correct"(초록), null(숨김)이다.
+function showCarouselResult(kind) {
+  carouselResult.hidden = !kind;
+  carouselResult.dataset.result = kind || "";
+  carouselResult.textContent = kind ? PARK_DATA.text[kind] : "";
+}
 
 function renderCarouselPanel() {
   carouselPanel.hidden = inspectionUiState.mode !== "carousel";
@@ -13,14 +21,19 @@ function renderCarouselPanel() {
   document.getElementById("carousel-carriage-label").textContent = PARK_DATA.text.carriage;
   carouselConfirm.textContent = PARK_DATA.text.confirm;
   horseInput.disabled = carriageInput.disabled = carouselConfirm.disabled = gameState.carouselSolved;
+  // 창을 새로 열면 오답 안내는 지우고, 이미 풀었으면 정답 안내를 보여 준다.
+  showCarouselResult(gameState.carouselSolved ? "correct" : null);
 }
 
 carouselPanel.addEventListener("submit", event => {
   event.preventDefault();
   if (inspectionUiState.mode !== "carousel" || gameState.carouselSolved) return;
-  // 빈칸이나 잘못된 문자는 정답으로 처리하지 않고, 오답은 입력 상태를 유지한다.
-  if (!/^\d+$/.test(horseInput.value) || !/^\d+$/.test(carriageInput.value)) return;
-  if (Number(horseInput.value) !== PARK_DATA.carousel.horseCount || Number(carriageInput.value) !== PARK_DATA.carousel.carriageCount) return;
+  // 빈칸이나 잘못된 문자도 오답으로 안내한다. 오답은 입력 상태를 유지한다.
+  if (!/^\d+$/.test(horseInput.value) || !/^\d+$/.test(carriageInput.value) ||
+      Number(horseInput.value) !== PARK_DATA.carousel.horseCount || Number(carriageInput.value) !== PARK_DATA.carousel.carriageCount) {
+    showCarouselResult("wrong");
+    return;
+  }
   gameState.carouselSolved = true;
   updateAchievementConditions();
   renderCarouselPanel();
