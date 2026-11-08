@@ -91,7 +91,7 @@ for(const order of [['swing','seesaw'],['seesaw','swing']]) {
 approach(layout.gift);click(layout.gift);click(layout.gift);
 assert.deepEqual(read('gameState.inventory.itemIds'),[run('PLAYGROUND_DATA.toyId')]);
 assert.equal(run('playgroundGiftVisible()'),false);
-const background={x:layout.gateX+200,y:layout.bottom-200};
+const background={x:layout.gateX-400,y:layout.bottom-200};
 click(background);assert.equal(run('bubbleEffect.particles.length'),0);
 run('toggleInventory()');
 elements['inventory-list'].children[0].handlers.click();

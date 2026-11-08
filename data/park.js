@@ -2,8 +2,9 @@
 
 const PARK_DATA = {
   placeId: "C03", headbandId: "ITM-04", balloonId: "ITM-05", memoId: "ITM-06",
-  // 정답을 맞히면 거치대 위에 돌고래 풍선 그림이 나타난다.
-  balloon: { offsetY: -120, radiusX: 30, radiusY: 60, clickPadding: 12, sprite: { src: "assets/item-balloon.png" } },
+  // 정답을 맞히면 거치대 그림의 빈 받침(진열된 풍선 3개 오른쪽)에 돌고래 풍선 그림이 나타난다.
+  // offsetX·offsetY는 거치대 가운데에서 풍선 가운데까지의 거리이고, 단위는 게임 속 픽셀이다.
+  balloon: { offsetX: 34, offsetY: -2, radiusX: 17, radiusY: 32, clickPadding: 12, sprite: { src: "assets/item-balloon.png" } },
   // 매표소에 놓인 머리띠 그림.
   headbandSprite: { src: "assets/item-headband.png" },
   // TODO: 위치는 놀이공원 대표점 기준 논리 좌표(도시 그림 픽셀)이며 크기·거리·가림 구조는 임시 설정이다.

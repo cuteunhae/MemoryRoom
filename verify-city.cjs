@@ -146,5 +146,21 @@ vm.runInContext(`
     assert.ok(camera.x >= 0 && camera.x <= world.width - canvas.width / settings.cameraZoom);
     assert.ok(camera.y >= 0 && camera.y <= world.height - canvas.height / settings.cameraZoom);
   }
+  // 길 끝까지 걸어간 뒤에도 좌우로 움직일 수 있어야 한다. 길 끝이 큰길 반대쪽으로 튀어나오면 그 안에 걸린다.
+  for (const [startX, startFoot, key, name] of [
+    [748, 640, "ArrowDown", "시작점에서 아래 가로길까지"], [748, 640, "ArrowUp", "시작점에서 위 가로길까지"],
+    [442, 296, "ArrowDown", "학교 앞 위 가로길 아래쪽"], [1190, 296, "ArrowDown", "사진관 앞 위 가로길 아래쪽"],
+    [1300, 296, "ArrowUp", "놀이공원 위쪽 길 앞 위 가로길 위쪽"], [296, 880, "ArrowUp", "다리 입구 아래 가로길 위쪽"],
+    [388, 880, "ArrowDown", "놀이터 앞 아래 가로길 아래쪽"], [1243, 880, "ArrowDown", "놀이공원 정문 앞 아래 가로길 아래쪽"],
+  ]) {
+    const walk = (direction, seconds) => { pressedKeys.clear(); pressedKeys.add(direction); update(seconds); pressedKeys.clear(); };
+    const stand = () => { player.x = startX * settings.worldScale; player.y = startFoot * settings.worldScale - player.footOffset; walk(key, 5); return player.x; };
+    assert.ok(canStand(stand(), player.y), name);
+    for (const side of ["ArrowLeft", "ArrowRight"]) {
+      const before = stand();
+      walk(side, 0.2);
+      assert.ok(Math.abs(player.x - before) >= 60, name + " 끝에서 " + side + " 이동이 막혔습니다: " + (player.x - before));
+    }
+  }
   console.log("통과: 그림 기준 장소 좌표·월드 크기, 잔디·숲·연못·화단 충돌, 쪽문 골목, 큰길, 놀이터 바닥, 6개 접근 지점, 카메라");
 `, sandbox);

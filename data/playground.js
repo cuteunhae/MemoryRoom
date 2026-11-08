@@ -7,11 +7,12 @@ const PLAYGROUND_DATA = {
   fenceInset: 9, fenceThickness: 4.5, gateX: 23, gateWidth: 140,
   interactDistance: 140, animationMs: 2000,
   // 크기는 그림의 가로세로 비율에 맞췄다. 충돌·클릭 범위와 그림 크기가 같다.
-  swing: { x: -160, y: -125, width: 78, height: 71 },
-  seesaw: { x: 185, y: 25, width: 90, height: 52 },
-  slide: { x: 150, y: -125, width: 81, height: 80 },
+  // 사용자 요청: 시설을 2배로 키워 놀이터 가운데로 모았다.
+  swing: { x: -125, y: -85, width: 156, height: 142 },
+  seesaw: { x: 125, y: 75, width: 180, height: 104 },
+  slide: { x: 110, y: -85, width: 162, height: 160 },
   // TODO: 상단 표지·낙서 크기와 탑승 연출은 임시 픽셀 설정이다.
-  slideDetail: { graffitiOffsetX: 175, graffitiOffsetY: -28, graffitiWidth: 90, graffitiHeight: 70,
+  slideDetail: { graffitiOffsetX: 297, graffitiOffsetY: -28, graffitiWidth: 90, graffitiHeight: 70,
     rideMs: 2000, homeId: "C05", alleyId: "R16", canvasWidth: 640, canvasHeight: 400 },
   gift: { x: -15, y: 25, width: 60, height: 60 },
   // 시설 그림. 그네·시소는 2줄×5칸, 10장면짜리 그림이며 왼쪽 위부터 오른쪽으로 차례대로 재생한다.

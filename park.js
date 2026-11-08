@@ -68,7 +68,7 @@ function handleParkClick(x, y) {
   const headband = { x: layout.ticket.x, y: layout.ticket.y, width: 80, height: 60 };
   const hit = rectangle => Math.abs(x - rectangle.x) <= rectangle.width / 2 && Math.abs(y - rectangle.y) <= rectangle.height / 2;
   const balloon = PARK_DATA.balloon;
-  const balloonHit = { x: layout.stand.x, y: layout.stand.y + balloon.offsetY, width: 2 * (balloon.radiusX + balloon.clickPadding), height: 2 * (balloon.radiusY + balloon.clickPadding) };
+  const balloonHit = { x: layout.stand.x + balloon.offsetX, y: layout.stand.y + balloon.offsetY, width: 2 * (balloon.radiusX + balloon.clickPadding), height: 2 * (balloon.radiusY + balloon.clickPadding) };
   const balloonAvailable = gameState.carouselSolved && !gameState.acquiredItems[PARK_DATA.balloonId];
   const isBalloon = (balloonAvailable && hit(balloonHit)) || (gameState.playgroundMemoPending && hit(layout.stand));
   const target = isBalloon ? layout.stand : hit(headband) ? headband : hit(layout.shop) ? layout.shop : null;
@@ -119,9 +119,9 @@ function drawPark() {
   }
   const balloon = PARK_DATA.balloon;
   if (gameState.carouselSolved && !gameState.acquiredItems[PARK_DATA.balloonId] &&
-      !drawObjectSprite({ x: layout.stand.x, y: layout.stand.y + balloon.offsetY, width: balloon.radiusX * 2, height: balloon.radiusY * 2, sprite: balloon.sprite })) {
-    ctx.strokeStyle = "#61584c"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(layout.stand.x, layout.stand.y); ctx.lineTo(layout.stand.x, layout.stand.y - 90); ctx.stroke();
-    fillEllipse(layout.stand.x, layout.stand.y + PARK_DATA.balloon.offsetY, PARK_DATA.balloon.radiusX, PARK_DATA.balloon.radiusY, "#d88b8b");
+      !drawObjectSprite({ x: layout.stand.x + balloon.offsetX, y: layout.stand.y + balloon.offsetY, width: balloon.radiusX * 2, height: balloon.radiusY * 2, sprite: balloon.sprite })) {
+    ctx.strokeStyle = "#61584c"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(layout.stand.x + balloon.offsetX, layout.stand.y + balloon.offsetY + balloon.radiusY); ctx.lineTo(layout.stand.x + balloon.offsetX, layout.stand.y + balloon.offsetY); ctx.stroke();
+    fillEllipse(layout.stand.x + balloon.offsetX, layout.stand.y + balloon.offsetY, balloon.radiusX, balloon.radiusY, "#d88b8b");
   }
   ctx.restore();
 }

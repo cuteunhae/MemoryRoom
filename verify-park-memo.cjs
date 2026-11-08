@@ -47,7 +47,7 @@ const click = (target, button = 0) => {
 };
 
 const layout = read('parkLayout()');
-const balloon = { x: layout.stand.x, y: layout.stand.y + run('PARK_DATA.balloon.offsetY') };
+const balloon = { x: layout.stand.x + run('PARK_DATA.balloon.offsetX'), y: layout.stand.y + run('PARK_DATA.balloon.offsetY') };
 const ids = read('({balloon:PARK_DATA.balloonId,memo:PARK_DATA.memoId,headband:PARK_DATA.headbandId})');
 const achievement = read('ACHIEVEMENT_CONDITIONS.find(condition=>condition.flags?.includes("playgroundMemoViewed"))');
 function approach() {
