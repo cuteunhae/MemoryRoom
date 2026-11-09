@@ -196,7 +196,8 @@ function handleDoorClick(event) {
     if (interior.placeId === HOUSE_DATA.placeId && handleHouseClick(x, y)) return;
     if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolStairs(x, y)) return;
     if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolDoorClick(x, y)) return;
-    const object = inspectionObjectsFor(interior).sort((a, b) => Math.hypot(x - a.x, y - a.y) - Math.hypot(x - b.x, y - b.y)).find(object =>
+    const decorDesks = interior.placeId === SCHOOL_DATA.placeId && scene.schoolFloor === CLASSROOM_DATA.floor ? classroomDecorDesks() : [];
+    const object = [...inspectionObjectsFor(interior), ...decorDesks].sort((a, b) => Math.hypot(x - a.x, y - a.y) - Math.hypot(x - b.x, y - b.y)).find(object =>
       Math.abs(x - object.x) <= object.width / 2 + (object.clickPadding || 0) && Math.abs(y - object.y) <= object.height / 2 + (object.clickPadding || 0));
     if (object) {
       if (!canInspectSchoolObject(object) || Math.hypot(Math.max(0, Math.abs(player.x - object.x) - object.width / 2), Math.max(0, Math.abs(player.y + player.footOffset - object.y) - object.height / 2)) > object.interactDistance) {
@@ -722,6 +723,8 @@ function drawInterior(interior) {
     ctx.font = "14px 'Malgun Gothic', sans-serif";
     ctx.fillText(object.label ?? object.name, object.x, object.y);
   }
+  // 9반 책상 위의 아이템 그림은 책상을 모두 그린 뒤에 얹는다.
+  for (const object of inspectionObjectsFor(interior)) if (object.type === "desk") drawClassroomDeskIcons(object);
 }
 
 // 조사 물체 그림을 경로마다 한 번만 불러 둔다. 다 불러오지 못했으면 null이다.

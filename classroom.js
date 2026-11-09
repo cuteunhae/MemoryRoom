@@ -22,13 +22,30 @@ function classroomDeskPositions(room) {
   })));
 }
 
-// 9반이 아닌 교실의 책상. 사용자 요청으로 놓은 배경 가구이며 부딪히기만 하고 조사할 수 없다. 위치가 변하지 않아 한 번만 계산한다.
+// 항상 같은 순서로 나오는 불규칙한 수(0 이상 1 미만). 교실과 자리 번호로 정해지므로 다시 시작해도 배치가 같다.
+function classroomDecorRandom(roomIndex, seatIndex, salt) {
+  const value = Math.sin((roomIndex + 1) * 127.1 + (seatIndex + 1) * 311.7 + salt * 74.7 + CLASSROOM_DATA.decorItems.seed) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+// 책상 하나의 물건 목록. 비어 있거나 1종이다.
+function classroomDecorItemIds(roomIndex, seatIndex) {
+  const decor = CLASSROOM_DATA.decorItems;
+  if (classroomDecorRandom(roomIndex, seatIndex, 1) >= decor.itemRate) return [];
+  return [decor.ids[Math.floor(classroomDecorRandom(roomIndex, seatIndex, 2) * decor.ids.length)]];
+}
+
+// 9반이 아닌 교실의 책상. 클릭하면 그 자리의 물건을 얻는다. 위치가 변하지 않아 한 번만 계산한다.
 let classroomDecorCache = null;
 function classroomDecorDesks() {
   if (classroomDecorCache) return classroomDecorCache;
   const config = CLASSROOM_DATA, floor = SCHOOL_DATA.floors.find(floor => floor.number === config.floor);
-  classroomDecorCache = floor.rooms.filter(room => room.name !== config.roomName).flatMap(room =>
-    classroomDeskPositions(room).map(position => ({ roomName: room.name, x: position.x, y: position.y, width: config.deskWidth, height: config.deskHeight, sprite: config.sprite })));
+  classroomDecorCache = floor.rooms.filter(room => room.name !== config.roomName).flatMap((room, roomIndex) =>
+    classroomDeskPositions(room).map((position, seatIndex) => ({
+      roomName: room.name, x: position.x, y: position.y, width: config.deskWidth, height: config.deskHeight, sprite: config.sprite,
+      type: "desk", floor: config.floor, interactDistance: config.interactDistance, clickPadding: config.clickPadding,
+      messages: { tooFar: config.text.near }, itemIds: classroomDecorItemIds(roomIndex, seatIndex),
+    })));
   return classroomDecorCache;
 }
 
@@ -45,12 +62,30 @@ function classroomBlackboards() {
   }));
 }
 
-// 배경 책상을 그린다. 그림을 불러오지 못하면 색 블록으로 그린다.
+// 책상 위에 보여 줄 아이템 그림 경로 목록. 빈 책상이거나 이미 얻은 종류는 빠진다.
+function classroomDeskIcons(desk) {
+  return desk.itemIds.filter(id => !gameState.acquiredItems[id]).map(id => ITEM_DATA.find(item => item.id === id).icon).filter(Boolean);
+}
+
+// 책상 위에 아이템 그림을 그린다. 2종이 남은 자리(9반 1번 책상)는 나란히 놓는다.
+function drawClassroomDeskIcons(desk) {
+  const decor = CLASSROOM_DATA.decorItems, icons = classroomDeskIcons(desk);
+  // 그림 아래쪽을 맞춰 그리는 함수이므로 아이콘 칸의 가운데 위치를 계산해 넘긴다.
+  const top = desk.y + desk.height / 2 - CLASSROOM_DATA.sprite.height + decor.iconTop;
+  icons.forEach((src, index) => {
+    const x = desk.x + (index - (icons.length - 1) / 2) * decor.iconSize;
+    drawObjectSprite({ x, y: top + decor.iconSize / 2, width: decor.iconSize, height: decor.iconSize, sprite: { src } });
+  });
+}
+
+// 1~8반 책상과 그 위의 아이템을 그린다. 그림을 불러오지 못하면 책상은 색 블록으로 그린다.
 function drawClassroomDecorDesks() {
   for (const desk of classroomDecorDesks()) {
-    if (drawObjectSprite(desk)) continue;
-    ctx.fillStyle = "#ba946d";
-    ctx.fillRect(desk.x - desk.width / 2, desk.y - desk.height / 2, desk.width, desk.height);
+    if (!drawObjectSprite(desk)) {
+      ctx.fillStyle = "#ba946d";
+      ctx.fillRect(desk.x - desk.width / 2, desk.y - desk.height / 2, desk.width, desk.height);
+    }
+    drawClassroomDeskIcons(desk);
   }
 }
 
@@ -59,11 +94,13 @@ function classroomObjects() {
   const common = { placeId: SCHOOL_DATA.placeId, floor: config.floor, interactDistance: config.interactDistance, messages: { tooFar: config.text.near }, roomName: config.roomName };
   const flip = config.frontSide === "south";
   // 사용자 요청: 책상 위에 번호를 쓰지 않는다(label은 빈 글자). 번호는 자리 배치도에서만 볼 수 있다.
-  const desks = classroomDeskPositions(room).map(({ number, x, y }) => ({
+  // 9반의 교실 번호는 1~8반 다음(8)이다. 1~8반의 배치는 그대로 유지된다.
+  const roomIndex = SCHOOL_DATA.floors.find(floor => floor.number === config.floor).rooms.length - 1;
+  const desks = classroomDeskPositions(room).map(({ number, x, y }, seatIndex) => ({
     ...common, id: `desk-${number}`, type: "desk", number, name: `${number}${config.text.desk}`, label: "",
     x, y,
     width: config.deskWidth, height: config.deskHeight, clickPadding: config.clickPadding,
-    color: "#ba946d", solid: true, sprite: config.sprite, itemIds: config.assignments[number],
+    color: "#ba946d", solid: true, sprite: config.sprite, itemIds: config.assignments[number] ?? classroomDecorItemIds(roomIndex, seatIndex),
   }));
   // 자리 배치도는 뒤쪽 벽(문이 있는 쪽)에 붙인다.
   const rearY = flip ? room.y + config.board.rearMargin : room.y + room.height - config.board.rearMargin;

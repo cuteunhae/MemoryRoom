@@ -167,10 +167,10 @@ assert.equal(run('inspectionUiState.mode'), 'dialogue');
 elements['inspection-close'].handlers.click();
 assert.equal(run('acquireItem("unknown")'), false);
 run("ITEM_DATA.forEach(item => acquireItem(item.id))");
-assert.equal(run("gameState.inventory.itemIds.length"), 20);
-assert.equal(Object.keys(read("gameState.acquiredItems")).length, 20);
+assert.equal(run("gameState.inventory.itemIds.length"), run("ITEM_DATA.length"));
+assert.equal(Object.keys(read("gameState.acquiredItems")).length, run("ITEM_DATA.length"));
 key("KeyI", "i");
-assert.equal(elements["inventory-list"].children.length, 20);
+assert.equal(elements["inventory-list"].children.length, run("ITEM_DATA.length"));
 // E 키로 건물에 들어가고 나온다. 입구에서 멀면 반응하지 않고, 잠긴 문은 잠금 안내만 나온다.
 run('if (inspectionUiState.mode) closeInspection(); if (inventoryUiState.open) closeInventory(); scene.interiorId = null; scene.returnPoint = null; scene.schoolFloor = 1; finishMapTransition()');
 for (const door of read('outdoorDoors()')) {

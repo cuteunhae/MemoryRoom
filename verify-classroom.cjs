@@ -115,10 +115,12 @@ for (const desk of desks.filter(desk => desk.number !== 1)) {
   assert.equal(run('inspectionUiState.mode'), null);
   if (!desk.itemIds.length) assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.empty'));
 }
-assert.equal(run('gameState.inventory.itemIds.length'), 8);
-assert.equal(new Set(read('gameState.inventory.itemIds')).size, 8);
+// 9반 모든 자리의 물건을 종류마다 한 번씩만 얻었다.
+const roomKinds = new Set(desks.flatMap(desk => desk.itemIds));
+assert.equal(run('gameState.inventory.itemIds.length'), roomKinds.size);
+assert.equal(new Set(read('gameState.inventory.itemIds')).size, roomKinds.size);
 // 같은 종류 물건이 있는 다른 책상은 이미 가져간 것으로 안내한다.
-inspect(desks.find(desk=>desk.number===11));
+inspect(desks.find(desk=>desk.number!==1&&desk.itemIds.length));
 assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.taken'));
 inspect(read('classroomObjects().find(object => object.type === "seating")'));
 assert.deepEqual(elements['classroom-panel'].children.slice(0,5).map(row=>row.children.flatMap(pair=>pair.children.map(cell=>Number(cell.textContent)))), expected);
@@ -199,6 +201,78 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
       assert.ok(board.top >= Math.max(...roomDesks.map(desk => desk.y + desk.height / 2)), roomData.name + ' 칠판이 책상과 겹칩니다.');
     }
   }
+}
+// 1~8반 책상: 책상마다 물건은 최대 1종이고, 5종이 불규칙하게 놓이며, 다시 계산해도 같다. 클릭하면 창 없이 얻는다.
+{
+  run('scene.interiorId=SCHOOL_DATA.placeId;scene.schoolFloor=CLASSROOM_DATA.floor;finishMapTransition();if(inspectionUiState.mode)closeInspection();if(inventoryUiState.open)closeInventory()');
+  const decor = read('classroomDecorDesks().map(({ roomName, x, y, width, height, itemIds }) => ({ roomName, x, y, width, height, itemIds }))');
+  const ids = read('CLASSROOM_DATA.decorItems.ids');
+  assert.ok(decor.every(desk => desk.itemIds.length <= 1), '책상에 물건이 2종 이상입니다.');
+  for (const id of ids) assert.ok(decor.some(desk => desk.itemIds[0] === id), id + ' 물건이 어느 책상에도 없습니다.');
+  assert.ok(decor.some(desk => desk.itemIds.length === 0), '빈 책상이 없습니다.');
+  assert.ok(ids.every(id => run(`ITEM_DATA.some(item => item.id === ${JSON.stringify(id)})`)));
+  // 교실마다 배치가 달라 불규칙하다.
+  const pattern = name => JSON.stringify(decor.filter(desk => desk.roomName === name).map(desk => desk.itemIds[0] || ''));
+  assert.equal(new Set(['1반', '2반', '3반', '4반', '5반', '6반', '7반', '8반'].map(pattern)).size, 8, '교실끼리 배치가 같습니다.');
+  assert.deepEqual(read('classroomDecorItemIds(2, 5)'), read('classroomDecorItemIds(2, 5)'));
+  run('gameState.inventory.itemIds=[];gameState.acquiredItems={}');
+  const stand = desk => run(`player.x=${desk.x}; player.y=${desk.y + desk.height/2 + 40}-player.footOffset; updateCamera()`);
+  // 얻기 전에는 책상 위에 그림이 보이고, 그 종류를 얻으면 모든 책상에서 사라진다.
+  const iconAt = index => read(`classroomDeskIcons(classroomDecorDesks()[${index}])`);
+  const pencils = decor.map((desk, index) => desk.itemIds[0] === 'GEN-01' ? index : -1).filter(index => index >= 0);
+  assert.ok(pencils.every(index => iconAt(index)[0] === 'assets/item-pencil.png'));
+  assert.deepEqual(iconAt(decor.findIndex(desk => !desk.itemIds.length)), []);
+  // 멀리서 누르면 얻지 못하고, 교실 밖에서도 얻지 못한다.
+  const pencil = decor.find(desk => desk.itemIds[0] === 'GEN-01');
+  run(`player.x=${pencil.x}; player.y=${pencil.y + 500}-player.footOffset; updateCamera()`);
+  advance(); click(pencil);
+  assert.equal(run('gameState.inventory.itemIds.length'), 0);
+  stand(pencil); advance(); click(pencil);
+  assert.deepEqual(read('gameState.inventory.itemIds'), ['GEN-01']);
+  assert.equal(run('inspectionUiState.mode'), null);
+  assert.ok(pencils.every(index => iconAt(index).length === 0), '얻은 물건 그림이 책상에 남아 있습니다.');
+  assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '연필'));
+  // 같은 종류의 다른 책상은 중복으로 얻지 못한다.
+  const pencil2 = decor.filter(desk => desk.itemIds[0] === 'GEN-01')[1];
+  stand(pencil2); advance(); click(pencil2);
+  assert.deepEqual(read('gameState.inventory.itemIds'), ['GEN-01']);
+  assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.taken'));
+  // 빈 책상.
+  const none = decor.find(desk => !desk.itemIds.length);
+  stand(none); advance(); click(none);
+  assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.empty'));
+  // 알림장은 1번 책상과 같은 아이템이다. 먼저 얻으면 1번 책상에서는 크레파스만 얻는다.
+  const notice = decor.find(desk => desk.itemIds[0] === 'ITM-02');
+  stand(notice); advance(); click(notice);
+  assert.equal(run('gameState.acquiredItems["ITM-02"]'), true);
+  stand(first); advance(); click(first);
+  assert.equal(read('gameState.inventory.itemIds').filter(id => id === 'ITM-02').length, 1);
+  assert.equal(run('gameState.acquiredItems["ITM-03"]'), true);
+  assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '크레파스'));
+}
+// 9반 책상: 1번 자리만 알림장·크레파스 2종이고, 나머지는 1~8반과 같은 5종 중 최대 1종이다. 그림은 얻기 전까지 보인다.
+{
+  run('gameState.inventory.itemIds=[];gameState.acquiredItems={}');
+  const room9 = read('classroomObjects().filter(object => object.type === "desk").map(({ number, itemIds }) => ({ number, itemIds }))');
+  const ids = read('CLASSROOM_DATA.decorItems.ids');
+  assert.deepEqual(room9.find(desk => desk.number === 1).itemIds, ['ITM-02', 'ITM-03']);
+  for (const desk of room9.filter(desk => desk.number !== 1)) {
+    assert.ok(desk.itemIds.length <= 1, desk.number + '번 책상에 물건이 2종 이상입니다.');
+    assert.ok(desk.itemIds.every(id => ids.includes(id)), desk.number + '번 책상에 그림 없는 물건이 있습니다.');
+  }
+  assert.ok(room9.some(desk => desk.itemIds.length === 0), '9반에 빈 책상이 없습니다.');
+  const iconsOf = number => read(`classroomDeskIcons(classroomObjects().find(object => object.number === ${number}))`);
+  const noticeIcon = run('ITEM_DATA.find(item => item.id === "ITM-02").icon'), crayonIcon = run('ITEM_DATA.find(item => item.id === "ITM-03").icon');
+  assert.deepEqual(iconsOf(1), [noticeIcon, crayonIcon]);
+  // 책상을 그리는 함수가 아이콘 그리기에서 오류를 내지 않는다.
+  run('drawClassroomDeskIcons(classroomObjects().find(object => object.number === 1))');
+  // 알림장을 다른 곳에서 먼저 얻으면 1번 책상에는 크레파스 그림만 남는다.
+  run('acquireItem("ITM-02")');
+  assert.deepEqual(iconsOf(1), [crayonIcon]);
+  run('acquireItem("ITM-03")');
+  assert.deepEqual(iconsOf(1), []);
+  // 물건 그림은 모두 실제 파일이 있다.
+  for (const id of ids) assert.ok(fs.existsSync(path.join(__dirname, run(`ITEM_DATA.find(item => item.id === ${JSON.stringify(id)}).icon`))), id);
 }
 console.log('통과: 정확한 30석·전 책상 접근 경로·빈 책상·종류별 중복 방지·개별 획득·확대 배치도·알림장 약도·카메라 경계');
 
