@@ -95,27 +95,31 @@ function inspect(desk) {
   advance(); click(desk);
 }
 const first = desks.find(desk => desk.number === 1);
-inspect(first);
+// 멀리서 클릭하면 얻지 못한다.
+run(`player.x=${first.x}; player.y=${first.y + first.height/2 + 500}-player.footOffset; updateCamera()`);
+advance(); click(first);
 assert.equal(run('gameState.inventory.itemIds.length'), 0);
-let buttons = elements['classroom-panel'].children;
-assert.equal(buttons.length, 2);
-buttons[0].handlers.click();
-assert.deepEqual(read('gameState.inventory.itemIds'), ['ITM-02']);
-elements['classroom-panel'].children[1].handlers.click();
-elements['inspection-close'].handlers.click();
+assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.near'));
+// 책상을 클릭하면 창 없이 그 자리의 물건 2개를 한 번에 얻는다. 힌트 기록도 남는다.
 inspect(first);
-assert.ok(elements['classroom-panel'].children.every(button => button.disabled));
-elements['inspection-close'].handlers.click();
+assert.equal(run('inspectionUiState.mode'), null);
+assert.deepEqual(read('gameState.inventory.itemIds'), ['ITM-02', 'ITM-03']);
+assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '알림장, 크레파스'));
+assert.equal(run('gameState.hints.clues.includes("desk-one")'), true);
+// 다시 클릭해도 중복되지 않는다.
+inspect(first);
+assert.deepEqual(read('gameState.inventory.itemIds'), ['ITM-02', 'ITM-03']);
+assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.taken'));
 for (const desk of desks.filter(desk => desk.number !== 1)) {
   inspect(desk);
-  if (!desk.itemIds.length) assert.equal(elements['inspection-message'].textContent, run('CLASSROOM_DATA.text.empty'));
-  else for (const button of elements['classroom-panel'].children) button.handlers.click();
-  elements['inspection-close'].handlers.click();
+  assert.equal(run('inspectionUiState.mode'), null);
+  if (!desk.itemIds.length) assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.empty'));
 }
 assert.equal(run('gameState.inventory.itemIds.length'), 8);
+assert.equal(new Set(read('gameState.inventory.itemIds')).size, 8);
+// 같은 종류 물건이 있는 다른 책상은 이미 가져간 것으로 안내한다.
 inspect(desks.find(desk=>desk.number===11));
-assert.equal(elements['classroom-panel'].children[0].disabled, true);
-elements['inspection-close'].handlers.click();
+assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.taken'));
 inspect(read('classroomObjects().find(object => object.type === "seating")'));
 assert.deepEqual(elements['classroom-panel'].children.slice(0,5).map(row=>row.children.flatMap(pair=>pair.children.map(cell=>Number(cell.textContent)))), expected);
 elements['inspection-close'].handlers.click();
@@ -165,6 +169,16 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
     schoolDoorUi.open.clear();
     return ok;
   })()`), '걸어서 닿지 못하는 책상이 있습니다.');
+}
+// 자리 배치도와 칠판은 교실 안 벽 쪽에 있고, 맨 앞줄·맨 뒷줄 책상과 겹치지 않는다.
+{
+  const seating = read('classroomObjects().find(object => object.type === "seating")');
+  assert.equal(seating.sprite.src, 'assets/school-seating-board.png');
+  assert.equal(seating.caption, '자리 배치도');
+  const top = Math.min(...desks.map(desk => desk.y - desk.height / 2));
+  assert.ok(seating.y + seating.height / 2 <= top - 24, '자리 배치도가 맨 위 책상과 겹칩니다.');
+  const board = read('CLASSROOM_DATA.blackboard'), bottom = Math.max(...desks.map(desk => desk.y + desk.height / 2));
+  assert.ok(room.y + room.height - board.margin - board.height >= bottom, '칠판이 맨 아래 책상과 겹칩니다.');
 }
 console.log('통과: 정확한 30석·전 책상 접근 경로·빈 책상·종류별 중복 방지·개별 획득·확대 배치도·알림장 약도·카메라 경계');
 

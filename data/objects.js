@@ -4,8 +4,8 @@
 // TODO: 위치·크기·조사 거리는 임시 값이다. 플레이 테스트에서 조정한다.
 const INSPECTION_OBJECTS = [{
   id: "studio-album", placeId: "C01", name: "사진첩", type: "album", rewardId: "ITM-01",
-  x: 225, y: 515, width: 64, height: 44, interactDistance: 140,
-  color: "#785e79",
+  x: 225, y: 515, width: 64, height: 56, interactDistance: 140,
+  color: "#785e79", sprite: { src: "assets/studio-album.png" },
   messages: {
     tooFar: "사진첩 가까이에서 클릭해 주세요.",
     acquired: "돌잔치 사진을 획득했습니다. (I: 인벤토리)",

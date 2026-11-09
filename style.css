@@ -70,7 +70,7 @@ canvas {
 
 #inspection-message { line-height: 1.8; white-space: pre-line; }
 #studio-photo { display: block; width: 100%; padding: 12px; border: 1px solid #b5a38c; background: #fffaf1; color: #403a32; cursor: pointer; font: inherit; box-shadow: 0 4px 12px #403a3226; }
-#studio-photo svg { display: block; width: 100%; max-height: 42dvh; }
+#photo-front-image { display: block; width: 100%; max-height: 42dvh; object-fit: contain; }
 #photo-date { display: block; padding-top: 14px; }
 #photo-road-picture { display: block; width: 100%; height: auto; max-height: 42dvh; object-fit: contain; }
 #photo-date { font-size: 22px; letter-spacing: 3px; }
@@ -85,11 +85,9 @@ canvas {
 #carousel-result { grid-column: 1 / -1; margin: 0; padding: 12px; border: 2px solid; border-radius: 6px; font-weight: 700; text-align: center; }
 #carousel-result[data-result="wrong"] { border-color: #c0392b; background: #fbe3e0; color: #a3231a; }
 #carousel-result[data-result="correct"] { border-color: #2e8b4e; background: #e0f3e4; color: #1f6b34; }
-.desk-item { display: block; width: 100%; padding: 18px; margin: 10px 0; font: inherit; cursor: pointer; }
 #registry-panel { position: relative; width: 100%; min-height: 320px; aspect-ratio: 600 / 320; background: #f3ebd8; border: 1px solid #a59c7d; overflow: hidden; }
 #registry-clue { margin: 0; padding: 24px; min-height: 320px; display: flex; align-items: center; white-space: pre-line; line-height: 1.9; color: #403a32; user-select: none; }
 #registry-cover { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
-.desk-item:disabled { cursor: default; color: #635d53; }
 .seat-row { display: flex; gap: 24px; margin: 16px 0; }
 .seat-pair { display: flex; flex: 1; }
 .seat-pair span { flex: 1; text-align: center; background: #ddc3a0; border: 1px solid #8e7657; padding: 12px 0; }

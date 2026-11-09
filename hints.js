@@ -41,7 +41,6 @@ function recordInspectionHint() {
   const mode = inspectionUiState.mode;
   if (HINT_DATA.clueModes[mode]) markHintClue(HINT_DATA.clueModes[mode]);
   if (mode === "photo") markHintClue(inspectionUiState.back ? "photo-back" : "photo-front");
-  if (mode === "desk" && inspectionUiState.object.number === 1) markHintClue("desk-one");
 }
 
 function insideHintClassroom() {

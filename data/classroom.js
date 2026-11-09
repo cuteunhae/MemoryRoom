@@ -14,9 +14,11 @@ const CLASSROOM_DATA = {
   // TODO: 그림 크기는 임시 설정이다. 단위는 게임 속 픽셀이다.
   sprite: { src: "assets/school-desk.png", width: 64, height: 72 },
   // 자리 배치도는 뒤쪽(문 쪽) 벽 오른쪽에 둔다. 칠판은 앞쪽(아래쪽) 벽에 그린다.
-  board: { width: 150, height: 40, rearMargin: 40, sideMargin: 110 },
-  blackboard: { width: 400, height: 40, margin: 40 },
-  text: { desk: "번 책상", empty: "빈 책상", acquired: "이미 획득함", take: "획득", prompt: "물건을 클릭해서 가져가세요.", near: "가까이에서 클릭해 주세요.", board: "자리 배치도", front: "칠판", rear: "교실 뒤편 · 출입문", map: "보건실 약도", mapHint: "1층 계단 오른쪽 방이 보건실입니다. (임시 약도)", mapBottom: "아래쪽 가운데: 출입구　 /　 위쪽 가운데: 2층 계단" },
+  // sprite는 벽에 거는 그림이다. 그림을 불러오지 못하면 색 블록으로 그린다.
+  board: { width: 150, height: 98, rearMargin: 40, sideMargin: 110, sprite: { src: "assets/school-seating-board.png" } },
+  // margin은 교실 바닥 범위 아래쪽에서 칠판 아래쪽까지의 거리다. 그림의 벽이 바닥 범위보다 아래에 있어 음수로 벽에 붙인다.
+  blackboard: { width: 340, height: 100, margin: -42, src: "assets/school-blackboard.png" },
+  text: { desk: "번 책상", empty: "빈 책상입니다.", taken: "이미 가져간 물건입니다.", gained: "{items} 획득!", near: "가까이 가세요.", board: "자리 배치도", front: "칠판", rear: "교실 뒤편 · 출입문", map: "보건실 약도", mapHint: "1층 계단 오른쪽 방이 보건실입니다. (임시 약도)", mapBottom: "아래쪽 가운데: 출입구　 /　 위쪽 가운데: 2층 계단" },
   // TODO: 임시 고정 배정. 빈 배열은 빈 책상이며 무작위 배정하지 않는다.
   assignments: {
     1: ["ITM-02", "ITM-03"], 2: [], 3: ["GEN-01"], 4: ["GEN-02"], 5: [],

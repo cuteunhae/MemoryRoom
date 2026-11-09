@@ -201,6 +201,8 @@ function handleDoorClick(event) {
     if (object) {
       if (!canInspectSchoolObject(object) || Math.hypot(Math.max(0, Math.abs(player.x - object.x) - object.width / 2), Math.max(0, Math.abs(player.y + player.footOffset - object.y) - object.height / 2)) > object.interactDistance) {
         showDoorMessage(object.messages.tooFar);
+      } else if (object.type === "desk") {
+        collectDeskItems(object);
       } else {
         openInspection(object);
       }
@@ -705,8 +707,15 @@ function drawInterior(interior) {
     }
     // hidden 물체는 그림에 이미 있으므로 그리지 않는다(클릭·충돌은 그대로).
     if (object.hidden) continue;
-    // 그림이 있는 물체는 그림만 그린다.
-    if (object.sprite && drawObjectSprite(object)) continue;
+    // 그림이 있는 물체는 그림만 그린다. caption이 있으면 그림 가운데에 글자를 얹는다.
+    if (object.sprite && drawObjectSprite(object)) {
+      if (object.caption) {
+        ctx.fillStyle = "#fff8e9";
+        ctx.font = "bold 16px 'Malgun Gothic', sans-serif";
+        ctx.fillText(object.caption, object.x, object.y + 4, object.width - 24);
+      }
+      continue;
+    }
     ctx.fillStyle = object.color;
     ctx.fillRect(object.x - object.width / 2, object.y - object.height / 2, object.width, object.height);
     ctx.fillStyle = "#fff8e9";

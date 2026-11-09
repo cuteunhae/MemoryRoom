@@ -45,7 +45,7 @@ function classroomObjects() {
   const room = classroomRoom(), config = CLASSROOM_DATA;
   const common = { placeId: SCHOOL_DATA.placeId, floor: config.floor, interactDistance: config.interactDistance, messages: { tooFar: config.text.near }, roomName: config.roomName };
   const flip = config.frontSide === "south";
-  // 사용자 요청: 책상 위에 번호를 쓰지 않는다(label은 빈 글자). 번호는 자리 배치도와 물건 창 제목에서만 볼 수 있다.
+  // 사용자 요청: 책상 위에 번호를 쓰지 않는다(label은 빈 글자). 번호는 자리 배치도에서만 볼 수 있다.
   const desks = classroomDeskPositions(room).map(({ number, x, y }) => ({
     ...common, id: `desk-${number}`, type: "desk", number, name: `${number}${config.text.desk}`, label: "",
     x, y,
@@ -57,7 +57,7 @@ function classroomObjects() {
   const boardX = flip ? room.x + room.width - config.board.sideMargin : room.x + config.board.sideMargin;
   return [...desks, { ...common, id: "classroom-seating-board", type: "seating", name: config.text.board,
     x: boardX, y: rearY,
-    width: config.board.width, height: config.board.height, color: "#758675" }];
+    width: config.board.width, height: config.board.height, color: "#758675", sprite: config.board.sprite, caption: config.text.board }];
 }
 
 function canInspectSchoolObject(object) {
@@ -68,30 +68,23 @@ function canInspectSchoolObject(object) {
   return player.x > room.x && player.x < room.x + room.width && footY > room.y && footY < room.y + room.height;
 }
 
+// 책상을 클릭하면 창 없이 그 자리의 아이템을 모두 바로 얻는다. 사용자 결정으로 기획서 SCH-05~07(물건을 하나씩 클릭)과 다르다.
+function collectDeskItems(desk) {
+  const text = CLASSROOM_DATA.text;
+  if (isGameInputBlocked()) return;
+  if (desk.number === 1) markHintClue("desk-one");
+  const gained = desk.itemIds.filter(id => acquireItem(id));
+  if (gained.length) showDoorMessage(text.gained.replace("{items}", gained.map(id => ITEM_DATA.find(item => item.id === id).name).join(", ")));
+  else showDoorMessage(desk.itemIds.length ? text.taken : text.empty);
+}
+
 function renderClassroomPanel() {
   const panel = document.getElementById("classroom-panel");
   panel.replaceChildren();
-  const { mode, object } = inspectionUiState;
-  panel.hidden = !["desk", "seating", "infirmary"].includes(mode);
+  const { mode } = inspectionUiState;
+  panel.hidden = !["seating", "infirmary"].includes(mode);
   if (panel.hidden) return;
-  if (mode === "desk") {
-    inspectionMessage.textContent = object.itemIds.length ? CLASSROOM_DATA.text.prompt : CLASSROOM_DATA.text.empty;
-    for (const id of object.itemIds) {
-      const item = ITEM_DATA.find(item => item.id === id);
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "desk-item";
-      button.disabled = !!gameState.acquiredItems[id];
-      button.textContent = `${item.name} · ${button.disabled ? CLASSROOM_DATA.text.acquired : CLASSROOM_DATA.text.take}`;
-      button.addEventListener("click", () => {
-        if (inspectionUiState.mode !== "desk" || inspectionUiState.object !== object) return;
-        acquireItem(id);
-        renderClassroomPanel();
-        inspectionClose.focus();
-      });
-      panel.append(button);
-    }
-  } else if (mode === "seating") {
+  if (mode === "seating") {
     inspectionMessage.textContent = CLASSROOM_DATA.text.front;
     for (const row of CLASSROOM_DATA.seats) {
       const line = document.createElement("div"); line.className = "seat-row";

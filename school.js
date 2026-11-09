@@ -312,13 +312,17 @@ function drawSchool() {
     for (const room of floor.rooms) ctx.fillText(room.name, room.x + room.width / 2, room.y + 30);
   }
   drawSchoolDoorPlates();
-  // 9반 그림은 빈 교실이므로 앞쪽 벽에 임시 칠판을 그린다.
+  // 9반 그림은 빈 교실이므로 앞쪽 벽에 칠판을 그린다.
   if (scene.schoolFloor === CLASSROOM_DATA.floor) {
     drawClassroomDecorDesks();
     const room = classroomRoom(), board = CLASSROOM_DATA.blackboard;
     const y = CLASSROOM_DATA.frontSide === "south" ? room.y + room.height - board.margin - board.height : room.y + board.margin;
-    ctx.fillStyle = "#416553";
-    ctx.fillRect(room.x + room.width / 2 - board.width / 2, y, board.width, board.height);
+    const blackboard = objectSpriteImage(board.src);
+    if (blackboard) ctx.drawImage(blackboard, room.x + room.width / 2 - board.width / 2, y, board.width, board.height);
+    else {
+      ctx.fillStyle = "#416553";
+      ctx.fillRect(room.x + room.width / 2 - board.width / 2, y, board.width, board.height);
+    }
     ctx.fillStyle = "#fff8e9";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.font = "18px 'Malgun Gothic', sans-serif";
