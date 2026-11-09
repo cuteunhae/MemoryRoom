@@ -312,21 +312,29 @@ function drawSchool() {
     for (const room of floor.rooms) ctx.fillText(room.name, room.x + room.width / 2, room.y + 30);
   }
   drawSchoolDoorPlates();
-  // 9반 그림은 빈 교실이므로 앞쪽 벽에 칠판을 그린다.
+  // 교실 그림은 비어 있으므로 책상과 칠판을 그린다.
   if (scene.schoolFloor === CLASSROOM_DATA.floor) {
     drawClassroomDecorDesks();
-    const room = classroomRoom(), board = CLASSROOM_DATA.blackboard;
-    const y = CLASSROOM_DATA.frontSide === "south" ? room.y + room.height - board.margin - board.height : room.y + board.margin;
-    const blackboard = objectSpriteImage(board.src);
-    if (blackboard) ctx.drawImage(blackboard, room.x + room.width / 2 - board.width / 2, y, board.width, board.height);
-    else {
-      ctx.fillStyle = "#416553";
-      ctx.fillRect(room.x + room.width / 2 - board.width / 2, y, board.width, board.height);
-    }
-    ctx.fillStyle = "#fff8e9";
+    const board = CLASSROOM_DATA.blackboard, image = objectSpriteImage(board.src);
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.font = "18px 'Malgun Gothic', sans-serif";
-    ctx.fillText(CLASSROOM_DATA.text.front, room.x + room.width / 2, y + board.height / 2);
+    for (const rect of classroomBlackboards()) {
+      if (image) {
+        ctx.save();
+        // flip이면 칠판 가운데를 기준으로 위아래를 뒤집어 그린다. 글자는 뒤집지 않는다.
+        if (rect.flip) {
+          ctx.translate(0, rect.top * 2 + rect.height);
+          ctx.scale(1, -1);
+        }
+        ctx.drawImage(image, rect.left, rect.top, rect.width, rect.height);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = "#416553";
+        ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
+      }
+      ctx.fillStyle = "#fff8e9";
+      ctx.fillText(CLASSROOM_DATA.text.front, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    }
   }
   ctx.restore();
 }

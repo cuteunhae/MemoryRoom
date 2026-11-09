@@ -32,6 +32,19 @@ function classroomDecorDesks() {
   return classroomDecorCache;
 }
 
+// 모든 교실의 칠판 위치. 문 반대쪽 벽에 붙인다. 위쪽 줄 교실은 위쪽 벽, 아래쪽 줄 교실은 아래쪽 벽이다.
+// 사용자 요청: 위쪽 줄 교실(1~4반)의 칠판 그림은 위아래를 뒤집어 그린다(flip).
+function classroomBlackboards() {
+  const board = CLASSROOM_DATA.blackboard, floor = SCHOOL_DATA.floors.find(floor => floor.number === CLASSROOM_DATA.floor);
+  return floor.rooms.map(room => ({
+    roomName: room.name,
+    left: room.x + room.width / 2 - board.width / 2,
+    top: room.row === "위쪽" ? room.y + board.topMargin : room.y + room.height - board.margin - board.height,
+    width: board.width, height: board.height,
+    flip: room.row === "위쪽",
+  }));
+}
+
 // 배경 책상을 그린다. 그림을 불러오지 못하면 색 블록으로 그린다.
 function drawClassroomDecorDesks() {
   for (const desk of classroomDecorDesks()) {

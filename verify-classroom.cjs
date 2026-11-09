@@ -180,6 +180,26 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
   const board = read('CLASSROOM_DATA.blackboard'), bottom = Math.max(...desks.map(desk => desk.y + desk.height / 2));
   assert.ok(room.y + room.height - board.margin - board.height >= bottom, '칠판이 맨 아래 책상과 겹칩니다.');
 }
+// 9개 교실 모두 칠판이 있고, 문 반대쪽에 있으며, 책상 그림과 겹치지 않는다.
+{
+  const boards = read('classroomBlackboards()'), rooms = read('SCHOOL_DATA.floors.find(floor => floor.number === CLASSROOM_DATA.floor).rooms');
+  const sprite = run('CLASSROOM_DATA.sprite.height');
+  assert.equal(boards.length, 9);
+  // 1~4반 칠판만 위아래를 뒤집는다.
+  assert.deepEqual(boards.filter(board => board.flip).map(board => board.roomName), ['1반', '2반', '3반', '4반']);
+  for (const roomData of rooms) {
+    const board = boards.find(item => item.roomName === roomData.name);
+    assert.ok(board.left >= roomData.x && board.left + board.width <= roomData.x + roomData.width, roomData.name + ' 칠판이 교실보다 넓습니다.');
+    const roomDesks = roomData.name === read('CLASSROOM_DATA.roomName') ? desks : read(`classroomDecorDesks().filter(desk => desk.roomName === ${JSON.stringify(roomData.name)}).map(({ x, y, width, height }) => ({ x, y, width, height }))`);
+    if (roomData.row === '위쪽') {
+      assert.ok(board.top < roomData.y + roomData.height / 2, roomData.name);
+      assert.ok(board.top + board.height <= Math.min(...roomDesks.map(desk => desk.y + desk.height / 2 - sprite)), roomData.name + ' 칠판이 책상과 겹칩니다.');
+    } else {
+      assert.ok(board.top > roomData.y + roomData.height / 2, roomData.name);
+      assert.ok(board.top >= Math.max(...roomDesks.map(desk => desk.y + desk.height / 2)), roomData.name + ' 칠판이 책상과 겹칩니다.');
+    }
+  }
+}
 console.log('통과: 정확한 30석·전 책상 접근 경로·빈 책상·종류별 중복 방지·개별 획득·확대 배치도·알림장 약도·카메라 경계');
 
 // 실제 입력 처리로 거리·중복·모달 차단·선택 유지·재입장을 확인한다.
