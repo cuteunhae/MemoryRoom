@@ -120,7 +120,7 @@ close();
   assert.deepEqual(read('(() => { const hint = currentKeyHint(); return { x: hint.x, y: hint.y, center: hint.center }; })()'), { x: registryObject.x, y: registryObject.y, center: true });
   run('currentBindings().interact = null'); assert.equal(run('keyObjectHint()'), '클릭해 명부 보기'); run('currentBindings().interact = "KeyE"');
   pressE(); assert.equal(run('inspectionUiState.mode'), 'registry');
-  assert.equal(elements['inspection-close'].textContent, '닫기 (E)');
+  assert.equal(elements['inspection-close'].textContent, '닫기 ');
   pressE(); assert.equal(run('inspectionUiState.mode'), null);
   run(`player.y = ${412 * scale} - player.footOffset; updateCamera()`);
   assert.equal(run('nearbyKeyObject()'), null, '보건실 밖 벽 너머에서 명부 안내가 나옵니다.');

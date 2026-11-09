@@ -8,6 +8,10 @@ function bindingCloseLabel(action) {
   const code=currentBindings()[action];
   return SETTINGS_DATA.text.close+(code?` (${code.replace(/^Key/, "").replace(/^Digit/, "")})`:"");
 }
+// 그 기능에 지정된 키의 그림 경로. 그림이 없는 키이거나 할당 없음이면 null이다.
+function keyIconSrc(action) {
+  return SETTINGS_DATA.keyIcons[currentBindings()[action]] ?? null;
+}
 function validBindingCode(code) {
   return typeof code === "string" && /^(Key[A-Z]|Digit[0-9]|Numpad[0-9]|Arrow(Up|Down|Left|Right)|Escape|Tab|Space|Enter|Backspace|Home|End|PageUp|PageDown|Insert|Delete|Minus|Equal|BracketLeft|BracketRight|Backslash|Semicolon|Quote|Comma|Period|Slash|Backquote)$/.test(code);
 }

@@ -176,7 +176,7 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
 {
   const seating = read('classroomObjects().find(object => object.type === "seating")');
   assert.equal(seating.sprite.src, 'assets/school-seating-board.png');
-  assert.equal(seating.caption, '자리 배치도');
+  assert.equal(seating.caption, undefined);
   const top = Math.min(...desks.map(desk => desk.y - desk.height / 2));
   assert.ok(seating.y + seating.height / 2 <= top - 24, '자리 배치도가 맨 위 책상과 겹칩니다.');
   const board = read('CLASSROOM_DATA.blackboard'), bottom = Math.max(...desks.map(desk => desk.y + desk.height / 2));

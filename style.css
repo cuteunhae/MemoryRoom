@@ -75,6 +75,8 @@ canvas {
 #photo-road-picture { display: block; width: 100%; height: auto; max-height: 42dvh; object-fit: contain; }
 #photo-date { font-size: 22px; letter-spacing: 3px; }
 #empty-photo { padding: 70px 16px; text-align: center; border: 2px dashed #b5a38c; color: #756856; }
+/* 닫기 버튼 안의 키 그림 */
+.key-icon { width: 1.5em; height: 1.5em; vertical-align: middle; }
 #studio-photo:focus-visible, #inspection-close:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
 [hidden] { display: none !important; }
 #slide-graffiti-picture { display: block; width: 100%; height: auto; }

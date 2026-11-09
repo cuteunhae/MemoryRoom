@@ -19,7 +19,7 @@ const INSPECTION_OBJECTS = [{
   messages: {
     tooFar: "직원 가까이에서 클릭해 주세요.",
     // 가까이 가면 나오는 안내. {key}는 설정에서 지정한 상호작용 키로 바뀐다. keyHintClick은 키가 할당 없음일 때 쓴다.
-    keyHint: "{key} 키를 누르거나 클릭해 대화하기", keyHintClick: "클릭해 대화하기",
+    keyHint: "{key} 키 또는 클릭해 대화하기", keyHintClick: "클릭해 대화하기",
     dialogue: "드디어 사진을 찾으러 오셨군요! 사진은 사진첩 안에 들어있습니다. 오신 김에 사진관도 둘러보고 가세요.",
   },
 }];

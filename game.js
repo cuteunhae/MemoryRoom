@@ -686,17 +686,8 @@ function drawInterior(interior) {
   if (interior.placeId === SCHOOL_DATA.placeId) drawSchool();
   else drawInteriorPicture(interior);
   if (interior.placeId === HOUSE_DATA.placeId) drawHouse();
-  const exit = interior.exit;
-  if (exit) {
-  ctx.font = "16px 'Malgun Gothic', sans-serif";
+  // 출입문은 그림에 있으므로 따로 그리지 않는다. 사용자 요청으로 '나가기' 글자도 쓰지 않는다.
   ctx.textBaseline = "middle";
-  ctx.fillStyle = "#45675c";
-  // 출입문은 그림에 있으므로 '나가기' 글자 상자만 작게 그린다.
-  ctx.fillRect(exit.x - 48, exit.y - 16, 96, 32);
-  ctx.fillStyle = "#f5eee3";
-  ctx.textAlign = "center";
-  ctx.fillText(city.interiorUi.exitLabel, exit.x, exit.y);
-  }
   ctx.textAlign = "center";
   for (const object of inspectionObjectsFor(interior)) {
     const table = object.table;
@@ -708,15 +699,8 @@ function drawInterior(interior) {
     }
     // hidden 물체는 그림에 이미 있으므로 그리지 않는다(클릭·충돌은 그대로).
     if (object.hidden) continue;
-    // 그림이 있는 물체는 그림만 그린다. caption이 있으면 그림 가운데에 글자를 얹는다.
-    if (object.sprite && drawObjectSprite(object)) {
-      if (object.caption) {
-        ctx.fillStyle = "#fff8e9";
-        ctx.font = "bold 16px 'Malgun Gothic', sans-serif";
-        ctx.fillText(object.caption, object.x, object.y + 4, object.width - 24);
-      }
-      continue;
-    }
+    // 그림이 있는 물체는 그림만 그린다.
+    if (object.sprite && drawObjectSprite(object)) continue;
     ctx.fillStyle = object.color;
     ctx.fillRect(object.x - object.width / 2, object.y - object.height / 2, object.width, object.height);
     ctx.fillStyle = "#fff8e9";
@@ -801,7 +785,8 @@ function entranceKeyHint() {
 
 // 상호작용 키 안내 상자의 크기와 대상까지의 간격. 단위는 화면 픽셀이다.
 // TODO: 크기와 간격은 임시 값이다. 플레이 테스트에서 조정한다.
-const KEY_HINT_BOX = { height: 30, paddingX: 12, gap: 4, arrow: 6, margin: 8 };
+// iconSize는 키 그림의 크기, iconGap은 키 그림과 글자 사이 간격이다.
+const KEY_HINT_BOX = { height: 34, paddingX: 10, gap: 4, arrow: 6, margin: 8, iconSize: 28, iconGap: 4 };
 
 // 안내 상자의 화면 위치를 구한다. anchor는 게임 좌표이고, center가 true면 상자 가운데를 그 점에 맞추고 아니면 그 점 바로 위에 놓는다.
 // 화면 밖으로 나가지 않게 안쪽으로 밀어 넣는다.
@@ -849,6 +834,14 @@ function currentKeyHint() {
   return { text, x: door.hintX, y: door.hintY, center: true };
 }
 
+// 안내 문구를 키 이름 앞·뒤 글자와 키 그림으로 나눈다. 키 그림이 없거나 문구에 키 이름이 없으면 null이다.
+function keyHintIconParts(text) {
+  const src = keyIconSrc("interact"), icon = src && objectSpriteImage(src);
+  const label = interactKeyLabel(), at = icon ? text.indexOf(label) : -1;
+  if (at < 0) return null;
+  return { icon, before: text.slice(0, at), after: text.slice(at + label.length).trimStart() };
+}
+
 // 상호작용 키 안내를 대상에 맞춰 그린다. 창이 열려 있으면 그리지 않는다.
 function drawKeyHint() {
   if (isGameInputBlocked()) return;
@@ -858,7 +851,10 @@ function drawKeyHint() {
   ctx.font = "15px 'Malgun Gothic', sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const rect = keyHintBox(ctx.measureText(hint.text).width, hint);
+  const parts = keyHintIconParts(hint.text), config = KEY_HINT_BOX;
+  const beforeWidth = parts?.before ? ctx.measureText(parts.before).width + config.iconGap : 0;
+  const textWidth = parts ? beforeWidth + config.iconSize + config.iconGap + ctx.measureText(parts.after).width : ctx.measureText(hint.text).width;
+  const rect = keyHintBox(textWidth, hint);
   ctx.fillStyle = "#26342df2";
   ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
   // 상자가 NPC 머리 위에 있을 때만 머리를 가리키는 작은 삼각형을 그린다.
@@ -868,7 +864,18 @@ function drawKeyHint() {
     ctx.fill();
   }
   ctx.fillStyle = "#fff8e9";
-  ctx.fillText(hint.text, rect.x + rect.width / 2, rect.y + rect.height / 2, rect.width - 8);
+  const middle = rect.y + rect.height / 2;
+  if (parts) {
+    // 글자, 키 그림, 글자 순서로 왼쪽부터 그린다.
+    ctx.textAlign = "left";
+    const left = rect.x + config.paddingX;
+    if (parts.before) ctx.fillText(parts.before, left, middle);
+    const iconX = left + beforeWidth;
+    ctx.drawImage(parts.icon, iconX, middle - config.iconSize / 2, config.iconSize, config.iconSize);
+    ctx.fillText(parts.after, iconX + config.iconSize + config.iconGap, middle);
+  } else {
+    ctx.fillText(hint.text, rect.x + rect.width / 2, middle, rect.width - 8);
+  }
   ctx.restore();
 }
 

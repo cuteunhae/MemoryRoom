@@ -316,12 +316,10 @@ function drawSchool() {
   if (scene.schoolFloor === CLASSROOM_DATA.floor) {
     drawClassroomDecorDesks();
     const board = CLASSROOM_DATA.blackboard, image = objectSpriteImage(board.src);
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.font = "18px 'Malgun Gothic', sans-serif";
     for (const rect of classroomBlackboards()) {
       if (image) {
         ctx.save();
-        // flip이면 칠판 가운데를 기준으로 위아래를 뒤집어 그린다. 글자는 뒤집지 않는다.
+        // flip이면 칠판 가운데를 기준으로 위아래를 뒤집어 그린다.
         if (rect.flip) {
           ctx.translate(0, rect.top * 2 + rect.height);
           ctx.scale(1, -1);
@@ -332,8 +330,6 @@ function drawSchool() {
         ctx.fillStyle = "#416553";
         ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
       }
-      ctx.fillStyle = "#fff8e9";
-      ctx.fillText(CLASSROOM_DATA.text.front, rect.left + rect.width / 2, rect.top + rect.height / 2);
     }
   }
   ctx.restore();

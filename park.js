@@ -91,7 +91,9 @@ function drawPark() {
   if (!cityMapReady()) for (const fence of parkFences(layout)) rectangle(fence, "#8f7861");
   ctx.font = "18px 'Malgun Gothic', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   for (const [rect, name, color, kind] of [[layout.ticket, PARK_DATA.text.ticket, "#b38c72", "ticket"], [layout.shop, PARK_DATA.text.shop, "#86a493", "shop"], [layout.stand, PARK_DATA.text.stand, "#a1947d", "stand"]]) {
-    if (!drawParkSprite(kind, rect)) rectangle(rect, color);
+    if (drawParkSprite(kind, rect)) continue;
+    // 그림을 불러오지 못했을 때만 색 블록과 이름을 표시한다.
+    rectangle(rect, color);
     ctx.fillStyle = "#403a32"; ctx.fillText(name, rect.x, rect.y - rect.height / 2 - 22);
   }
   // 머리띠 그림이 있으면 매표소 위에 그리고, 없으면 임시 도형으로 그린다.

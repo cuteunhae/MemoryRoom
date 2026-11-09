@@ -181,7 +181,7 @@ run('closeInspection&&inspectionUiState.mode&&closeInspection();scene.interiorId
 const teacherObject=read('SCHOOL_DATA.objects.find(object=>object.id==="school-teacher")');
 run(`player.x=${teacherObject.x};player.y=${teacherObject.y+teacherObject.height/2+40}-player.footOffset;updateCamera()`);
 assert.ok(run('canStand(player.x,player.y)'));
-assert.equal(run('keyObjectHint()'),'E 키를 누르거나 클릭해 대화하기');
+assert.equal(run('keyObjectHint()'),'E 키 또는 클릭해 대화하기');
 assert.equal(run('interactNearbyObject()'),true);assert.equal(run('inspectionUiState.mode'),'dialogue');run('closeInspection()');
 run('player.x=schoolStairs().arrival.x;player.y=schoolStairs().arrival.footY-player.footOffset');
 assert.equal(run('keyObjectHint()'),'');
@@ -228,10 +228,10 @@ run('if (inspectionUiState.mode) closeInspection(); scene.interiorId=SCHOOL_DATA
   assert.deepEqual(anchor(), { text: 'E 키를 누르거나 클릭해 안내도 보기', x: boardObject.pictureRect.x, y: boardObject.pictureRect.y, center: true });
   run('currentBindings().interact = null'); assert.equal(anchor().text, '클릭해 안내도 보기'); run('currentBindings().interact = "KeyE"');
   advance(); pressKey('KeyE'); assert.equal(run('inspectionUiState.mode'), 'board');
-  assert.equal(elements['inspection-close'].textContent, '닫기 (E)');
+  assert.equal(elements['inspection-close'].textContent, '닫기 ');
   pressKey('KeyE'); assert.equal(run('inspectionUiState.mode'), null);
   run(`player.x = ${teacherNow.x}; player.y = ${teacherNow.y + teacherNow.height / 2 + 40} - player.footOffset; updateCamera()`);
-  assert.deepEqual(anchor(), { text: 'E 키를 누르거나 클릭해 대화하기', x: teacherNow.x, y: teacherNow.y + teacherNow.height / 2 - teacherNow.sprite.height, center: false });
+  assert.deepEqual(anchor(), { text: 'E 키 또는 클릭해 대화하기', x: teacherNow.x, y: teacherNow.y + teacherNow.height / 2 - teacherNow.sprite.height, center: false });
   // 문과 계단은 한가운데다.
   const officeDoor = read('schoolFloor().doors[0]');
   run(`player.x = ${officeDoor.openingRect.x}; player.y = ${officeDoor.openingRect.y + officeDoor.openingRect.height / 2 + 30} - player.footOffset; updateCamera()`);

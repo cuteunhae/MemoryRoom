@@ -136,7 +136,7 @@ click(staff);
 assert.equal(elements['inspection-message'].textContent, staff.messages.dialogue);
 // 가까이 가면 키 안내가 나오고, 상호작용 키로도 대화가 열린다. 키가 할당 없음이면 클릭 안내만 나온다.
 run('closeInspection()');
-assert.equal(run('keyObjectHint()'), 'E 키를 누르거나 클릭해 대화하기');
+assert.equal(run('keyObjectHint()'), 'E 키 또는 클릭해 대화하기');
 // 키 안내는 인물의 머리 바로 위를 가리키고, 화면 가장자리에서는 화면 안으로 밀려 들어온다.
 assert.deepEqual(read('(() => { const hint = currentKeyHint(); return { x: hint.x, y: hint.y }; })()'), { x: staff.x, y: staff.y + staff.height / 2 - staff.sprite.height });
 assert.ok(run(`(() => { const box = keyHintBox(200, { x: camera.x + 300 / settings.cameraZoom, y: camera.y + 300 / settings.cameraZoom }); return box.y + box.height <= box.anchorY && box.anchorY - (box.y + box.height) <= 20 && box.x <= box.anchorX && box.anchorX <= box.x + box.width; })()`));
@@ -147,7 +147,29 @@ assert.equal(run(`(() => { const box = keyHintBox(200, { x: camera.x + 9000, y: 
 run('currentBindings().interact = null');assert.equal(run('keyObjectHint()'), '클릭해 대화하기');run('currentBindings().interact = "KeyE"');
 assert.equal(run('interactNearbyObject()'), true);assert.equal(run('inspectionUiState.mode'), 'dialogue');
 assert.equal(elements['inspection-message'].textContent, staff.messages.dialogue);
-assert.equal(elements['inspection-close'].textContent, '닫기 (E)');
+assert.equal(elements['inspection-close'].textContent, '닫기 ');
+// 닫기 버튼에 E 키 그림이 나오고, 안내 상자 문구는 키 그림과 뒤 글자로 나뉜다.
+{
+  const icon = elements['inspection-close'].children.at(-1);
+  assert.equal(icon.attributes.src, 'assets/key-e.png');
+  assert.equal(icon.attributes.alt, 'E');
+  assert.equal(fs.existsSync(path.join(__dirname, icon.attributes.src)), true);
+  run('globalThis.originalSpriteImage = objectSpriteImage; objectSpriteImage = () => ({})');
+  assert.deepEqual(read('(() => { const { before, after } = keyHintIconParts("E 키 또는 클릭해 대화하기"); return { before, after }; })()'), { before: '', after: '키 또는 클릭해 대화하기' });
+  assert.deepEqual(read('(() => { const { before, after } = keyHintIconParts("E키를 클릭해 들어가기"); return { before, after }; })()'), { before: '', after: '키를 클릭해 들어가기' });
+  // 키 이름이 없는 클릭 안내는 그림 없이 글자만 쓴다.
+  assert.equal(run('keyHintIconParts("클릭해 대화하기")'), null);
+  // 그림을 그려도 오류가 나지 않는다.
+  run('drawKeyHint()');
+  // 다른 키로 바꾸면 E 그림 대신 그 키 이름을 글자로 보여 준다. 할당 없음이어도 그림은 없다.
+  run('currentBindings().interact = "KeyF"');
+  assert.equal(run('keyHintIconParts("F 키 또는 클릭해 대화하기")'), null);
+  run('renderInspection()');
+  assert.equal(elements['inspection-close'].textContent, '닫기 (F)');
+  run('currentBindings().interact = null');
+  assert.equal(run('keyIconSrc("interact")'), null);
+  run('currentBindings().interact = "KeyE"; objectSpriteImage = globalThis.originalSpriteImage; renderInspection()');
+}
 // E 키로 대화창을 닫고 다시 열 수 있다. 키를 누르고 있는 동안(반복 입력)에는 닫히지 않는다.
 key('KeyE', 'e', true);assert.equal(run('inspectionUiState.mode'), 'dialogue');
 key('KeyE', 'e');assert.equal(run('inspectionUiState.mode'), null);

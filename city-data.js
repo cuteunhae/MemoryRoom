@@ -98,7 +98,6 @@ const CITY_DATA = {
     exit: "{key}키를 클릭해 나가기",
     enterClick: "문을 클릭해 들어가기",
     exitClick: "출구를 클릭해 나가기",
-    exitLabel: "나가기",
     locked: "잠긴 문입니다.",
     tooFar: "문 가까이 이동하세요.",
   },

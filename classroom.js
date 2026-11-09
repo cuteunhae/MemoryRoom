@@ -107,7 +107,7 @@ function classroomObjects() {
   const boardX = flip ? room.x + room.width - config.board.sideMargin : room.x + config.board.sideMargin;
   return [...desks, { ...common, id: "classroom-seating-board", type: "seating", name: config.text.board,
     x: boardX, y: rearY,
-    width: config.board.width, height: config.board.height, color: "#758675", sprite: config.board.sprite, caption: config.text.board }];
+    width: config.board.width, height: config.board.height, color: "#758675", sprite: config.board.sprite }];
 }
 
 function canInspectSchoolObject(object) {

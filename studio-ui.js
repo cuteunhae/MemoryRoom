@@ -45,6 +45,16 @@ function renderInspection() {
   inspectionDialog.dataset.mode = mode;
   // 대화창·게시판·명부는 상호작용 키로도 닫을 수 있어 버튼에 키 이름을 함께 보여 준다.
   inspectionClose.textContent = object?.messages?.keyHint ? bindingCloseLabel("interact") : SETTINGS_DATA.text.close;
+  // 키 그림이 있으면 "(E)" 글자 대신 그림을 보여 준다.
+  const closeIcon = object?.messages?.keyHint ? keyIconSrc("interact") : null;
+  if (closeIcon) {
+    const icon = document.createElement("img");
+    icon.className = "key-icon";
+    icon.setAttribute("src", closeIcon);
+    icon.setAttribute("alt", interactKeyLabel());
+    inspectionClose.textContent = `${SETTINGS_DATA.text.close} `;
+    inspectionClose.append(icon);
+  }
   const collected = mode === "album" && gameState.photoCollected;
   inspectionTitle.textContent = item && ["photo", "infirmary", "playgroundMemo", "diary"].includes(mode) ? item.name : object.name;
   inspectionMessage.textContent = mode === "board" ? SCHOOL_DATA.boardMap.hint : mode === "dialogue" ? object.messages.dialogue :

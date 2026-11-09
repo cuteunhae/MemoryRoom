@@ -127,13 +127,17 @@ function drawPlayground() {
   // 도시 그림에 이미 울타리가 있으면 충돌용 울타리는 그리지 않는다.
   if (!cityMapReady()) for (const fence of playgroundFences(layout)) ctx.fillRect(fence.x - fence.width / 2, fence.y - fence.height / 2, fence.width, fence.height);
   ctx.font = "18px 'Malgun Gothic', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillStyle = "#4e5847";
-  ctx.fillText(PLAYGROUND_DATA.text.entrance, layout.gateX, layout.bottom - 25);
+  // 그림을 불러오지 못했을 때만 출입구 글자를 표시한다.
+  if (!cityMapReady()) {
+    ctx.fillStyle = "#4e5847";
+    ctx.fillText(PLAYGROUND_DATA.text.entrance, layout.gateX, layout.bottom - 25);
+  }
   for (const target of playgroundTargets()) {
     ctx.save();ctx.translate(target.x, target.y);
     const w = target.width, h = target.height;
     ctx.strokeStyle = "#687966";ctx.lineWidth = 9;ctx.fillStyle = "#bd9166";
-    if (drawPlaygroundSprite(target.kind, w, h)) {
+    const pictured = drawPlaygroundSprite(target.kind, w, h);
+    if (pictured) {
       // 미끄럼틀은 그림 위에 표지·낙서·탑승 연출을 덧그린다. 출발 구멍은 그림에 있으므로 그리지 않는다.
       if (target.kind === "slide") drawSlideDetails(target, false);
     } else if (target.kind === "swing") {
@@ -158,7 +162,8 @@ function drawPlayground() {
       ctx.fillStyle = "#c58b6f";ctx.fillRect(-w/2,-h/2,w,h);
       ctx.fillStyle = "#ead49b";ctx.fillRect(-10,-h/2,20,h);ctx.fillRect(-w/2,-9,w,18);
     }
-    ctx.fillStyle = "#403a32";ctx.fillText(PLAYGROUND_DATA.text[target.kind],0,target.kind === "slide" ? h/2+24 : -h/2-24);
+    // 그림을 불러오지 못했을 때만 시설 이름을 표시한다.
+    if (!pictured) {ctx.fillStyle = "#403a32";ctx.fillText(PLAYGROUND_DATA.text[target.kind],0,target.kind === "slide" ? h/2+24 : -h/2-24);}
     ctx.restore();
   }
   // 서쪽 외곽의 큰 나무는 기존 도시 랜드마크 L04를 그대로 사용한다.
