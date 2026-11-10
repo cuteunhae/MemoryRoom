@@ -57,31 +57,30 @@ function hintCandidates() {
   };
   if (!has("photo")) add("HNT-01", INSPECTION_OBJECTS.find(object => object.type === "album"));
   if (!has("notebook") || !has("crayon")) {
+    if (has("photo")) add("HNT-20", classroomObjects().find(object => object.number === 1), CLASSROOM_DATA.floor);
     if (insideHintClassroom() || gameState.hints.clues.includes("class-nine")) add("HNT-03", classroomObjects().find(object => object.number === 1), CLASSROOM_DATA.floor);
     else add("HNT-02", SCHOOL_DATA.objects.find(object => object.type === "board"), 1);
-    // 사용자 결정: 크레파스 힌트는 게시판·배치도 힌트 다음 순서다.
-    add("HNT-18", classroomObjects().find(object => object.number === 1), CLASSROOM_DATA.floor);
   }
   // 필요한 크레파스가 없으면 명부 대신 교실에서 물건을 찾는 활동이 후보가 된다.
   if (!gameState.registrySolved && has("crayon")) add("HNT-04", INSPECTION_OBJECTS.find(object => object.type === "registry"), 1);
   const park = parkLayout(), playground = playgroundLayout();
   if (!has("headband")) add("HNT-09", park.ticket);
-  if (!gameState.carouselSolved) add("HNT-05", park.center);
-  else if (!has("balloon")) add("HNT-10", park.stand);
-  else if (!has("memo") || !gameState.playgroundMemoViewed) add("HNT-11", park.stand);
+  if (gameState.carouselSolved) {
+    if (!has("balloon")) add("HNT-10", park.stand);
+    else if (!has("memo") || !gameState.playgroundMemoViewed) add("HNT-11", park.stand);
+  }
   if (!gameState.swingUsed || !gameState.seesawUsed) add("HNT-06", gameState.swingUsed ? playground.seesaw : playground.swing);
   else if (!has("toy")) add("HNT-12", playground.gift);
   const homeNeeded = !has("bear") || CABINET_DATA.answer.every(id => gameState.acquiredItems[id]);
-  // 사용자 결정: 집에 들어가기 전, HNT-14~17보다 먼저 집 외곽 힌트(HNT-13)를 준다.
-  // HNT-14(미끄럼틀)는 놀이터 힌트라 장소 순서로는 먼저 나오므로, HNT-13을 받을 때까지 후보에서 뺀다.
-  const outerHintPending = !gameState.endingReached && homeNeeded && scene.interiorId !== HOUSE_DATA.placeId && !gameState.hints.received.includes("HNT-13");
+  // 중복 외곽 힌트 삭제 후에도 쪽문·인형 안내 다음에 미끄럼틀을 안내하는 순서는 유지한다.
+  const outerHintPending = !gameState.endingReached && homeNeeded && scene.interiorId !== HOUSE_DATA.placeId &&
+    (!gameState.hints.received.includes("HNT-07") || (!has("bear") && !gameState.hints.received.includes("HNT-19")));
   if (!gameState.slideUsed && !outerHintPending) add("HNT-14", playground.slide);
   if (!gameState.endingReached && homeNeeded) {
     if (scene.interiorId !== HOUSE_DATA.placeId) {
       add("HNT-07");
       // 사용자 결정: 집 힌트(HNT-07) 다음에 침대 위 인형을 찾는 힌트(HNT-19)를 준다.
       if (!has("bear")) add("HNT-19", HOUSE_DATA.dolls.find(doll => doll.itemId === HINT_DATA.items.bear));
-      add("HNT-13");
     } else if (!has("bear")) {
       const bear = HOUSE_DATA.dolls.find(doll => doll.itemId === HINT_DATA.items.bear);
       add("HNT-19", bear);

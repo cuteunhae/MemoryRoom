@@ -82,11 +82,12 @@ function decodeProgress(raw) {
     state.hints = createHintState();
   } else {
     check(object(data.hints) && Array.isArray(data.hints.history) && Array.isArray(data.hints.clues));
-    check(data.hints.history.every(id => HINT_DATA.entries.some(entry => entry.id === id)) && data.hints.clues.every(id => HINT_DATA.clueIds.includes(id)));
+    check(data.hints.history.every(id => HINT_DATA.entries.some(entry => entry.id === id) || HINT_DATA.retiredIds.includes(id)) && data.hints.clues.every(id => HINT_DATA.clueIds.includes(id)));
+    const history = data.hints.history.filter(id => !HINT_DATA.retiredIds.includes(id));
     check(Number.isFinite(data.hints.lastProgressAt) && data.hints.lastProgressAt >= 0 && Number.isFinite(data.hints.idleMs) && data.hints.idleMs >= 0);
     // received가 없는 이전 저장은 빈 목록으로 읽는다. 알 수 없는 ID는 버린다.
     const received = Array.isArray(data.hints.received) ? data.hints.received.filter(id => HINT_DATA.entries.some(entry => entry.id === id)) : [];
-    state.hints = { history: [...new Set(data.hints.history)], clues: [...new Set(data.hints.clues)], received: [...new Set(received)], lastProgressAt: data.hints.lastProgressAt, idleMs: data.hints.idleMs };
+    state.hints = { history: [...new Set(history)], clues: [...new Set(data.hints.clues)], received: [...new Set(received)], lastProgressAt: data.hints.lastProgressAt, idleMs: data.hints.idleMs };
   }
   for (const name of savedFlagNames) state[name] = name === "endingCompleted" && data.saveVersion < 3 ? data.puzzles.endingReached : data.puzzles[name];
   state.acquiredItems = Object.fromEntries(Object.entries(data.acquiredItems).filter(([,value]) => value));
