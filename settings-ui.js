@@ -32,6 +32,7 @@ function closeSettings() {
   if(settingsUi.returnFocus?.focus)settingsUi.returnFocus.focus();else canvas.focus();
 }
 function toggleSettings() {
+  if (typeof openingUi !== "undefined" && openingUi.active) return;
   if (typeof endingUi !== "undefined" && endingUi.mode) return;
   if(settingsUi.open)return closeSettings();
   settingsUi.returnFocus=document.activeElement;settingsUi.open=true;settingsUi.listening=null;

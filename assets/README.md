@@ -1,5 +1,7 @@
 # 일기장 폰트
 
+사진관 길 안내의 `guide-candy.png`, `guide-lollipop.png`, `guide-chips.png`는 각각 사용자가 제공한 `에셋/사탕1.png`, `에셋/막대사탕.png`, `에셋/감자칩 봉지.png`를 수정 없이 복사한 파일입니다. 투명 여백은 화면에 그릴 때만 잘라 표시합니다.
+
 - 이름: Gaegu Regular (개구), 제작: JIKJI SOFT
 - 저작권: Copyright 2018 The Gaegu Project Authors
 - 라이선스: SIL Open Font License 1.1

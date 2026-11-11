@@ -23,6 +23,7 @@ for (const file of ["data/classroom.js", "data/ordinary-items.js", "classroom.js
   files[`/${file}`] = [file, "text/javascript; charset=utf-8"];
 }
 files["/assets/Gaegu-Regular.ttf"] = ["assets/Gaegu-Regular.ttf", "font/ttf"];
+for (const file of ["data/opening.js", "opening.js"]) files[`/${file}`] = [file, "text/javascript; charset=utf-8"];
 files["/assets/Gaegu-OFL.txt"] = ["assets/Gaegu-OFL.txt", "text/plain; charset=utf-8"];
 const server = http.createServer((request, response) => {
   const pathname = request.url.split("?")[0];

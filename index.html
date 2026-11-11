@@ -42,11 +42,14 @@
     <script src="data/ending.js" defer></script>
     <script src="ending.js" defer></script>
     <script src="data/save.js" defer></script>
+    <script src="data/opening.js" defer></script>
+    <script src="opening.js" defer></script>
     <script src="save.js" defer></script>
     <script src="map-ui.js" defer></script>
     <script src="settings-ui.js" defer></script>
   </head>
   <body>
+    <dialog id="opening-dialog" aria-label="이야기의 시작" tabindex="-1"><p id="opening-text" aria-live="polite"></p></dialog>
     <main>
       <canvas id="game" width="640" height="420" tabindex="0" aria-label="방향키로 도시를 걸어 다니는 게임 화면">
         이 게임은 Canvas를 지원하는 PC 브라우저에서 실행할 수 있습니다.

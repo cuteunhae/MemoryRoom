@@ -31,7 +31,7 @@ function createProgressSnapshot() {
     acquiredItems: state.acquiredItems,
     puzzles: Object.fromEntries(savedFlagNames.map(key => [key, state[key]])),
     cabinet: state.cabinet, achievements: state.achievements,
-    achievementConditions: state.achievementConditions, hints: state.hints, position: capturePosition() };
+    achievementConditions: state.achievementConditions, hints: state.hints, onboarding: state.onboarding, position: capturePosition() };
 }
 
 function saveProgress() {
@@ -77,6 +77,12 @@ function decodeProgress(raw) {
   check(SCHOOL_DATA.floors.some(floor => floor.number === position.schoolFloor));
   check(position.interiorId === null ? position.returnPoint === null : point(position.returnPoint));
   const state = cloneSaveValue(initialGameState);
+  // 도입 연출이 없던 이전 저장은 기존 플레이로 간주해 독백·길 안내를 다시 시작하지 않는다.
+  if (data.onboarding === undefined) state.onboarding = { introSeen: true, studioVisited: true };
+  else {
+    check(object(data.onboarding) && typeof data.onboarding.introSeen === "boolean" && typeof data.onboarding.studioVisited === "boolean");
+    state.onboarding = { ...data.onboarding };
+  }
   if (data.saveVersion === 1) {
     // 기존 진행을 유지하면서 이번에 추가한 힌트 상태만 새로 시작한다.
     state.hints = createHintState();
@@ -168,6 +174,7 @@ function restoreProgress() {
     saveRuntime.ready = true;
     initializeHintSession();
     updateCamera();
+    if (typeof initializeOpening === "function") initializeOpening();
     draw();
   }
   // 미완료 배치 반환을 포함한 복원 결과를 한 번에 확정한다.
@@ -215,12 +222,14 @@ function loadPreferences() {
 }
 
 function requestNewGame() {
+  if (typeof openingUi !== "undefined" && openingUi.active) return false;
   if (!window.confirm(SAVE_DATA.text.confirm)) return false;
   try { localStorage.removeItem(SAVE_DATA.progressKey); }
   catch { showSaveMessage(SAVE_DATA.text.resetFailed); return false; }
   saveRuntime.restoring = true;
   resetSession();
   saveRuntime.restoring = false;
+  if (typeof initializeOpening === "function") initializeOpening();
   showSaveMessage("");
   saveProgress();
   updateAchievementNotifications();

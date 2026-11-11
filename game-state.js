@@ -2,6 +2,7 @@
 
 // 영구 진행 상태를 모은다. save.js에서 임시 조작을 제외하여 저장한다.
 const gameState = {
+  onboarding: { introSeen: false, studioVisited: false },
   inventory: { itemIds: [], selectedItemId: null },
   acquiredItems: {},
   photoCollected: false,
@@ -29,6 +30,7 @@ const inventoryUiState = { open: false };
 const inspectionUiState = { mode: null, object: null, item: null, back: false };
 
 function isGameInputBlocked() {
+  if (typeof openingUi !== "undefined" && openingUi.active) return true;
   return (typeof endingUi !== "undefined" && endingUi.mode !== null) || settingsUi.open || mapUi.open || (typeof hintUi !== "undefined" && hintUi.open) || achievementUi.open || inventoryUiState.open || inspectionUiState.mode !== null;
 }
 

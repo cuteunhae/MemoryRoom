@@ -142,6 +142,7 @@ function enterInterior(target) {
   scene.schoolFloor = 1;
   scene.returnPoint = returnPoint;
   scene.interiorId = interior.placeId;
+  if (typeof finishOpeningGuide === "function") finishOpeningGuide(interior.placeId);
   player.x = interior.spawn.x;
   player.y = interior.spawn.footY - player.footOffset;
   player.facing = interior.spawn.facing;
@@ -919,6 +920,7 @@ function draw() {
   }
   if (!interior) drawPark();
   if (!interior) drawPlayground();
+  if (!interior && typeof drawOpeningRoute === "function") drawOpeningRoute();
   drawPlayer();
   drawBearBubbles();
   if (!interior) {
@@ -934,11 +936,13 @@ function draw() {
 
 let previousTime = null;
 function frame(time) {
+  if (typeof updateOpening === "function") updateOpening();
   if (typeof updateEnding === "function") updateEnding();
   updateAchievementNotifications();
   const deltaSeconds = previousTime === null ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
   update(deltaSeconds);
+  if (typeof updateOpeningRoute === "function") updateOpeningRoute();
   if (typeof updateHints === "function") updateHints();
   if (typeof updatePositionSave === "function") updatePositionSave();
   updateCamera();
