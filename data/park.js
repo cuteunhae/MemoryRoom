@@ -31,10 +31,11 @@ const PARK_DATA = {
     ticket: "매표소", shop: "기념품 판매대", stand: "풍선 거치대", carousel: "회전목마",
     headband: "머리띠", acquired: "머리띠를 획득했습니다. (I: 인벤토리)", already: "이미 머리띠를 가져갔습니다.",
     near: "가까이에서 클릭해 주세요.", lock: "판매대 잠금장치", horse: "말 개수", carriage: "마차 개수", confirm: "확인",
+    shopKeyHint: "{key} 키 또는 클릭해 잠금장치 확인", shopKeyHintClick: "클릭해 잠금장치 확인",
     prompt: "말과 마차의 개수를 입력하세요.", solved: "잠금장치가 풀렸습니다.",
     // 사용자 결정(2026-11-08): 확인 버튼 아래에 오답은 빨간색, 정답은 초록색으로 알려 준다(기획서 AMP-04의 '오답 안내 없음'과 다름).
     wrong: "✕ 잘못 입력했어요. 다시 세어 보세요.", correct: "✓ 맞았어요!",
-    memo: "놀이터 메모", memoHint: "놀이터의 시설 배치가 그려져 있습니다.",
+    memo: "집 쪽문 메모", memoHint: "잠긴 정문 대신 집 옆 골목으로 이어지는 쪽문이 그려져 있습니다.",
     swing: "그네", seesaw: "시소", slide: "미끄럼틀", entrance: "출입구",
   },
 };

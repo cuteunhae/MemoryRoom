@@ -63,6 +63,21 @@ function drawParkSprite(kind, rect) {
   return true;
 }
 
+// 클릭과 키 안내가 같은 거리·울타리 안쪽 조건을 사용한다.
+function canInspectParkTarget(target, layout = parkLayout()) {
+  const footY = player.y + player.footOffset;
+  const distance = Math.hypot(Math.max(0, Math.abs(player.x - target.x) - target.width / 2), Math.max(0, Math.abs(footY - target.y) - target.height / 2));
+  return player.x > layout.left && player.x < layout.right && footY > layout.top && footY < layout.bottom && distance <= PARK_DATA.interactDistance;
+}
+
+function nearbyParkShop() {
+  if (currentInterior()) return null;
+  const layout = parkLayout();
+  if (!canInspectParkTarget(layout.shop, layout)) return null;
+  return { ...layout.shop, type: "carousel", name: PARK_DATA.text.lock,
+    messages: { keyHint: PARK_DATA.text.shopKeyHint, keyHintClick: PARK_DATA.text.shopKeyHintClick } };
+}
+
 function handleParkClick(x, y) {
   const layout = parkLayout();
   const headband = { x: layout.ticket.x, y: layout.ticket.y, width: 80, height: 60 };
@@ -73,10 +88,8 @@ function handleParkClick(x, y) {
   const isBalloon = (balloonAvailable && hit(balloonHit)) || (gameState.playgroundMemoPending && hit(layout.stand));
   const target = isBalloon ? layout.stand : hit(headband) ? headband : hit(layout.shop) ? layout.shop : null;
   if (!target) return false;
-  const distance = Math.hypot(Math.max(0, Math.abs(player.x - target.x) - target.width / 2), Math.max(0, Math.abs(player.y + player.footOffset - target.y) - target.height / 2));
   // 울타리 밖에서 조사하지 못하도록 현재 위치가 공원 안인지도 검사한다.
-  const inside = player.x > layout.left && player.x < layout.right && player.y + player.footOffset > layout.top && player.y + player.footOffset < layout.bottom;
-  if (!inside || distance > PARK_DATA.interactDistance) showDoorMessage(PARK_DATA.text.near);
+  if (!canInspectParkTarget(target, layout)) showDoorMessage(PARK_DATA.text.near);
   else if (isBalloon) collectParkBalloon();
   else if (target === headband) showDoorMessage(acquireItem(PARK_DATA.headbandId) ? PARK_DATA.text.acquired : PARK_DATA.text.already);
   else openInspection({ type: "carousel", name: PARK_DATA.text.lock });

@@ -69,7 +69,8 @@ for (const zoom of [1,1.5,3]) {
   assert.equal(run('gameState.playgroundMemoPending'),true);
   assert.equal(run('gameState.playgroundMemoViewed'),true);
   assert.equal(elements['playground-memo'].hidden,false);
-  assert.equal(elements['memo-swing'].textContent,run('PARK_DATA.text.swing'));
+  assert.ok(elements['home-memo-picture']);
+  assert.equal(elements['inspection-message'].textContent,run('PARK_DATA.text.memoHint'));
   assert.equal(run(`gameState.achievementConditions[${JSON.stringify(achievement.id)}] === true`),false);
   const before = read('({x:player.x,y:player.y})');
   run("pressedKeys.add('ArrowUp');update(0.3);toggleInventory()");click(balloon);

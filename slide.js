@@ -27,16 +27,11 @@ function graffitiGeometry() {
 function drawSlideDetails(slide, drawHole = true) {
   const detail = PLAYGROUND_DATA.slideDetail, w = slide.width, h = slide.height;
   ctx.save();
-  // 출발 구멍 바로 위 표지와 옆 낙서는 각각 분리된 그림이다.
+  // 출발 구멍 위 안전 표지는 유지한다. 집 쪽문 약도는 풍선 메모에서 보여 준다.
   if (drawHole) fillEllipse(-w/6,-h/2+10,22,13,"#364c56");
   ctx.fillStyle="#f7e4b4";ctx.fillRect(-155,-h/2-63,280,48);
   ctx.fillStyle="#5b4937";ctx.font="bold 27px 'Malgun Gothic', sans-serif";
   ctx.fillText(PLAYGROUND_DATA.text.slideWarning,-15,-h/2-39);
-  const x=detail.graffitiOffsetX, y=-h/2+detail.graffitiOffsetY;
-  ctx.fillStyle="#eadcba";ctx.fillRect(x-detail.graffitiWidth/2,y-detail.graffitiHeight/2,detail.graffitiWidth,detail.graffitiHeight);
-  ctx.strokeStyle="#705b51";ctx.lineWidth=3;
-  tracePath([[x+25,y-22],[x-20,y+20],[x-18,y+7],[x-20,y+20],[x-7,y+18]]);ctx.stroke();
-  tracePath([[x-34,y+2],[x-23,y-7],[x-12,y+2],[x-12,y+15],[x-34,y+15]],true);ctx.stroke();
   const remaining=playgroundAnimation.slideUntil-Date.now();
   if(remaining>0) {
     const progress=1-remaining/detail.rideMs;
@@ -48,7 +43,7 @@ function drawSlideDetails(slide, drawHole = true) {
   ctx.restore();
 }
 
-function drawGraffitiPicture(context, width, height) {
+function drawGraffitiPicture(context, width, height, homeOnly = false) {
   const geometry=graffitiGeometry();
   context.clearRect(0,0,width,height);
   context.fillStyle="#f0e4c8";context.fillRect(0,0,width,height);
@@ -57,6 +52,7 @@ function drawGraffitiPicture(context, width, height) {
     context.beginPath();points.forEach(([x,y],i)=>i?context.lineTo(x,y):context.moveTo(x,y));context.stroke();
   };
   // TODO: 왼쪽은 도시와 같은 방향의 상대 위치 그림. 오른쪽은 실제 쪽문 골목 좌표를 축소한 임시 낙서다.
+  if (!homeOnly) {
   const deltaX=geometry.home.x-geometry.playground.x,deltaY=geometry.home.y-geometry.playground.y;
   const magnitude=Math.max(Math.abs(deltaX),Math.abs(deltaY));
   const start=[175,70],end=[175+deltaX/magnitude*115,70+deltaY/magnitude*115];
@@ -67,13 +63,15 @@ function drawGraffitiPicture(context, width, height) {
   line([[end[0]-24,end[1]+28],[end[0],end[1]+7],[end[0]+24,end[1]+28]],"#947a65",4);
   context.fillStyle="#c4ae8f";context.fillRect(end[0]-18,end[1]+28,36,36);
   line([[235,32],[235,height-32]],"#d0bd99",2);
+  }
   const home=geometry.home;
   // 집과 쪽문 골목이 모두 들어가도록 범위를 잡는다.
   const pathXs=[...geometry.alley.map(point=>point[0]),geometry.side.x], pathYs=[...geometry.alley.map(point=>point[1]),geometry.side.y];
   const left=Math.min(home.x-home.width/2,...pathXs)-15, top=Math.min(home.y-home.height/2,...pathYs)-12;
   const right=Math.max(home.x+home.width/2,...pathXs)+15, bottom=Math.max(home.y+home.height/2,...pathYs)+15;
-  const scale=Math.min((width-280)/(right-left),(height-55)/(bottom-top));
-  const project=([x,y])=>[265+(x-left)*scale,25+(y-top)*scale];
+  const leftMargin = homeOnly ? 25 : 265;
+  const scale=Math.min((width-leftMargin-15)/(right-left),(height-55)/(bottom-top));
+  const project=([x,y])=>[leftMargin+(x-left)*scale,25+(y-top)*scale];
   const [hx,hy]=project([home.x-home.width/2,home.y-home.height/2]);
   context.fillStyle="#c8b394";context.fillRect(hx,hy,home.width*scale,home.height*scale);
   line([...geometry.alley,geometry.approach,[geometry.side.x,geometry.side.y]].map(project),"#587d70",5);

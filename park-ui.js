@@ -62,7 +62,7 @@ function renderPlaygroundMemo() {
   panel.hidden = inspectionUiState.mode !== "playgroundMemo";
   if (panel.hidden) return;
   inspectionMessage.textContent = PARK_DATA.text.memoHint;
-  for (const key of ["swing", "seesaw", "slide", "entrance"]) {
-    document.getElementById(`memo-${key}`).textContent = PARK_DATA.text[key];
-  }
+  // 기존 저장과 호환되도록 메모 상태 ID는 유지하고, 내용은 실제 집 쪽문 약도로 바꾼다.
+  const picture = document.getElementById("home-memo-picture");
+  drawGraffitiPicture(picture.getContext("2d"), picture.width, picture.height, true);
 }

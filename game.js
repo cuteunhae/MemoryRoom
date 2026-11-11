@@ -712,6 +712,22 @@ function drawInterior(interior) {
   }
   // 9반 책상 위의 아이템 그림은 책상을 모두 그린 뒤에 얹는다.
   for (const object of inspectionObjectsFor(interior)) if (object.type === "desk") drawClassroomDeskIcons(object);
+  // 대화할 수 있는 인물의 발밑에 이름을 표시한다. 그림 로딩 여부와 관계없이 표시한다.
+  ctx.save();
+  ctx.font = "bold 16px 'Malgun Gothic', sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#fff8e9";
+  ctx.fillStyle = "#403a32";
+  for (const object of inspectionObjectsFor(interior)) {
+    if (object.type !== "dialogue" || object.hidden) continue;
+    const label = `<${object.name}>`, y = object.y + object.height / 2 + 6;
+    ctx.strokeText(label, object.x, y);
+    ctx.fillText(label, object.x, y);
+  }
+  ctx.restore();
 }
 
 // 조사 물체 그림을 경로마다 한 번만 불러 둔다. 다 불러오지 못했으면 null이다.
@@ -733,7 +749,8 @@ function drawObjectSprite(object) {
   if (!image) return false;
   const boxWidth = object.sprite.width ?? object.width, boxHeight = object.sprite.height ?? object.height;
   const scale = Math.min(boxWidth / image.naturalWidth, boxHeight / image.naturalHeight);
-  const width = image.naturalWidth * scale, height = image.naturalHeight * scale;
+  // 가로 늘림을 지정한 그림만 중심을 기준으로 양옆으로 늘린다.
+  const width = image.naturalWidth * scale * (object.sprite.stretchX ?? 1), height = image.naturalHeight * scale;
   ctx.drawImage(image, object.x - width / 2, object.y + object.height / 2 - height, width, height);
   return true;
 }
@@ -741,7 +758,7 @@ function drawObjectSprite(object) {
 // 상호작용 키로 열 수 있는 가까운 물체(messages.keyHint가 있는 인물·게시판·명부). 없으면 null이다.
 function nearbyKeyObject() {
   const interior = currentInterior();
-  if (!interior) return null;
+  if (!interior) return nearbyParkShop();
   const footY = player.y + player.footOffset;
   const distance = object => Math.hypot(Math.max(0, Math.abs(player.x - object.x) - object.width / 2), Math.max(0, Math.abs(footY - object.y) - object.height / 2));
   // 여럿이 가까우면 가장 가까운 대상에 반응한다.

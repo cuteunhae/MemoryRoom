@@ -94,7 +94,7 @@ function hitsPlayground(x, footY, radius) {
 }
 
 function handlePlaygroundClick(x, y) {
-  const target = [slideGraffitiTarget(), ...playgroundTargets()].find(rectangle => Math.abs(x - rectangle.x) <= rectangle.width / 2 && Math.abs(y - rectangle.y) <= rectangle.height / 2);
+  const target = playgroundTargets().find(rectangle => Math.abs(x - rectangle.x) <= rectangle.width / 2 && Math.abs(y - rectangle.y) <= rectangle.height / 2);
   if (!target) return false;
   const layout = playgroundLayout(), footY = player.y + player.footOffset;
   const distance = Math.hypot(Math.max(0, Math.abs(player.x - target.x) - target.width / 2), Math.max(0, Math.abs(footY - target.y) - target.height / 2));
@@ -111,8 +111,6 @@ function handlePlaygroundClick(x, y) {
   } else if (target.kind === "slide") {
     gameState.slideUsed = true;
     playgroundAnimation.slideUntil = Date.now() + PLAYGROUND_DATA.slideDetail.rideMs;
-  } else if (target.kind === "graffiti") {
-    openInspection({ type: "slideGraffiti", name: PLAYGROUND_DATA.text.graffiti });
   } else if (target.kind === "gift" && acquireItem(PLAYGROUND_DATA.toyId)) {
     showDoorMessage(PLAYGROUND_DATA.text.acquired);
   }

@@ -142,6 +142,20 @@ for (const object of [board, teacher]) {
   assert.equal(run('player.y'), before);
   elements['inspection-close'].handlers.click();
 }
+// 친구는 2층에만 보이고, 앞에 서서 대화한 뒤에도 이동 경로를 유지한다.
+run('scene.schoolFloor = 2');
+const friend = read('SCHOOL_DATA.objects.find(object => object.id === "school-friend")');
+run(`player.x = ${friend.x}; player.y = ${friend.y + friend.height / 2 + 45} - player.footOffset; updateCamera()`);
+assert.ok(run('canStand(player.x, player.y)'));
+click(friend);
+assert.equal(run('inspectionUiState.mode'), 'dialogue');
+assert.equal(elements['inspection-message'].textContent, friend.messages.dialogue);
+elements['inspection-close'].handlers.click();
+pressKey('KeyE');
+assert.equal(run('inspectionUiState.mode'), 'dialogue');
+elements['inspection-close'].handlers.click();
+run('scene.schoolFloor = 1');
+assert.equal(run('inspectionObjectsFor(currentInterior()).some(object => object.id === "school-friend")'), false);
 for (const zoom of [1, 1.5, 3]) {
   run(`settings.cameraZoom = ${zoom}`);
   for (const floorNumber of [1, 2]) {

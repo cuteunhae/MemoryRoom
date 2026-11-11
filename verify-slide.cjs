@@ -91,14 +91,11 @@ click(graffiti);assert.equal(run('inspectionUiState.mode'),null);
 for(const zoom of [1,1.5,3]) {
  run(`settings.cameraZoom=${zoom}`);approach(graffiti);
  click(graffiti,2);assert.equal(run('inspectionUiState.mode'),null);
- click(graffiti);assert.equal(run('inspectionUiState.mode'),'slideGraffiti');
+ // 지운 낙서 자리에서는 조사 창이 열리지 않는다.
+ click(graffiti);assert.equal(run('inspectionUiState.mode'),null);
  assert.equal(run('gameState.slideUsed'),false);
  assert.equal(run(`gameState.achievementConditions[${JSON.stringify(achievement.id)}]===true`),false);
- assert.equal(elements['slide-graffiti'].hidden,false);
- const before=run('player.y');run("pressedKeys.add('ArrowDown');update(0.5)");assert.equal(run('player.y'),before);
- click(layout.slide);assert.equal(run('gameState.slideUsed'),false);
- elements['inspection-close'].handlers.click();assert.equal(run('inspectionUiState.mode'),null);
 }
 positionAt(house);advance();click(house);assert.equal(run('scene.interiorId'),house.placeId);
-console.log('통과: 탑승·낙서 클릭 분리, 원거리·우클릭·모달 입력 제한, 재탑승·6가지 이용 순서·보상과 업적 독립, 실제 골목 좌표, 낙서 전후 쪽문 입장');
+console.log('통과: 낙서 제거, 재탑승·6가지 이용 순서·보상과 업적 독립, 실제 골목 좌표, 단서 없이 쪽문 입장');
 

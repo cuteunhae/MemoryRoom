@@ -12,10 +12,10 @@ const INSPECTION_OBJECTS = [{
     alreadyAcquired: "이미 돌잔치 사진을 가져갔습니다.",
   },
 }, {
-  id: "studio-staff", placeId: "C01", name: "직원", type: "dialogue",
-  // 사용자 요청: 사진작가를 2배로 키웠다. 이 범위가 클릭·충돌 범위이며 그림 전체를 덮는다.
-  x: 420, y: 228, width: 72, height: 144, interactDistance: 140, solid: true,
-  color: "#557d78", sprite: { src: "assets/npc-photographer.png", width: 88, height: 144 },
+  id: "studio-staff", placeId: "C01", name: "사진사", type: "dialogue",
+  // 사용자 요청: 사진작가의 그림과 클릭·충돌 범위를 기존 크기에서 10% 줄였다.
+  x: 420, y: 228, width: 64.8, height: 129.6, interactDistance: 140, solid: true,
+  color: "#557d78", sprite: { src: "assets/npc-photographer.png", width: 79.2, height: 129.6 },
   messages: {
     tooFar: "직원 가까이에서 클릭해 주세요.",
     // 가까이 가면 나오는 안내. {key}는 설정에서 지정한 상호작용 키로 바뀐다. keyHintClick은 키가 할당 없음일 때 쓴다.
