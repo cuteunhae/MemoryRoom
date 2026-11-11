@@ -594,13 +594,15 @@ const PLAYER_SPRITE = {
   front: "assets/player-front.png", walk: "assets/player-walk.png",
   columns: 4, rows: { down: 0, up: 1, left: 2, right: 3 }, rowCount: 4,
   height: 56, feetOffset: 24, frameMs: 140,
+  // 모든 장소에서 원본 캐릭터 그림의 가로·세로를 1.53배로 표시한다.
+  scale: 1.53,
   // 장소별 그림 배율. 사용자 요청: 학교에서만 1.5배로 그린다. 부딪히는 범위는 그대로다.
   placeScale: { C02: 1.5 },
 };
 
 // 현재 장소에서 플레이어를 그릴 배율.
 function playerDrawScale() {
-  return PLAYER_SPRITE.placeScale[scene.interiorId] ?? 1;
+  return PLAYER_SPRITE.scale * (PLAYER_SPRITE.placeScale[scene.interiorId] ?? 1);
 }
 
 // 플레이어 그림을 발끝에 맞춰 그린다. 그림이 준비되지 않았으면 false를 돌려준다.

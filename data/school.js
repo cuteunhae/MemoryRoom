@@ -46,8 +46,8 @@ const SCHOOL_DATA = {
         { id: "door-office", room: "교무실", opening: { left: 262, top: 400, right: 302, bottom: 462 }, picture: { left: 255, top: 402, right: 309, bottom: 468 } },
         { id: "door-infirmary", room: "보건실", opening: { left: 584, top: 400, right: 624, bottom: 462 }, picture: { left: 577, top: 402, right: 631, bottom: 468 } },
       ],
-      // 정문은 사용자 결정으로 항상 열린 그림을 쓴다(유리문 없음).
-      alwaysOpen: [{ left: 285, top: 722, right: 605, bottom: 872 }],
+      // 정문은 기본 학교 이미지의 양문형 유리문을 표시한다. E 키·클릭 퇴장은 기존대로 동작한다.
+      alwaysOpen: [],
       // 계단은 클릭하면 다른 층으로 간다. arrival은 이 층에 도착했을 때 발밑 위치다.
       stairs: { left: 385, top: 130, right: 500, bottom: 312, arrival: { x: 443, footY: 330 } },
     },
