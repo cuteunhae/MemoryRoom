@@ -60,7 +60,7 @@ const progress=a.run('SAVE_DATA.progressKey');
 const saved=()=>JSON.parse(a.storage.get(progress));
 const tick=ms=>{a.advanceMs(ms);a.run('updateHints()');};
 assert.equal(a.elements['hint-gift'].hidden,true);
-tick(179999);assert.equal(a.elements['hint-gift'].hidden,true);
+tick(59999);assert.equal(a.elements['hint-gift'].hidden,true);
 tick(1);assert.equal(a.elements['hint-gift'].hidden,false);
 a.elements['hint-gift'].handlers.click();assert.equal(a.run('hintUi.open'),true);assert.equal(a.run('gameState.hints.history.length'),1);
 // 처음 받은 힌트는 위에만 보이고 누적 목록은 비어 있다.
@@ -82,19 +82,19 @@ a.run('document.hidden=true');for(const fn of a.documentHandlers.visibilitychang
 a.run('document.hidden=false');for(const fn of a.documentHandlers.visibilitychange)fn();tick(1000);assert.equal(a.run('gameState.hints.idleMs'),4000);
 let b=session(a.storage);assert.equal(b.run('gameState.hints.idleMs'),4000);assert.deepEqual(b.read('gameState.hints.history'),a.read('gameState.hints.history'));assert.equal(b.run('gameState.hints.lastProgressAt'),a.run('gameState.hints.lastProgressAt'));
 b.advanceMs(1000);b.run('updateHints()');assert.equal(b.run('gameState.hints.idleMs'),5000);
-a=session();a.run('city.debug=true');tick(179999);assert.equal(a.elements['hint-gift'].hidden,true);tick(1);assert.equal(a.elements['hint-gift'].hidden,false);
-// 3분·6분·9분마다 아직 받지 않은 다음 힌트를 하나씩 받고, 9분 이후에는 더 늘지 않는다.
+a=session();a.run('city.debug=true');tick(59999);assert.equal(a.elements['hint-gift'].hidden,true);tick(1);assert.equal(a.elements['hint-gift'].hidden,false);
+// 첫 1분 이후 2분 간격으로 힌트를 받고, 총 5분 이후에는 더 늘지 않는다.
 a=session();const take=()=>{a.elements['hint-gift'].handlers.click();const id=a.run('hintUi.current');a.run('closeHints()');return id;};
-tick(180000);const first=take();assert.equal(a.elements['hint-gift'].hidden,false);assert.equal(a.run('newHintAvailable()'),false);
-tick(179999);assert.equal(a.run('newHintAvailable()'),false);tick(1);assert.equal(a.run('newHintAvailable()'),true);const second=take();
-tick(180000);const third=take();assert.deepEqual([first,second,third],['HNT-01','HNT-02','HNT-09']);assert.deepEqual(a.read('gameState.hints.received'),[first,second,third]);
-// 9분 이후에는 새 힌트가 없고, 선물상자를 누르면 누적된 3개만 보인다.
+tick(60000);const first=take();assert.equal(a.elements['hint-gift'].hidden,false);assert.equal(a.run('newHintAvailable()'),false);
+tick(119999);assert.equal(a.run('newHintAvailable()'),false);tick(1);assert.equal(a.run('newHintAvailable()'),true);const second=take();
+tick(120000);const third=take();assert.deepEqual([first,second,third],['HNT-01','HNT-02','HNT-09']);assert.deepEqual(a.read('gameState.hints.received'),[first,second,third]);
+// 5분 이후에는 새 힌트가 없고, 선물상자를 누르면 누적된 3개만 보인다.
 tick(600000);assert.equal(a.run('newHintAvailable()'),false);assert.equal(a.elements['hint-gift'].hidden,false);
 a.run('openHints()');assert.equal(a.run('hintUi.current'),null);assert.equal(a.elements['hint-current'].hidden,true);assert.equal(a.elements['hint-list'].children.length,3);a.run('closeHints()');
 b=session(a.storage);assert.deepEqual(b.read('gameState.hints.received'),[first,second,third]);assert.equal(b.elements['hint-gift'].hidden,false);assert.equal(b.run('newHintAvailable()'),false);
 a.run('acquireItem("ITM-01");updateHints()');assert.deepEqual(a.read('gameState.hints.received'),[]);assert.equal(a.run('newHintAvailable()'),false);
 // 새 힌트는 위에, 나머지 누적 힌트는 아래 목록에 겹치지 않게 보인다.
-tick(180000);assert.equal(a.run('newHintAvailable()'),true);a.elements['hint-gift'].handlers.click();
+tick(60000);assert.equal(a.run('newHintAvailable()'),true);a.elements['hint-gift'].handlers.click();
 assert.equal(a.run('hintUi.current'),'HNT-20');assert.equal(a.elements['hint-current'].hidden,false);assert.equal(a.elements['hint-list'].children.length,3);a.run('closeHints()');
 // 기존 1버전 저장을 읽어도 인벤토리와 완료 기록을 잃지 않는다.
 a.run('acquireItem("ITM-01")');let old=saved();old.saveVersion=1;delete old.hints;a.storage.set(progress,JSON.stringify(old));b=session(a.storage);
@@ -154,5 +154,5 @@ assert.equal(b.run('chooseHint().id'),'HNT-20');
 b.run('acquireItem("ITM-02")');assert.equal(b.run('chooseHint().id'),'HNT-20');
 b.run('acquireItem("ITM-03")');assert.equal(b.run('hintCandidates().some(h=>h.id==="HNT-20")'),false);
 assert.equal(b.run('hintCandidates().some(h=>HINT_DATA.retiredIds.includes(h.id))'),false);
-console.log('PASS: exact hints, 3-minute boundaries in normal/debug modes, extra hints at 6/9 minutes (max 3), gift stays for accumulated hints, visible time only, progress deduplication, saved timer/history, v1 migration, place-order selection (C01→C05, finish a place before the next), modal blocking');
+console.log('PASS: exact hints, 1-minute boundaries in normal/debug modes, extra hints at 3/5 minutes (max 3), gift stays for accumulated hints, visible time only, progress deduplication, saved timer/history, v1 migration, place-order selection (C01→C05, finish a place before the next), modal blocking');
 

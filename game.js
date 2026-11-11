@@ -11,7 +11,14 @@ const settings = {
   worldScale: 3,
   locationScale: 3, // 장소 크기를 그림 픽셀 그대로 쓰도록 worldScale과 같게 둔다.
   // TODO: 1보다 작을수록 카메라가 멀어져 더 넓게 보인다. 임시 값이다.
-  cameraZoom: 0.75,
+  baseCameraZoom: 0.75,
+  // 학교는 기본 줌 0.75의 80%인 0.6배로 보여 준다.
+  schoolCameraZoomScale: 0.8,
+  get cameraZoom() {
+    return this.baseCameraZoom * (scene.interiorId === SCHOOL_DATA.placeId ? this.schoolCameraZoomScale : 1);
+  },
+  // 기존 개발용 줌 변경은 공통 기본 배율을 조절한다.
+  set cameraZoom(value) { this.baseCameraZoom = value; },
   playerSpeed: 630,
   // 그림을 확대할 때 부드럽게 번지게 할지 여부. false면 픽셀이 또렷하게 보인다.
   mapSmoothing: false,

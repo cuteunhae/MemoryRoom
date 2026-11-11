@@ -59,6 +59,16 @@ function renderInspection() {
   inspectionTitle.textContent = item && ["photo", "infirmary", "playgroundMemo", "diary"].includes(mode) ? item.name : object.name;
   inspectionMessage.textContent = mode === "board" ? SCHOOL_DATA.boardMap.hint : mode === "dialogue" ? object.messages.dialogue :
     mode === "photo" ? STUDIO_TEXT.flip : collected ? STUDIO_TEXT.emptyAlbum : STUDIO_TEXT.albumPrompt;
+  // 지정한 구절만 굵게 표시한다. 대사 문자열은 HTML로 해석하지 않는다.
+  if (mode === "dialogue" && object.messages.dialogueBold) {
+    const text = object.messages.dialogue, bold = object.messages.dialogueBold;
+    const start = text.indexOf(bold);
+    if (start >= 0) {
+      const emphasis = document.createElement("strong");
+      emphasis.textContent = bold;
+      inspectionMessage.replaceChildren(text.slice(0, start), emphasis, text.slice(start + bold.length));
+    }
+  }
   photoButton.hidden = !["photo", "album"].includes(mode) || collected;
   emptyPhoto.hidden = !collected;
   emptyPhoto.textContent = STUDIO_TEXT.emptyAlbum;

@@ -115,7 +115,7 @@ const SCHOOL_DATA = {
   // TODO: 크기와 글자 크기는 임시 값이다. 단위는 안내도 캔버스 픽셀이다.
   boardMap: {
     floorSize: 800, gap: 40, titleHeight: 60, labelFont: 30, titleFont: 36,
-    hint: "왼쪽이 1층, 오른쪽이 2층입니다.", here: "현위치",
+    hint: "", here: "현위치",
     // 현위치 표시 자리. 학교 그림의 왼쪽 게시판 가운데다.
     herePoint: { floor: 1, x: 226, y: 525 },
     stairs: { 1: "2층 계단", 2: "1층 계단" },
@@ -133,12 +133,13 @@ const SCHOOL_DATA = {
       rect: { left: 170, top: 495, right: 280, bottom: 620 }, picture: { left: 172, top: 495, right: 280, bottom: 555 }, interactDistance: 160, color: "#97744b", messages: { tooFar: "게시판 가까이에서 클릭해 주세요.",
       keyHint: "{key} 키를 누르거나 클릭해 안내도 보기", keyHintClick: "클릭해 안내도 보기" } },
     { id: "school-teacher", placeId: "C02", floor: 1, type: "dialogue", name: "선생님",
-      // 사용자 요청: 선생님 그림을 2.5배로 키웠다. rect는 클릭 범위이며 커진 그림을 덮는다.
-      rect: { left: 318, top: 583, right: 341, bottom: 634 }, interactDistance: 140, color: "#557d78", sprite: { src: "assets/npc-teacher.png", width: 100, height: 180 }, messages: {
+      // 사용자 요청: 발밑 위치를 유지하며 그림과 클릭 범위를 기존보다 10% 줄였다.
+      rect: { left: 319.15, top: 588.1, right: 339.85, bottom: 634 }, interactDistance: 140, color: "#557d78", sprite: { src: "assets/npc-teacher.png", width: 90, height: 162 }, messages: {
       tooFar: "선생님 가까이에서 클릭해 주세요.",
       // 가까이 가면 나오는 안내. {key}는 설정에서 지정한 상호작용 키로 바뀐다. keyHintClick은 키가 할당 없음일 때 쓴다.
       keyHint: "{key} 키 또는 클릭해 대화하기", keyHintClick: "클릭해 대화하기",
-      dialogue: "오랜만이구나! 졸업하고 어떻게 지내는지 궁금했단다. 아참, 저 게시판에는 새로 입학한 학생들을 위한 반 배치도가 있단다. 한번 살펴보렴.",
+      dialogue: "오랜만이구나! 졸업하고 어떻게 지내는지 궁금했단다. \n 아참, 저 게시판에는 새로 입학한 학생들을 위한 반 배치도가 있단다. 한번 살펴보렴.",
+      dialogueBold: "반 배치도",
     } },
     // TODO: 2층 계단 오른쪽 복도의 임시 위치·크기·대화 거리. 계단 도착 지점과 교실 문은 비워 둔다.
     { id: "school-friend", placeId: "C02", floor: 2, type: "dialogue", name: "친구", solid: true,
@@ -147,7 +148,9 @@ const SCHOOL_DATA = {
       sprite: { src: "assets/npc-school-friend.png", width: 134, height: 144, stretchX: 1.1 }, messages: {
         tooFar: "친구 가까이에서 클릭해 주세요.",
         keyHint: "{key} 키 또는 클릭해 대화하기", keyHintClick: "클릭해 대화하기",
-        dialogue: "어, 너구나! 오랜만이야, 반갑다! 너 그때 그거 기억나? 돌잔치 사진에 적힌 날짜가 네 반이랑 자리 번호 같다고 했잖아. 사진을 다시 보면 생각날지도 몰라!",
+        dialogue: "오랜만이야, 반갑다! 너 그때 그거 기억나?\n돌잔치 사진에 적힌 날짜가 네 반이랑 자리 번호 같다고 했잖아. \n사진을 다시 보면 생각날지도 몰라!",
+        // 대사 중 굵게 표시할 구절. dialogue에 있는 문구와 같게 적는다.
+        dialogueBold: "돌잔치 사진에 적힌 날짜가 네 반이랑 자리 번호 같다",
       } },
   ],
 };

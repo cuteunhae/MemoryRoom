@@ -62,7 +62,7 @@ function renderPlaygroundMemo() {
   panel.hidden = inspectionUiState.mode !== "playgroundMemo";
   if (panel.hidden) return;
   inspectionMessage.textContent = PARK_DATA.text.memoHint;
-  // 기존 저장과 호환되도록 메모 상태 ID는 유지하고, 내용은 실제 집 쪽문 약도로 바꾼다.
+  // 획득 직후와 인벤토리에서 같은 쪽문 메모 이미지를 보여 준다.
   const picture = document.getElementById("home-memo-picture");
-  drawGraffitiPicture(picture.getContext("2d"), picture.width, picture.height, true);
+  picture.src = PARK_DATA.memoImage;
 }

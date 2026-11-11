@@ -217,8 +217,12 @@ pressKey('KeyE');assert.equal(run('scene.schoolFloor'),2);assert.equal(run(`scho
 // 학교에서만 플레이어를 1.5배로 그린다. 선생님 그림은 클릭 범위 안에 있다.
 assert.ok(Math.abs(run('playerDrawScale()') - 2.295) < 1e-10);
 run('scene.interiorId=null');assert.equal(run('playerDrawScale()'),1.53);run('scene.interiorId="C01"');assert.equal(run('playerDrawScale()'),1.53);run('scene.interiorId=SCHOOL_DATA.placeId');
-assert.deepEqual(read('SCHOOL_DATA.objects.find(object=>object.id==="school-teacher").sprite'),{src:'assets/npc-teacher.png',width:100,height:180});
-assert.ok(run('(() => { const t = SCHOOL_DATA.objects.find(object=>object.id==="school-teacher"); return t.height >= 170 && t.width >= 75; })()'));
+assert.deepEqual(read('SCHOOL_DATA.objects.find(object=>object.id==="school-teacher").sprite'),{src:'assets/npc-teacher.png',width:90,height:162});
+assert.ok(run('(() => { const t = SCHOOL_DATA.objects.find(object=>object.id==="school-teacher"); return t.height >= 160 && t.width >= 70; })()'));
+assert.equal(run('settings.cameraZoom'), run('settings.baseCameraZoom * 0.8'));
+run('scene.interiorId=null');
+assert.equal(run('settings.cameraZoom'), run('settings.baseCameraZoom'));
+run('scene.interiorId=SCHOOL_DATA.placeId');
 // 벤치 앞에 서서 게시판과 벤치 어느 쪽을 클릭해도 반 배치 게시판이 열린다.
 run('if (inspectionUiState.mode) closeInspection(); scene.interiorId=SCHOOL_DATA.placeId; scene.schoolFloor=1; finishMapTransition()');
 {

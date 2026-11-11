@@ -1,8 +1,8 @@
 "use strict";
 
 const HINT_DATA = {
-  waitMs: 3 * 60 * 1000, debugWaitMs: 3 * 60 * 1000, checkpointMs: 1000,
-  // 대기 시간(waitMs)이 지날 때마다 힌트를 하나씩 더 받을 수 있다. 3이면 3분·6분·9분에 하나씩, 최대 3개다.
+  waitMs: 60 * 1000, debugWaitMs: 60 * 1000, intervalMs: 2 * 60 * 1000, checkpointMs: 1000,
+  // 첫 힌트는 waitMs 후, 이후는 intervalMs 간격이다. 진전이 없으면 1분·3분·5분에 최대 3개다.
   maxHints: 3,
   // 이전 저장에서 삭제된 힌트 기록만 제거하고 게임 진행은 유지한다.
   retiredIds: ["HNT-05", "HNT-13", "HNT-18"],

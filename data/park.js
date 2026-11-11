@@ -2,6 +2,7 @@
 
 const PARK_DATA = {
   placeId: "C03", headbandId: "ITM-04", balloonId: "ITM-05", memoId: "ITM-06",
+  memoImage: "assets/home-side-door-memo.png",
   // 정답을 맞히면 거치대 그림의 빈 받침(진열된 풍선 3개 오른쪽)에 돌고래 풍선 그림이 나타난다.
   // offsetX·offsetY는 거치대 가운데에서 풍선 가운데까지의 거리이고, 단위는 게임 속 픽셀이다.
   balloon: { offsetX: 34, offsetY: -2, radiusX: 17, radiusY: 32, clickPadding: 12, sprite: { src: "assets/item-balloon.png" } },
