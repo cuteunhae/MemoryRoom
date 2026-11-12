@@ -1,6 +1,8 @@
 "use strict";
 
 const HINT_DATA = {
+  // TODO: 임시 알림음. 나중에 효과음 파일로 교체할 수 있다.
+  chime: { frequencies: [1046.5, 1568], spacingSeconds: 0.12, durationSeconds: 0.65, gain: 0.16 },
   waitMs: 60 * 1000, debugWaitMs: 60 * 1000, intervalMs: 60 * 1000, checkpointMs: 1000,
   // 첫 힌트는 waitMs 후, 이후는 intervalMs 간격이다. 개수 제한 없이 미확인 힌트를 제공한다.
   // 이전 저장에서 삭제된 힌트 기록만 제거하고 게임 진행은 유지한다.

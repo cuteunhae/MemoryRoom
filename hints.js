@@ -2,6 +2,52 @@
 
 const hintUi = { open: false, current: null };
 const hintRuntime = { lastTick: Date.now(), lastCheckpoint: Date.now(), active: !document.hidden, known: new Set() };
+const hintSound = { context: null, notifiedCount: 0 };
+
+// 브라우저의 소리 재생 제한에 맞춰 첫 키 입력·클릭에서 오디오를 준비한다.
+function prepareHintAudio() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+  try {
+    if (!hintSound.context) hintSound.context = new AudioContextClass();
+    if (hintSound.context.state === "suspended") hintSound.context.resume().catch(() => {});
+  } catch { /* 오디오를 사용할 수 없어도 게임은 계속 진행한다. */ }
+}
+document.addEventListener("pointerdown", prepareHintAudio, { capture: true });
+document.addEventListener("keydown", prepareHintAudio, { capture: true });
+
+function playHintChime() {
+  const context = hintSound.context;
+  if (!context || context.state !== "running") return;
+  const sound = userPreferences.sound;
+  const volume = sound.muted ? 0 : sound.sfxVolume;
+  if (volume <= 0) return;
+  const config = HINT_DATA.chime;
+  config.frequencies.forEach((frequency, index) => {
+    const start = context.currentTime + index * config.spacingSeconds;
+    const oscillator = context.createOscillator(), gain = context.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(config.gain * volume, start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + config.durationSeconds);
+    oscillator.connect(gain); gain.connect(context.destination);
+    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+    oscillator.start(start); oscillator.stop(start + config.durationSeconds);
+  });
+}
+
+function availableHintSoundCount() {
+  const remaining = hintCandidates().filter(candidate => !gameState.hints.received.includes(candidate.id)).length;
+  return Math.min(unlockedHintCount(), gameState.hints.received.length + remaining);
+}
+
+function updateHintSound() {
+  if (!hintRuntime.active || document.hidden) return;
+  const count = availableHintSoundCount();
+  if (count > hintSound.notifiedCount && newHintAvailable()) playHintChime();
+  hintSound.notifiedCount = count;
+}
 
 function hintProgressTokens() {
   return [...Object.keys(gameState.acquiredItems).filter(id => gameState.acquiredItems[id]).map(id => `item:${id}`),
@@ -16,6 +62,7 @@ function syncHintProgress() {
     gameState.hints.lastProgressAt = Date.now();
     gameState.hints.idleMs = 0;
     gameState.hints.received = [];
+    hintSound.notifiedCount = 0;
     hintRuntime.lastTick = Date.now();
   }
   return changed;
@@ -27,6 +74,8 @@ function initializeHintSession() {
   hintRuntime.active = !document.hidden && (!document.hasFocus || document.hasFocus());
   hintUi.open = false;
   hintUi.current = null;
+  // 재접속 때 이미 도착한 힌트에 대한 알림음을 반복하지 않는다.
+  hintSound.notifiedCount = availableHintSoundCount();
   renderHintButton();
 }
 
@@ -130,6 +179,7 @@ function updateHints() {
   if (insideHintClassroom()) markHintClue("class-nine");
   const changed = syncHintProgress();
   renderHintButton();
+  updateHintSound();
   if (typeof saveProgress === "function" && (changed || Date.now()-hintRuntime.lastCheckpoint >= HINT_DATA.checkpointMs)) {
     hintRuntime.lastCheckpoint = Date.now();
     if (hintRuntime.active || changed) saveProgress();
