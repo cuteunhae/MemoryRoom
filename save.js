@@ -29,6 +29,7 @@ function createProgressSnapshot() {
   }
   return { saveVersion: SAVE_DATA.saveVersion, inventory: state.inventory,
     acquiredItems: state.acquiredItems,
+    deskCollected: state.deskCollected,
     puzzles: Object.fromEntries(savedFlagNames.map(key => [key, state[key]])),
     cabinet: state.cabinet, achievements: state.achievements,
     achievementConditions: state.achievementConditions, hints: state.hints, onboarding: state.onboarding, position: capturePosition() };
@@ -77,6 +78,15 @@ function decodeProgress(raw) {
   check(SCHOOL_DATA.floors.some(floor => floor.number === position.schoolFloor));
   check(position.interiorId === null ? position.returnPoint === null : point(position.returnPoint));
   const state = cloneSaveValue(initialGameState);
+  // 이전 저장에는 책상별 기록이 없다. 다른 책상의 물건을 임의로 지우지 않는다.
+  if (data.deskCollected !== undefined) {
+    const desks = [...classroomObjects().filter(desk => desk.type === "desk"), ...classroomDecorDesks()];
+    check(object(data.deskCollected) && Object.entries(data.deskCollected).every(([id, items]) => {
+      const desk = desks.find(desk => desk.id === id);
+      return desk && Array.isArray(items) && items.every(item => desk.itemIds.includes(item));
+    }));
+    state.deskCollected = cloneSaveValue(data.deskCollected);
+  }
   // 도입 연출이 없던 이전 저장은 기존 플레이로 간주해 독백·길 안내를 다시 시작하지 않는다.
   if (data.onboarding === undefined) state.onboarding = { introSeen: true, studioVisited: true };
   else {

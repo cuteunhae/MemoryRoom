@@ -974,6 +974,7 @@ function frame(time) {
   update(deltaSeconds);
   // 첫 프레임에는 뒤쪽 스크립트가 아직 로딩 중일 수 있다.
   if (typeof updateStudioAlbumGuide === "function") updateStudioAlbumGuide(deltaSeconds);
+  if (typeof updateSchoolCrayonGuide === "function") updateSchoolCrayonGuide(deltaSeconds);
   if (typeof updateOpeningRoute === "function") updateOpeningRoute();
   if (typeof updateHints === "function") updateHints();
   if (typeof updatePositionSave === "function") updatePositionSave();

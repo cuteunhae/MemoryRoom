@@ -5,6 +5,7 @@ const gameState = {
   onboarding: { introSeen: false, studioVisited: false },
   inventory: { itemIds: [], selectedItemId: null },
   acquiredItems: {},
+  deskCollected: {},
   photoCollected: false,
   registrySolved: false,
   carouselSolved: false,

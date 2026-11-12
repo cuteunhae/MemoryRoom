@@ -42,6 +42,7 @@ function classroomDecorDesks() {
   const config = CLASSROOM_DATA, floor = SCHOOL_DATA.floors.find(floor => floor.number === config.floor);
   classroomDecorCache = floor.rooms.filter(room => room.name !== config.roomName).flatMap((room, roomIndex) =>
     classroomDeskPositions(room).map((position, seatIndex) => ({
+      id: `class-${roomIndex + 1}-desk-${position.number}`,
       roomName: room.name, x: position.x, y: position.y, width: config.deskWidth, height: config.deskHeight, sprite: config.sprite,
       type: "desk", floor: config.floor, interactDistance: config.interactDistance, clickPadding: config.clickPadding,
       messages: { tooFar: config.text.near }, itemIds: classroomDecorItemIds(roomIndex, seatIndex),
@@ -62,9 +63,47 @@ function classroomBlackboards() {
   }));
 }
 
-// 책상 위에 보여 줄 아이템 그림 경로 목록. 빈 책상이거나 이미 얻은 종류는 빠진다.
+// 학교 방문 중 경과 시간. 화면 갱신이 느려도 실제 90초에 맞춰 안내한다.
+const schoolCrayonGuide = { elapsedMs: 0, lastTick: Date.now(), inside: false };
+// 다른 탭에 있던 시간을 다음 프레임에 한꺼번에 더하지 않는다.
+document.addEventListener("visibilitychange", () => { schoolCrayonGuide.lastTick = Date.now(); });
+function updateSchoolCrayonGuide() {
+  const now = Date.now(), elapsed = Math.max(0, now - schoolCrayonGuide.lastTick);
+  schoolCrayonGuide.lastTick = now;
+  if (scene.interiorId !== SCHOOL_DATA.placeId) {
+    schoolCrayonGuide.elapsedMs = 0;
+    schoolCrayonGuide.inside = false;
+    return;
+  }
+  if (!schoolCrayonGuide.inside) {
+    schoolCrayonGuide.inside = true;
+    return;
+  }
+  if (document.hidden || gameState.acquiredItems[CLASSROOM_DATA.crayonGuide.itemId]) return;
+  schoolCrayonGuide.elapsedMs += elapsed;
+}
+
+function drawCrayonStars(x, y) {
+  const config = CLASSROOM_DATA.crayonGuide;
+  if (scene.interiorId !== SCHOOL_DATA.placeId || gameState.acquiredItems[config.itemId] || schoolCrayonGuide.elapsedMs < config.waitMs) return;
+  const image = objectSpriteImage(config.src);
+  if (!image) return;
+  ctx.save();
+  for (let index = 0; index < config.count; index++) {
+    const angle = index * Math.PI * 2 / config.count - Math.PI / 2;
+    const pulse = (Math.sin(Date.now() * Math.PI * 2 / config.pulseMs + index * 2) + 1) / 2;
+    const width = config.size * (0.75 + pulse * 0.25), height = width * image.naturalHeight / image.naturalWidth;
+    ctx.globalAlpha = 0.2 + pulse * 0.8;
+    ctx.drawImage(image, x + Math.cos(angle) * config.radius - width / 2,
+      y + Math.sin(angle) * config.radius - height / 2, width, height);
+  }
+  ctx.restore();
+}
+
 function classroomDeskIcons(desk) {
-  return desk.itemIds.filter(id => !gameState.acquiredItems[id]).map(id => ITEM_DATA.find(item => item.id === id).icon).filter(Boolean);
+  return desk.itemIds.filter(id => !(gameState.deskCollected[desk.id] || []).includes(id) &&
+    !(id === CLASSROOM_DATA.crayonGuide.itemId && gameState.acquiredItems[id]))
+    .map(id => ITEM_DATA.find(item => item.id === id).icon).filter(Boolean);
 }
 
 // 책상 위에 아이템 그림을 그린다. 2종이 남은 자리(9반 1번 책상)는 나란히 놓는다.
@@ -75,6 +114,10 @@ function drawClassroomDeskIcons(desk) {
   icons.forEach((src, index) => {
     const x = desk.x + (index - (icons.length - 1) / 2) * decor.iconSize;
     drawObjectSprite({ x, y: top + decor.iconSize / 2, width: decor.iconSize, height: decor.iconSize, sprite: { src } });
+    // 알림장 획득으로 아이콘 위치가 달라져도 현재 크레파스 위치를 따라간다.
+    if (src === ITEM_DATA.find(item => item.id === CLASSROOM_DATA.crayonGuide.itemId)?.icon) {
+      drawCrayonStars(x, top + decor.iconSize / 2);
+    }
   });
 }
 
@@ -106,6 +149,7 @@ function classroomObjects() {
   const rearY = flip ? room.y + config.board.rearMargin : room.y + room.height - config.board.rearMargin;
   const boardX = flip ? room.x + room.width - config.board.sideMargin : room.x + config.board.sideMargin;
   return [...desks, { ...common, id: "classroom-seating-board", type: "seating", name: config.text.board,
+    messages: { ...common.messages, keyHint: config.board.hint, keyHintClick: config.board.hint },
     x: boardX, y: rearY,
     width: config.board.width, height: config.board.height, color: "#758675", sprite: config.board.sprite }];
 }
@@ -123,7 +167,11 @@ function collectDeskItems(desk) {
   const text = CLASSROOM_DATA.text;
   if (isGameInputBlocked()) return;
   if (desk.number === 1) markHintClue("desk-one");
-  const gained = desk.itemIds.filter(id => acquireItem(id));
+  const remaining = desk.itemIds.filter(id => !(gameState.deskCollected[desk.id] || []).includes(id));
+  // 종류별 소지 기록과 별도로 실제 조사한 책상만 비운다.
+  if (remaining.length) gameState.deskCollected[desk.id] = [...desk.itemIds];
+  const gained = remaining.filter(id => acquireItem(id));
+  if (remaining.length && typeof saveProgress === "function") saveProgress();
   if (gained.length) showDoorMessage(text.gained.replace("{items}", gained.map(id => ITEM_DATA.find(item => item.id === id).name).join(", ")));
   else showDoorMessage(desk.itemIds.length ? text.taken : text.empty);
 }

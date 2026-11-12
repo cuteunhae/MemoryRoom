@@ -215,9 +215,9 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
   const pattern = name => JSON.stringify(decor.filter(desk => desk.roomName === name).map(desk => desk.itemIds[0] || ''));
   assert.equal(new Set(['1반', '2반', '3반', '4반', '5반', '6반', '7반', '8반'].map(pattern)).size, 8, '교실끼리 배치가 같습니다.');
   assert.deepEqual(read('classroomDecorItemIds(2, 5)'), read('classroomDecorItemIds(2, 5)'));
-  run('gameState.inventory.itemIds=[];gameState.acquiredItems={}');
+  run('gameState.inventory.itemIds=[];gameState.acquiredItems={};gameState.deskCollected={}');
   const stand = desk => run(`player.x=${desk.x}; player.y=${desk.y + desk.height/2 + 40}-player.footOffset; updateCamera()`);
-  // 얻기 전에는 책상 위에 그림이 보이고, 그 종류를 얻으면 모든 책상에서 사라진다.
+  // 실제로 가져간 책상의 그림만 사라지고 다른 책상의 같은 물건은 남는다.
   const iconAt = index => read(`classroomDeskIcons(classroomDecorDesks()[${index}])`);
   const pencils = decor.map((desk, index) => desk.itemIds[0] === 'GEN-01' ? index : -1).filter(index => index >= 0);
   assert.ok(pencils.every(index => iconAt(index)[0] === 'assets/item-pencil.png'));
@@ -230,7 +230,7 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
   stand(pencil); advance(); click(pencil);
   assert.deepEqual(read('gameState.inventory.itemIds'), ['GEN-01']);
   assert.equal(run('inspectionUiState.mode'), null);
-  assert.ok(pencils.every(index => iconAt(index).length === 0), '얻은 물건 그림이 책상에 남아 있습니다.');
+  assert.ok(pencils.every(index => iconAt(index).length === (index === pencils[0] ? 0 : 1)), '얻은 물건 그림이 책상에 남아 있습니다.');
   assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '연필'));
   // 같은 종류의 다른 책상은 중복으로 얻지 못한다.
   const pencil2 = decor.filter(desk => desk.itemIds[0] === 'GEN-01')[1];
@@ -252,7 +252,7 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
 }
 // 9반 책상: 1번 자리만 알림장·크레파스 2종이고, 나머지는 1~8반과 같은 5종 중 최대 1종이다. 그림은 얻기 전까지 보인다.
 {
-  run('gameState.inventory.itemIds=[];gameState.acquiredItems={}');
+  run('gameState.inventory.itemIds=[];gameState.acquiredItems={};gameState.deskCollected={}');
   const room9 = read('classroomObjects().filter(object => object.type === "desk").map(({ number, itemIds }) => ({ number, itemIds }))');
   const ids = read('CLASSROOM_DATA.decorItems.ids');
   assert.deepEqual(room9.find(desk => desk.number === 1).itemIds, ['ITM-02', 'ITM-03']);
@@ -266,11 +266,11 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
   assert.deepEqual(iconsOf(1), [noticeIcon, crayonIcon]);
   // 책상을 그리는 함수가 아이콘 그리기에서 오류를 내지 않는다.
   run('drawClassroomDeskIcons(classroomObjects().find(object => object.number === 1))');
-  // 알림장을 다른 곳에서 먼저 얻으면 1번 책상에는 크레파스 그림만 남는다.
+  // 알림장을 다른 곳에서 먼저 얻어도 1번 책상 물건은 그대로 남는다.
   run('acquireItem("ITM-02")');
-  assert.deepEqual(iconsOf(1), [crayonIcon]);
+  assert.deepEqual(iconsOf(1), [noticeIcon, crayonIcon]);
   run('acquireItem("ITM-03")');
-  assert.deepEqual(iconsOf(1), []);
+  assert.deepEqual(iconsOf(1), [noticeIcon]);
   // 물건 그림은 모두 실제 파일이 있다.
   for (const id of ids) assert.ok(fs.existsSync(path.join(__dirname, run(`ITEM_DATA.find(item => item.id === ${JSON.stringify(id)}).icon`))), id);
 }
