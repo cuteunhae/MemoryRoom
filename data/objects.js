@@ -21,9 +21,16 @@ const INSPECTION_OBJECTS = [{
     // 가까이 가면 나오는 안내. {key}는 설정에서 지정한 상호작용 키로 바뀐다. keyHintClick은 키가 할당 없음일 때 쓴다.
     keyHint: "{key} 키 또는 클릭해 대화하기", keyHintClick: "클릭해 대화하기",
     dialogue: "드디어 사진을 찾으러 오셨군요! \n사진은 사진첩 안에 들어있습니다. \n오신 김에 사진관도 둘러보고 가세요.",
+    dialogueBold: "사진은 사진첩 안에 들어있습니다.",
      dialogueBold: "사진은 사진첩 안에 들어있습니다.",
   },
 }];
+
+// TODO: 사진첩 안내 테두리의 두께·간격·색·반짝임 주기는 임시 설정이다.
+const STUDIO_ALBUM_GUIDE = {
+  placeId: "C01", objectId: "studio-album", waitMs: 30 * 1000,
+  padding: 5, lineWidth: 3, color: "#ffe59a", pulseMs: 1200,
+};
 
 const STUDIO_TEXT = {
   albumPrompt: "사진을 클릭해서 가져가세요.",

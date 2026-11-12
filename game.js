@@ -15,6 +15,11 @@ const settings = {
   // 학교는 기본 줌 0.75의 80%인 0.6배로 보여 준다.
   schoolCameraZoomScale: 0.8,
   get cameraZoom() {
+    const interior = CITY_DATA.interiors.find(room => room.placeId === scene.interiorId);
+    // 사진관은 비율을 유지하면서 화면을 채운다. 넘치는 부분은 카메라가 따라가며 보여 준다.
+    if (interior?.cameraFillViewport) {
+      return Math.max(this.baseCameraZoom, canvas.width / interior.width, canvas.height / interior.height);
+    }
     return this.baseCameraZoom * (scene.interiorId === SCHOOL_DATA.placeId ? this.schoolCameraZoomScale : 1);
   },
   // 기존 개발용 줌 변경은 공통 기본 배율을 조절한다.
@@ -718,6 +723,7 @@ function drawInterior(interior) {
     ctx.fillText(object.label ?? object.name, object.x, object.y);
   }
   // 9반 책상 위의 아이템 그림은 책상을 모두 그린 뒤에 얹는다.
+  if (typeof drawStudioAlbumGuide === "function") drawStudioAlbumGuide();
   for (const object of inspectionObjectsFor(interior)) if (object.type === "desk") drawClassroomDeskIcons(object);
   // 대화할 수 있는 인물의 발밑에 이름을 표시한다. 그림 로딩 여부와 관계없이 표시한다.
   ctx.save();
@@ -966,6 +972,8 @@ function frame(time) {
   const deltaSeconds = previousTime === null ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
   update(deltaSeconds);
+  // 첫 프레임에는 뒤쪽 스크립트가 아직 로딩 중일 수 있다.
+  if (typeof updateStudioAlbumGuide === "function") updateStudioAlbumGuide(deltaSeconds);
   if (typeof updateOpeningRoute === "function") updateOpeningRoute();
   if (typeof updateHints === "function") updateHints();
   if (typeof updatePositionSave === "function") updatePositionSave();

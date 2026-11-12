@@ -105,6 +105,7 @@ const CITY_DATA = {
     // 사진관은 그림(1671×941)을 0.8배로 그린다. walkable·obstacles는 그림 픽셀 좌표이고, 아래에서 게임 좌표로 바꾼다.
     // TODO: 배율과 걷는 범위는 임시 값이다. 플레이 테스트에서 조정한다.
     { placeId: "C01", name: "사진관", wall: 0, floorColor: "#e4d8c8", wallColor: "#a38774", tileSize: 64,
+      cameraFillViewport: true, // 화면 비율이 달라도 회색 여백 없이 사진관으로 채운다.
       picture: { src: "assets/studio-interior.png", imageWidth: 1671, imageHeight: 941, scale: 0.8,
         walkable: [
           { left: 42, top: 275, right: 1628, bottom: 840 },

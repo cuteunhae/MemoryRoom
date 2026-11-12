@@ -10,6 +10,33 @@ const photoBack = document.getElementById("photo-back");
 const photoDate = document.getElementById("photo-date");
 const emptyPhoto = document.getElementById("empty-photo");
 
+// 사진관을 나가면 초기화되는 방문별 안내다. 사진을 이미 얻었으면 켜지지 않는다.
+const studioAlbumGuide = { elapsedMs: 0, found: false };
+function updateStudioAlbumGuide(deltaSeconds) {
+  if (scene.interiorId !== STUDIO_ALBUM_GUIDE.placeId) {
+    studioAlbumGuide.elapsedMs = 0;
+    studioAlbumGuide.found = false;
+    return;
+  }
+  if (document.hidden || (document.hasFocus && !document.hasFocus()) || gameState.photoCollected || studioAlbumGuide.found) return;
+  studioAlbumGuide.elapsedMs += deltaSeconds * 1000;
+}
+
+function drawStudioAlbumGuide() {
+  const config = STUDIO_ALBUM_GUIDE;
+  if (scene.interiorId !== config.placeId || gameState.photoCollected || studioAlbumGuide.found || studioAlbumGuide.elapsedMs < config.waitMs) return;
+  const album = INSPECTION_OBJECTS.find(object => object.id === config.objectId);
+  const pulse = (Math.sin(Date.now() * Math.PI * 2 / config.pulseMs) + 1) / 2;
+  ctx.save();
+  ctx.globalAlpha = 0.3 + 0.7 * pulse;
+  ctx.strokeStyle = ctx.shadowColor = config.color;
+  ctx.shadowBlur = 6 + pulse * 16;
+  ctx.lineWidth = config.lineWidth;
+  ctx.strokeRect(album.x - album.width / 2 - config.padding, album.y - album.height / 2 - config.padding,
+    album.width + config.padding * 2, album.height + config.padding * 2);
+  ctx.restore();
+}
+
 function drawPhotoRoads() {
   const picture = document.getElementById("photo-road-picture");
   const context = picture.getContext("2d"), config = PHOTO_ROAD_DATA;
@@ -103,6 +130,7 @@ function showInspection() {
 
 function openInspection(object) {
   if (isGameInputBlocked()) return;
+  if (object.id === STUDIO_ALBUM_GUIDE.objectId) studioAlbumGuide.found = true;
   inspectionUiState.mode = object.type;
   inspectionUiState.object = object;
   inspectionUiState.item = ITEM_DATA.find(item => item.id === object.rewardId) || null;

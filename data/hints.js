@@ -1,9 +1,8 @@
 "use strict";
 
 const HINT_DATA = {
-  waitMs: 60 * 1000, debugWaitMs: 60 * 1000, intervalMs: 2 * 60 * 1000, checkpointMs: 1000,
-  // 첫 힌트는 waitMs 후, 이후는 intervalMs 간격이다. 진전이 없으면 1분·3분·5분에 최대 3개다.
-  maxHints: 3,
+  waitMs: 60 * 1000, debugWaitMs: 60 * 1000, intervalMs: 60 * 1000, checkpointMs: 1000,
+  // 첫 힌트는 waitMs 후, 이후는 intervalMs 간격이다. 개수 제한 없이 미확인 힌트를 제공한다.
   // 이전 저장에서 삭제된 힌트 기록만 제거하고 게임 진행은 유지한다.
   retiredIds: ["HNT-05", "HNT-13", "HNT-18"],
   text: { gift: "🎁", available: "지금 받을 수 있는 힌트", history: "힌트 기록", title: "힌트", close: "닫기", empty: "아직 확인한 힌트가 없습니다.", current: "현재 힌트", previous: "이전에 본 힌트" },

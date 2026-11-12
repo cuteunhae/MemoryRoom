@@ -102,11 +102,11 @@ function chooseHint() {
     .sort((a, b) => order(a.placeId) - order(b.placeId))[0] || null;
 }
 
-// 첫 대기 시간이 지난 뒤에는 추가 간격마다 하나씩 늘어난다. 최대 maxHints개다.
+// 첫 대기 시간이 지난 뒤에는 개수 제한 없이 추가 간격마다 하나씩 늘어난다.
 function unlockedHintCount() {
   const wait = city.debug ? HINT_DATA.debugWaitMs : HINT_DATA.waitMs;
   if (gameState.hints.idleMs < wait) return 0;
-  return Math.min(HINT_DATA.maxHints, 1 + Math.floor((gameState.hints.idleMs - wait) / HINT_DATA.intervalMs));
+  return 1 + Math.floor((gameState.hints.idleMs - wait) / HINT_DATA.intervalMs);
 }
 function hintReady() { return gameState.hints.received.length < unlockedHintCount(); }
 // 새 힌트를 받을 수 있는지 여부.
