@@ -33,10 +33,10 @@ const STUDIO_ALBUM_GUIDE = {
 };
 
 const STUDIO_TEXT = {
-  albumPrompt: "사진을 클릭해서 가져가세요.",
+  albumPrompt: "사진을 가져가세요.",
   emptyAlbum: "사진을 가져간 자리입니다.",
   collect: "돌잔치 사진 가져가기",
-  flip: "사진을 클릭하면 앞면과 뒷면이 바뀝니다.",
+  flip: "",
   front: "사진 앞면", back: "사진 뒷면",
 };
 
