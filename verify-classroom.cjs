@@ -236,7 +236,7 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
   const pencil2 = decor.filter(desk => desk.itemIds[0] === 'GEN-01')[1];
   stand(pencil2); advance(); click(pencil2);
   assert.deepEqual(read('gameState.inventory.itemIds'), ['GEN-01']);
-  assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.taken'));
+  assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '연필'));
   // 빈 책상.
   const none = decor.find(desk => !desk.itemIds.length);
   stand(none); advance(); click(none);
@@ -248,7 +248,7 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
   stand(first); advance(); click(first);
   assert.equal(read('gameState.inventory.itemIds').filter(id => id === 'ITM-02').length, 1);
   assert.equal(run('gameState.acquiredItems["ITM-03"]'), true);
-  assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '크레파스'));
+  assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '알림장, 크레파스'));
 }
 // 9반 책상: 1번 자리만 알림장·크레파스 2종이고, 나머지는 1~8반과 같은 5종 중 최대 1종이다. 그림은 얻기 전까지 보인다.
 {

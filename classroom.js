@@ -100,23 +100,35 @@ function drawCrayonStars(x, y) {
   ctx.restore();
 }
 
-function classroomDeskIcons(desk) {
+function classroomDeskItemIds(desk) {
   return desk.itemIds.filter(id => !(gameState.deskCollected[desk.id] || []).includes(id) &&
-    !(id === CLASSROOM_DATA.crayonGuide.itemId && gameState.acquiredItems[id]))
-    .map(id => ITEM_DATA.find(item => item.id === id).icon).filter(Boolean);
+    !(id === CLASSROOM_DATA.crayonGuide.itemId && gameState.acquiredItems[id]));
+}
+
+function classroomDeskIcons(desk) {
+  return classroomDeskItemIds(desk).map(id => ITEM_DATA.find(item => item.id === id).icon).filter(Boolean);
+}
+
+// 책상별 물건 ID와 화면 위치를 그리기·클릭 판정에서 함께 사용한다.
+function classroomDeskItemTargets(desk) {
+  const decor = CLASSROOM_DATA.decorItems;
+  const ids = classroomDeskItemIds(desk).filter(id => ITEM_DATA.find(item => item.id === id)?.icon);
+  const top = desk.y + desk.height / 2 - CLASSROOM_DATA.sprite.height + decor.iconTop;
+  return ids.map((itemId, index) => ({
+    id: `${desk.id}:${itemId}`, itemId, desk,
+    x: desk.x + (index - (ids.length - 1) / 2) * decor.iconSize,
+    y: top + decor.iconSize / 2, width: decor.iconSize, height: decor.iconSize,
+    sprite: { src: ITEM_DATA.find(item => item.id === itemId).icon },
+  }));
 }
 
 // 책상 위에 아이템 그림을 그린다. 2종이 남은 자리(9반 1번 책상)는 나란히 놓는다.
 function drawClassroomDeskIcons(desk) {
-  const decor = CLASSROOM_DATA.decorItems, icons = classroomDeskIcons(desk);
-  // 그림 아래쪽을 맞춰 그리는 함수이므로 아이콘 칸의 가운데 위치를 계산해 넘긴다.
-  const top = desk.y + desk.height / 2 - CLASSROOM_DATA.sprite.height + decor.iconTop;
-  icons.forEach((src, index) => {
-    const x = desk.x + (index - (icons.length - 1) / 2) * decor.iconSize;
-    drawObjectSprite({ x, y: top + decor.iconSize / 2, width: decor.iconSize, height: decor.iconSize, sprite: { src } });
+  classroomDeskItemTargets(desk).forEach(target => {
+    drawObjectSprite(target);
     // 알림장 획득으로 아이콘 위치가 달라져도 현재 크레파스 위치를 따라간다.
-    if (src === ITEM_DATA.find(item => item.id === CLASSROOM_DATA.crayonGuide.itemId)?.icon) {
-      drawCrayonStars(x, top + decor.iconSize / 2);
+    if (target.itemId === CLASSROOM_DATA.crayonGuide.itemId) {
+      drawCrayonStars(target.x, target.y);
     }
   });
 }
@@ -163,16 +175,16 @@ function canInspectSchoolObject(object) {
 }
 
 // 책상을 클릭하면 창 없이 그 자리의 아이템을 모두 바로 얻는다. 사용자 결정으로 기획서 SCH-05~07(물건을 하나씩 클릭)과 다르다.
-function collectDeskItems(desk) {
+function collectDeskItems(desk, itemId = null) {
   const text = CLASSROOM_DATA.text;
   if (isGameInputBlocked()) return;
   if (desk.number === 1) markHintClue("desk-one");
-  const remaining = desk.itemIds.filter(id => !(gameState.deskCollected[desk.id] || []).includes(id));
+  const remaining = classroomDeskItemIds(desk).filter(id => itemId === null || id === itemId);
   // 종류별 소지 기록과 별도로 실제 조사한 책상만 비운다.
-  if (remaining.length) gameState.deskCollected[desk.id] = [...desk.itemIds];
-  const gained = remaining.filter(id => acquireItem(id));
+  if (remaining.length) gameState.deskCollected[desk.id] = [...new Set([...(gameState.deskCollected[desk.id] || []), ...remaining])];
+  remaining.forEach(id => acquireItem(id));
   if (remaining.length && typeof saveProgress === "function") saveProgress();
-  if (gained.length) showDoorMessage(text.gained.replace("{items}", gained.map(id => ITEM_DATA.find(item => item.id === id).name).join(", ")));
+  if (remaining.length) showDoorMessage(text.gained.replace("{items}", remaining.map(id => ITEM_DATA.find(item => item.id === id).name).join(", ")));
   else showDoorMessage(desk.itemIds.length ? text.taken : text.empty);
 }
 

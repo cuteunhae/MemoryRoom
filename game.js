@@ -210,13 +210,17 @@ function handleDoorClick(event) {
     if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolStairs(x, y)) return;
     if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolDoorClick(x, y)) return;
     const decorDesks = interior.placeId === SCHOOL_DATA.placeId && scene.schoolFloor === CLASSROOM_DATA.floor ? classroomDecorDesks() : [];
-    const object = [...inspectionObjectsFor(interior), ...decorDesks].sort((a, b) => Math.hypot(x - a.x, y - a.y) - Math.hypot(x - b.x, y - b.y)).find(object =>
+    const objects = [...inspectionObjectsFor(interior), ...decorDesks];
+    // 물건 그림이 책상 위쪽으로 튀어나와도 실제 그림 영역을 클릭하면 획득한다.
+    const deskItem = objects.filter(object => object.type === "desk").flatMap(classroomDeskItemTargets)
+      .find(target => Math.abs(x - target.x) <= target.width / 2 && Math.abs(y - target.y) <= target.height / 2);
+    const object = deskItem?.desk || objects.sort((a, b) => Math.hypot(x - a.x, y - a.y) - Math.hypot(x - b.x, y - b.y)).find(object =>
       Math.abs(x - object.x) <= object.width / 2 + (object.clickPadding || 0) && Math.abs(y - object.y) <= object.height / 2 + (object.clickPadding || 0));
     if (object) {
       if (!canInspectSchoolObject(object) || Math.hypot(Math.max(0, Math.abs(player.x - object.x) - object.width / 2), Math.max(0, Math.abs(player.y + player.footOffset - object.y) - object.height / 2)) > object.interactDistance) {
         showDoorMessage(object.messages.tooFar);
       } else if (object.type === "desk") {
-        collectDeskItems(object);
+        collectDeskItems(object, deskItem?.itemId ?? null);
       } else {
         openInspection(object);
       }
