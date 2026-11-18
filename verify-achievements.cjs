@@ -49,6 +49,13 @@ const click = (target, button = 0) => {
 
 const initial=read('gameState');
 const reset=()=>{run('Object.assign(gameState,'+JSON.stringify(initial)+');achievementUi.queue=[];achievementUi.current=null;achievementUi.open=false');};
+// 6번 업적을 먼저 완료해도 게이지는 1~5번만 계산한다.
+for (let count = 0; count <= 5; count++) {
+  run(`for (const [index, id] of ACHIEVEMENT_SETTINGS.progressIds.entries()) gameState.achievements[id] = index < ${count} ? "completed" : "hidden"; gameState.achievements["ACH-06"] = "completed"; renderAchievements()`);
+  assert.equal(elements["achievement-progress"].value, count * 20);
+  assert.equal(elements["achievement-progress-value"].textContent, `${count * 20}%`);
+}
+reset();
 const key=(code,repeat=false)=>{let prevented=false;for(const handler of windowHandlers.keydown)handler({code,key:code,repeat,preventDefault(){prevented=true}});return prevented;};
 assert.equal(run('gameState.achievements["ACH-01"]'),'active');assert.equal(read('Object.values(gameState.achievements)').filter(x=>x==='hidden').length,5);
 key('Tab');assert.equal(run('achievementUi.open'),true);assert.equal(elements['achievement-list'].children.length,1);

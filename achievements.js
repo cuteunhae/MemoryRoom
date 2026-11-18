@@ -2,6 +2,12 @@
 
 function renderAchievements() {
   document.getElementById("achievement-close").textContent = bindingCloseLabel("achievements");
+  const ids = ACHIEVEMENT_SETTINGS.progressIds;
+  const completed = ids.filter(id => gameState.achievements[id] === "completed").length;
+  const percent = Math.round(completed / ids.length * 100);
+  document.getElementById("achievement-progress-label").textContent = ACHIEVEMENT_TEXT.progress;
+  document.getElementById("achievement-progress-value").textContent = `${percent}%`;
+  document.getElementById("achievement-progress").value = percent;
   const list = document.getElementById("achievement-list");
   list.replaceChildren();
   for (const entry of [...ACHIEVEMENT_CONDITIONS].sort((a,b) => a.order-b.order)) {

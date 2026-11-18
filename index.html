@@ -88,6 +88,11 @@
         <h1 id="achievement-title"></h1>
         <button id="achievement-close" type="button"></button>
       </header>
+      <div class="achievement-progress-summary">
+        <label id="achievement-progress-label" for="achievement-progress"></label>
+        <span id="achievement-progress-value"></span>
+      </div>
+      <progress id="achievement-progress" max="100" value="0" aria-labelledby="achievement-progress-label achievement-progress-value"></progress>
       <ul id="achievement-list"></ul>
       <div id="achievement-toast-list" class="achievement-toast" role="status" hidden></div>
     </dialog>

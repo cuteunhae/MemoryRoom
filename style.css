@@ -50,6 +50,11 @@ canvas {
 #hint-previous { font-size: 18px; }
 .achievement-toast { position: fixed; top: 16px; right: 16px; z-index: 10; max-width: min(340px, calc(100vw - 32px)); padding: 16px 20px; border: 2px solid #b9c8a6; border-radius: 10px; background: #29473f; color: #fff8e9; font: 16px/1.6 "Malgun Gothic", sans-serif; pointer-events: none; box-shadow: 0 4px 16px #18231c33; }
 #achievement-list { list-style: none; padding: 0; display: grid; gap: 14px; }
+.achievement-progress-summary { display: flex; justify-content: space-between; gap: 12px; margin: 18px 0 8px; flex-wrap: wrap; }
+#achievement-progress { display: block; width: 100%; height: 20px; border: 0; border-radius: 10px; overflow: hidden; appearance: none; background: #e5dfd2; accent-color: #587d70; }
+#achievement-progress::-webkit-progress-bar { background: #e5dfd2; border-radius: 10px; }
+#achievement-progress::-webkit-progress-value { background: #587d70; border-radius: 10px; }
+#achievement-progress::-moz-progress-bar { background: #587d70; border-radius: 10px; }
 #achievement-list li { padding: 18px; border: 2px solid #c5b79f; border-radius: 8px; }
 #achievement-list li[data-status="active"] { background: #fff8e3; border-color: #b58f50; }
 #achievement-list li[data-status="completed"] { background: #e5eee0; border-color: #8fa48a; }

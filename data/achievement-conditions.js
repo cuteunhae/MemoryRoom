@@ -11,7 +11,8 @@ const ACHIEVEMENT_CONDITIONS = [
  
 ];
 const ACHIEVEMENT_SETTINGS = {
+  progressIds: ["ACH-01", "ACH-02", "ACH-03", "ACH-04", "ACH-05"],
   // TODO: 달성 알림 표시 시간은 임시 설정이다.
   notificationMs: 3000,
 };
-const ACHIEVEMENT_TEXT = { title: "업적", close: "닫기 (Tab)", active: "진행 중", completed: "달성 완료", notification: "업적 달성" };
+const ACHIEVEMENT_TEXT = { title: "업적", close: "닫기 (Tab)", active: "진행 중", completed: "달성 완료", notification: "업적 달성", progress: "달성률" };
