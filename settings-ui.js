@@ -69,6 +69,8 @@ document.getElementById("settings-restore").addEventListener("click",()=>{
 // 사용자 결정: 마우스 설정 버튼은 화면 오른쪽 아래에만 둔다. 상세창에는 넣지 않는다.
 // 설정 키가 할당 없음이어도 창을 닫기 버튼으로 닫은 뒤 이 버튼으로 설정을 열 수 있다.
 {
-  const button=document.createElement("button");button.type="button";button.className="settings-open";button.textContent=SETTINGS_DATA.text.title;
+  const button=document.createElement("button");button.type="button";button.className="settings-open";
+  button.textContent=`${SETTINGS_DATA.launcherIcon} ${SETTINGS_DATA.text.title}`;
+  button.setAttribute("aria-label", SETTINGS_DATA.text.title);
   button.addEventListener("click",toggleSettings);document.getElementById("settings-launcher").append(button);
 }
