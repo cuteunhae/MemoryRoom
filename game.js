@@ -290,9 +290,7 @@ function pointInPolygon(x, y, points) {
   return inside;
 }
 
-function pointInIsland(x, y) {
-  return pointInPolygon(x, y, city.coast);
-}
+
 
 function distanceToSegment(x, y, a, b) {
   const dx = b[0] - a[0];
@@ -977,8 +975,8 @@ function frame(time) {
   previousTime = time;
   update(deltaSeconds);
   // 첫 프레임에는 뒤쪽 스크립트가 아직 로딩 중일 수 있다.
-  if (typeof updateStudioAlbumGuide === "function") updateStudioAlbumGuide(deltaSeconds);
-  if (typeof updateSchoolCrayonGuide === "function") updateSchoolCrayonGuide(deltaSeconds);
+  if (typeof updateStudioAlbumGuide === "function") updateStudioAlbumGuide();
+  if (typeof updateSchoolCrayonGuide === "function") updateSchoolCrayonGuide();
   if (typeof updateOpeningRoute === "function") updateOpeningRoute();
   if (typeof updateHints === "function") updateHints();
   if (typeof updatePositionSave === "function") updatePositionSave();
@@ -989,4 +987,5 @@ function frame(time) {
 
 initBubbleInput();
 resizeCanvas();
-requestAnimationFrame(frame);
+// 모든 데이터·화면·저장 스크립트가 준비된 다음 게임 루프를 시작한다.
+document.addEventListener("DOMContentLoaded", () => requestAnimationFrame(frame), { once: true });

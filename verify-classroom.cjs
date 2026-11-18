@@ -218,7 +218,7 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
   run('gameState.inventory.itemIds=[];gameState.acquiredItems={};gameState.deskCollected={}');
   const stand = desk => run(`player.x=${desk.x}; player.y=${desk.y + desk.height/2 + 40}-player.footOffset; updateCamera()`);
   // 실제로 가져간 책상의 그림만 사라지고 다른 책상의 같은 물건은 남는다.
-  const iconAt = index => read(`classroomDeskIcons(classroomDecorDesks()[${index}])`);
+  const iconAt = index => read(`classroomDeskItemTargets(classroomDecorDesks()[${index}]).map(target => target.sprite.src)`);
   const pencils = decor.map((desk, index) => desk.itemIds[0] === 'GEN-01' ? index : -1).filter(index => index >= 0);
   assert.ok(pencils.every(index => iconAt(index)[0] === 'assets/item-pencil.png'));
   assert.deepEqual(iconAt(decor.findIndex(desk => !desk.itemIds.length)), []);
@@ -261,7 +261,7 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
     assert.ok(desk.itemIds.every(id => ids.includes(id)), desk.number + '번 책상에 그림 없는 물건이 있습니다.');
   }
   assert.ok(room9.some(desk => desk.itemIds.length === 0), '9반에 빈 책상이 없습니다.');
-  const iconsOf = number => read(`classroomDeskIcons(classroomObjects().find(object => object.number === ${number}))`);
+  const iconsOf = number => read(`classroomDeskItemTargets(classroomObjects().find(object => object.number === ${number})).map(target => target.sprite.src)`);
   const noticeIcon = run('ITEM_DATA.find(item => item.id === "ITM-02").icon'), crayonIcon = run('ITEM_DATA.find(item => item.id === "ITM-03").icon');
   assert.deepEqual(iconsOf(1), [noticeIcon, crayonIcon]);
   // 책상을 그리는 함수가 아이콘 그리기에서 오류를 내지 않는다.

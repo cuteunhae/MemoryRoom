@@ -131,7 +131,7 @@ const SCHOOL_DATA = {
       // 게시판 앞에 벤치가 있어 플레이어가 게시판에 붙어 설 수 없다. 사용자 요청으로 클릭·조사 범위를 벤치까지 넓혔다.
       // picture는 게시판 그림 범위다. 키 안내를 이 가운데에 표시한다.
       rect: { left: 170, top: 495, right: 280, bottom: 620 }, picture: { left: 172, top: 495, right: 280, bottom: 555 }, interactDistance: 160, color: "#97744b", messages: { tooFar: "게시판 가까이에서 클릭해 주세요.",
-      keyHint: "{key} 키를 누르거나 클릭해 안내도 보기", keyHintClick: "클릭해 안내도 보기" } },
+      keyHint: "{key} 키를 또는 클릭해 안내도 보기", keyHintClick: "클릭해 안내도 보기" } },
     { id: "school-teacher", placeId: "C02", floor: 1, type: "dialogue", name: "선생님",
       // 사용자 요청: 발밑 위치를 유지하며 그림과 클릭 범위를 기존보다 10% 줄였다.
       rect: { left: 319.15, top: 588.1, right: 339.85, bottom: 634 }, interactDistance: 140, color: "#557d78", sprite: { src: "assets/npc-teacher.png", width: 90, height: 162 }, messages: {

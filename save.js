@@ -149,6 +149,9 @@ function resetSession() {
   diaryUi.page = 0;
   Object.assign(playgroundAnimation, { swingUntil: 0, seesawUntil: 0, slideUntil: 0 });
   resetRegistryProgress();
+  // 새 게임에서 이전 방문의 반짝임 타이머와 발견 기록을 넘겨받지 않는다.
+  Object.assign(studioAlbumGuide, { elapsedMs: 0, found: false, lastTick: Date.now(), inside: false });
+  Object.assign(schoolCrayonGuide, { elapsedMs: 0, lastTick: Date.now(), inside: false });
   schoolDoorUi.open.clear();
   houseDoorUi.bedroomOpen = false;
   clearBubbleEffects();

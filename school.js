@@ -174,13 +174,6 @@ function interactNearbySchool() {
   return true;
 }
 
-// 머리 위에 보여 줄 학교 안내 문구.
-function schoolKeyHint() {
-  const target = schoolKeyTarget();
-  if (!target) return "";
-  return target === "stairs" ? schoolStairsHint() : schoolDoorHint();
-}
-
 // 상호작용 키의 화면 표시 이름. 키가 지정되지 않았으면 null이다.
 function interactKeyLabel() {
   const code = currentBindings().interact;

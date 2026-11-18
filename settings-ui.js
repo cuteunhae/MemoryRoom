@@ -50,7 +50,7 @@ function setSoundVolume(kind,value) {
   document.getElementById(`settings-${kind}`).value=Math.round(userPreferences.sound[`${kind}Volume`]*100);
   return success;
 }
-// 나중에 소리를 재생할 때 각 채널의 실제 볼륨에 연결한다.
+// 힌트 알림음을 비롯한 소리 재생에 사용할 실제 채널 볼륨이다.
 function getSoundVolume(kind) { return userPreferences.sound.muted ? 0 : userPreferences.sound[`${kind}Volume`]; }
 for(const kind of ["bgm","sfx"]) {
   document.getElementById(`settings-${kind}-label`).textContent=SETTINGS_DATA.text[kind];

@@ -11,9 +11,8 @@ const PLAYGROUND_DATA = {
   swing: { x: -125, y: -85, width: 156, height: 142 },
   seesaw: { x: 125, y: 75, width: 180, height: 104 },
   slide: { x: 110, y: -85, width: 162, height: 160 },
-  // TODO: 상단 표지·낙서 크기와 탑승 연출은 임시 픽셀 설정이다.
-  slideDetail: { graffitiOffsetX: 297, graffitiOffsetY: -28, graffitiWidth: 90, graffitiHeight: 70,
-    rideMs: 2000, homeId: "C05", alleyId: "R16", canvasWidth: 640, canvasHeight: 400 },
+  // TODO: 미끄럼틀 탑승 연출 시간은 임시 설정이다.
+  slideDetail: { rideMs: 2000 },
   gift: { x: -15, y: 25, width: 60, height: 60 },
   // 시설 그림. 그네·시소는 2줄×5칸, 10장면짜리 그림이며 왼쪽 위부터 오른쪽으로 차례대로 재생한다.
   // crop은 한 칸(또는 한 장) 안에서 실제 그림이 있는 부분이다. 칸마다 같은 위치를 잘라 움직임이 흔들리지 않는다.
@@ -31,7 +30,7 @@ const PLAYGROUND_DATA = {
     swing: "그네", seesaw: "시소", slide: "미끄럼틀", gift: "선물상자", entrance: "출입구",
     near: "가까이에서 클릭해 주세요.", acquired: "비눗방울 장난감을 획득했습니다. (I: 인벤토리)",
     toyHelp: "인벤토리를 닫고 배경을 클릭하거나 드래그해 보세요.",
-    slideWarning: "조심히 타세요!", graffiti: "미끄럼틀 낙서",
+    slideWarning: "조심히 타세요!",
   },
 };
 

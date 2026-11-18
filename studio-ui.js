@@ -11,15 +11,22 @@ const photoDate = document.getElementById("photo-date");
 const emptyPhoto = document.getElementById("empty-photo");
 
 // 사진관을 나가면 초기화되는 방문별 안내다. 사진을 이미 얻었으면 켜지지 않는다.
-const studioAlbumGuide = { elapsedMs: 0, found: false };
-function updateStudioAlbumGuide(deltaSeconds) {
+const studioAlbumGuide = { elapsedMs: 0, found: false, lastTick: Date.now(), inside: false };
+document.addEventListener("visibilitychange", () => { studioAlbumGuide.lastTick = Date.now(); });
+window.addEventListener("focus", () => { studioAlbumGuide.lastTick = Date.now(); });
+window.addEventListener("blur", () => { studioAlbumGuide.lastTick = Date.now(); });
+function updateStudioAlbumGuide() {
+  const now = Date.now(), elapsed = Math.max(0, now - studioAlbumGuide.lastTick);
+  studioAlbumGuide.lastTick = now;
   if (scene.interiorId !== STUDIO_ALBUM_GUIDE.placeId) {
     studioAlbumGuide.elapsedMs = 0;
     studioAlbumGuide.found = false;
+    studioAlbumGuide.inside = false;
     return;
   }
+  if (!studioAlbumGuide.inside) { studioAlbumGuide.inside = true; return; }
   if (document.hidden || (document.hasFocus && !document.hasFocus()) || gameState.photoCollected || studioAlbumGuide.found) return;
-  studioAlbumGuide.elapsedMs += deltaSeconds * 1000;
+  studioAlbumGuide.elapsedMs += elapsed;
 }
 
 function drawStudioAlbumGuide() {
@@ -109,7 +116,6 @@ function renderInspection() {
   renderRegistry();
   renderCarouselPanel();
   renderPlaygroundMemo();
-  renderSlideGraffiti();
   renderCabinetPanel();
   renderDiaryPanel();
   if (typeof recordInspectionHint === "function") recordInspectionHint();

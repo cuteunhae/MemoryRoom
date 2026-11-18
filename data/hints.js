@@ -9,7 +9,7 @@ const HINT_DATA = {
   retiredIds: ["HNT-05", "HNT-13", "HNT-18"],
   text: { gift: "🎁", available: "지금 받을 수 있는 힌트", history: "힌트 기록", title: "힌트", close: "닫기", empty: "아직 확인한 힌트가 없습니다.", current: "현재 힌트", previous: "이전에 본 힌트" },
   progressFlags: ["photoCollected", "registrySolved", "carouselSolved", "playgroundMemoViewed", "swingUsed", "seesawUsed", "slideUsed", "cabinetSolved", "childRoomUnlocked", "diaryDiscovered", "endingReached"],
-  clueModes: { board: "school-board", seating: "seating", infirmary: "infirmary-map", playgroundMemo: "playground-map", slideGraffiti: "graffiti", registry: "registry", diary: "diary" },
+  clueModes: { board: "school-board", seating: "seating", infirmary: "infirmary-map", playgroundMemo: "playground-map", registry: "registry", diary: "diary" },
   clueIds: ["school-board", "seating", "infirmary-map", "playground-map", "graffiti", "registry", "diary", "photo-front", "photo-back", "class-nine", "desk-one", "bear-bubble"],
   items: { photo: "ITM-01", notebook: "ITM-02", crayon: "ITM-03", headband: "ITM-04", balloon: "ITM-05", memo: "ITM-06", toy: "ITM-07", bear: "ITM-08" },
   entries: [
@@ -30,7 +30,7 @@ const HINT_DATA = {
     { id: "HNT-14", placeId: "C04", text: "아직 타 보지 않은 미끄럼틀에도 올라가 보세요." },
     { id: "HNT-15", placeId: "C05", text: "안방의 인형들을 비눗방울 속 모습과 비교해 보세요." },
     { id: "HNT-16", placeId: "C05", text: "새로 얻은 열쇠로 열 수 있는 문을 찾아보세요." },
-    { id: "HNT-17", placeId: "C05", text: "아이 방 침대 위에 남겨진 일기를 끝까지 읽어 보세요." },
+    { id: "HNT-17", placeId: "C05", text: "아이 방 책상 위에 남겨진 일기를 끝까지 읽어 보세요." },
     // 곰 인형을 아직 얻지 못했을 때, 집 힌트(HNT-07) 다음에 준다.
     { id: "HNT-19", placeId: "C05", text: "집 안을 잘 살펴보세요. 침대 위에 놓인 것이 있을지도 몰라요." },
   ],

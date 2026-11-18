@@ -46,22 +46,15 @@ const click = (target, button = 0) => {
   canvasHandlers.pointerdown({ button, clientX: 17 + screen.x / 2, clientY: 29 + screen.y / 2 });
 };
 
-elements['slide-graffiti-picture'] ??= element();
-elements['slide-graffiti-picture'].getContext=()=>context;
 const layout=read('playgroundLayout()');
-const graffiti=read('slideGraffitiTarget()');
-const geometry=read('graffitiGeometry()');
-assert.deepEqual(geometry.alley,read('city.roads.find(road=>road.id===PLAYGROUND_DATA.slideDetail.alleyId).points'));
-// 도시 그림에서 집은 놀이터의 북동쪽이고, 쪽문은 잠긴 정문의 동쪽(오른쪽)에 있다.
-assert.ok(geometry.home.x>geometry.playground.x && geometry.home.y<geometry.playground.y);
-assert.ok(geometry.side.x>geometry.locked.x);
+const graffiti={x:layout.slide.x+297,y:layout.slide.y-layout.slide.height/2-28,width:90,height:70};
 const achievement=read('ACHIEVEMENT_CONDITIONS.find(condition=>condition.flags?.includes("slideUsed"))');
 const approach=target=>{
  run(`player.x=${target.x};player.y=${target.y+target.height/2+36}-player.footOffset;updateCamera()`);
  assert.ok(run('canStand(player.x,player.y)'));
 };
 // 낙서 화면을 열기 전에, 아무 아이템 없이 집 쪽문부터 출입한다.
-const house=read('outdoorDoors().find(door=>door.placeId===PLAYGROUND_DATA.slideDetail.homeId && door.kind==="side")');
+const house=read('outdoorDoors().find(door=>door.placeId===HOUSE_DATA.placeId && door.kind==="side")');
 positionAt(house);advance();click(house);
 assert.equal(run('scene.interiorId'),house.placeId);
 run('player.x=currentInterior().spawn.x;player.y=currentInterior().spawn.footY-player.footOffset;updateCamera()');

@@ -82,7 +82,8 @@ for (const target of doors.filter(door => door.kind !== "locked")) {
     sandbox.window.innerWidth = 1920; sandbox.window.innerHeight = 1080;
     windowHandlers.resize();
     const cameraState = read("({x: camera.x, y: camera.y})");
-    const visibleWidth = 1920 / zoom, visibleHeight = 1080 / zoom;
+    const actualZoom = run("settings.cameraZoom");
+    const visibleWidth = 1920 / actualZoom, visibleHeight = 1080 / actualZoom;
     if (visibleWidth >= interior.width) assert.equal(cameraState.x, (interior.width - visibleWidth) / 2);
     else assert.ok(cameraState.x >= 0 && cameraState.x <= interior.width - visibleWidth);
     if (visibleHeight >= interior.height) assert.equal(cameraState.y, (interior.height - visibleHeight) / 2);

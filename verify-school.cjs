@@ -201,18 +201,18 @@ run('player.x=schoolStairs().arrival.x;player.y=schoolStairs().arrival.footY-pla
 assert.equal(run('keyObjectHint()'),'');
 // E 키로 계단을 오르내린다. 층을 옮긴 직후 연속 입력으로는 되돌아가지 않고, 키가 할당 없음이면 클릭 안내만 나온다.
 run('scene.interiorId=SCHOOL_DATA.placeId;scene.schoolFloor=1;schoolDoorUi.open.clear();finishMapTransition();player.x=schoolStairs().arrival.x;player.y=schoolStairs().arrival.footY-player.footOffset;updateCamera()');
-advance();assert.equal(run('schoolKeyHint()'),'E 키를 누르거나 계단을 클릭해 2층으로 올라가기');
-run('currentBindings().interact=null');assert.equal(run('schoolKeyHint()'),run('SCHOOL_DATA.text.stairsUpHint'));run('currentBindings().interact="KeyE"');
+advance();assert.equal(run('currentKeyHint()?.text'),'E 키를 누르거나 계단을 클릭해 2층으로 올라가기');
+run('currentBindings().interact=null');assert.equal(run('currentKeyHint()?.text'),run('SCHOOL_DATA.text.stairsUpHint'));run('currentBindings().interact="KeyE"');
 pressKey('KeyE');assert.equal(run('scene.schoolFloor'),2);assert.ok(run('canStand(player.x,player.y)'));
 pressKey('KeyE');assert.equal(run('scene.schoolFloor'),2,'층을 옮긴 직후 되돌아갔습니다.');
-advance();assert.equal(run('schoolKeyHint()'),'E 키를 누르거나 계단을 클릭해 1층으로 내려가기');
+advance();assert.equal(run('currentKeyHint()?.text'),'E 키를 누르거나 계단을 클릭해 1층으로 내려가기');
 pressKey('KeyE');assert.equal(run('scene.schoolFloor'),1);advance();
 // 계단 옆 문 앞에서는 더 가까운 문이 먼저 반응한다.
 run('scene.schoolFloor=2;finishMapTransition()');advance();
 const nearStairsDoor=read('[...schoolFloor().doors].sort((a,b)=>Math.hypot(a.openingRect.x-schoolStairs().x,a.openingRect.y-schoolStairs().y)-Math.hypot(b.openingRect.x-schoolStairs().x,b.openingRect.y-schoolStairs().y))[0]');
 run(`player.x=${nearStairsDoor.openingRect.x};player.y=${nearStairsDoor.openingRect.y}-player.footOffset;updateCamera()`);
 assert.equal(run('schoolKeyTarget().id'),nearStairsDoor.id);
-assert.equal(run('schoolKeyHint()'),'E 키를 누르거나 문을 클릭해 열기');
+assert.equal(run('currentKeyHint()?.text'),'E 키를 누르거나 문을 클릭해 열기');
 pressKey('KeyE');assert.equal(run('scene.schoolFloor'),2);assert.equal(run(`schoolDoorUi.open.has(${JSON.stringify(nearStairsDoor.id)})`),true);
 // 학교에서만 플레이어를 1.5배로 그린다. 선생님 그림은 클릭 범위 안에 있다.
 assert.ok(Math.abs(run('playerDrawScale()') - 2.295) < 1e-10);

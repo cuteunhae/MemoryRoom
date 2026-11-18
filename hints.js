@@ -19,8 +19,7 @@ document.addEventListener("keydown", prepareHintAudio, { capture: true });
 function playHintChime() {
   const context = hintSound.context;
   if (!context || context.state !== "running") return;
-  const sound = userPreferences.sound;
-  const volume = sound.muted ? 0 : sound.sfxVolume;
+  const volume = getSoundVolume("sfx");
   if (volume <= 0) return;
   const config = HINT_DATA.chime;
   config.frequencies.forEach((frequency, index) => {
@@ -100,44 +99,42 @@ function insideHintClassroom() {
 
 function hintCandidates() {
   const result = [], has = key => !!gameState.acquiredItems[HINT_DATA.items[key]];
-  const add = (id, target = null, floor = null) => {
+  const add = id => {
     const entry = HINT_DATA.entries.find(entry => entry.id === id);
-    result.push({ ...entry, target, floor });
+    if (entry) result.push(entry);
   };
-  if (!has("photo")) add("HNT-01", INSPECTION_OBJECTS.find(object => object.type === "album"));
+  if (!has("photo")) add("HNT-01");
   if (!has("notebook") || !has("crayon")) {
-    if (has("photo")) add("HNT-20", classroomObjects().find(object => object.number === 1), CLASSROOM_DATA.floor);
-    if (insideHintClassroom() || gameState.hints.clues.includes("class-nine")) add("HNT-03", classroomObjects().find(object => object.number === 1), CLASSROOM_DATA.floor);
-    else add("HNT-02", SCHOOL_DATA.objects.find(object => object.type === "board"), 1);
+    if (has("photo")) add("HNT-20");
+    if (insideHintClassroom() || gameState.hints.clues.includes("class-nine")) add("HNT-03");
+    else add("HNT-02");
   }
   // 필요한 크레파스가 없으면 명부 대신 교실에서 물건을 찾는 활동이 후보가 된다.
-  if (!gameState.registrySolved && has("crayon")) add("HNT-04", INSPECTION_OBJECTS.find(object => object.type === "registry"), 1);
-  const park = parkLayout(), playground = playgroundLayout();
-  if (!has("headband")) add("HNT-09", park.ticket);
+  if (!gameState.registrySolved && has("crayon")) add("HNT-04");
+  if (!has("headband")) add("HNT-09");
   if (gameState.carouselSolved) {
-    if (!has("balloon")) add("HNT-10", park.stand);
-    else if (!has("memo") || !gameState.playgroundMemoViewed) add("HNT-11", park.stand);
+    if (!has("balloon")) add("HNT-10");
+    else if (!has("memo") || !gameState.playgroundMemoViewed) add("HNT-11");
   }
-  if (!gameState.swingUsed || !gameState.seesawUsed) add("HNT-06", gameState.swingUsed ? playground.seesaw : playground.swing);
-  else if (!has("toy")) add("HNT-12", playground.gift);
+  if (!gameState.swingUsed || !gameState.seesawUsed) add("HNT-06");
+  else if (!has("toy")) add("HNT-12");
   const homeNeeded = !has("bear") || CABINET_DATA.answer.every(id => gameState.acquiredItems[id]);
   // 중복 외곽 힌트 삭제 후에도 쪽문·인형 안내 다음에 미끄럼틀을 안내하는 순서는 유지한다.
   const outerHintPending = !gameState.endingReached && homeNeeded && scene.interiorId !== HOUSE_DATA.placeId &&
     (!gameState.hints.received.includes("HNT-07") || (!has("bear") && !gameState.hints.received.includes("HNT-19")));
-  if (!gameState.slideUsed && !outerHintPending) add("HNT-14", playground.slide);
+  if (!gameState.slideUsed && !outerHintPending) add("HNT-14");
   if (!gameState.endingReached && homeNeeded) {
     if (scene.interiorId !== HOUSE_DATA.placeId) {
       add("HNT-07");
       // 사용자 결정: 집 힌트(HNT-07) 다음에 침대 위 인형을 찾는 힌트(HNT-19)를 준다.
-      if (!has("bear")) add("HNT-19", HOUSE_DATA.dolls.find(doll => doll.itemId === HINT_DATA.items.bear));
+      if (!has("bear")) add("HNT-19");
     } else if (!has("bear")) {
-      const bear = HOUSE_DATA.dolls.find(doll => doll.itemId === HINT_DATA.items.bear);
-      add("HNT-19", bear);
-      add("HNT-15", bear);
+      add("HNT-19");
+      add("HNT-15");
     }
-    else if (!gameState.cabinetSolved && CABINET_DATA.answer.every(id => gameState.acquiredItems[id])) add("HNT-08", HOUSE_DATA.cabinet);
-    else if (gameState.cabinetSolved && !gameState.childRoomUnlocked) add("HNT-16", houseDoor(HOUSE_DATA.rooms.find(room => room.id === "child")));
-    else if (gameState.childRoomUnlocked) add("HNT-17", DIARY_DATA.book);
+    else if (!gameState.cabinetSolved && CABINET_DATA.answer.every(id => gameState.acquiredItems[id])) add("HNT-08");
+    else if (gameState.cabinetSolved && !gameState.childRoomUnlocked) add("HNT-16");
+    else if (gameState.childRoomUnlocked) add("HNT-17");
   }
   return result;
 }

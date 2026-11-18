@@ -105,9 +105,7 @@ function classroomDeskItemIds(desk) {
     !(id === CLASSROOM_DATA.crayonGuide.itemId && gameState.acquiredItems[id]));
 }
 
-function classroomDeskIcons(desk) {
-  return classroomDeskItemIds(desk).map(id => ITEM_DATA.find(item => item.id === id).icon).filter(Boolean);
-}
+
 
 // 책상별 물건 ID와 화면 위치를 그리기·클릭 판정에서 함께 사용한다.
 function classroomDeskItemTargets(desk) {

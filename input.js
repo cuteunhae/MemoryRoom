@@ -27,6 +27,10 @@ window.addEventListener("keydown", event => {
   }
   if (event.ctrlKey || event.altKey || event.metaKey) return;
   const action = Object.keys(currentBindings()).find(action => currentBindings()[action] === code);
+  // 숫자 입력칸에서는 재지정된 게임 키보다 문자 입력과 커서 이동을 우선한다.
+  // 기본 Esc 설정 키는 입력 중에도 설정 창을 열 수 있다.
+  const editing = event.target?.isContentEditable || ["INPUT", "TEXTAREA"].includes(event.target?.tagName);
+  if (editing && !(action === "settings" && code === "Escape")) return;
   if (action === "settings") {
     event.preventDefault();
     if (!event.repeat) toggleSettings();

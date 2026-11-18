@@ -22,7 +22,6 @@ const INSPECTION_OBJECTS = [{
     keyHint: "{key} 키 또는 클릭해 대화하기", keyHintClick: "클릭해 대화하기",
     dialogue: "드디어 사진을 찾으러 오셨군요! \n사진은 사진첩 안에 들어있습니다. \n오신 김에 사진관도 둘러보고 가세요.",
     dialogueBold: "사진은 사진첩 안에 들어있습니다.",
-     dialogueBold: "사진은 사진첩 안에 들어있습니다.",
   },
 }];
 
