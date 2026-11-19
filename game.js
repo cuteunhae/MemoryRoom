@@ -99,6 +99,7 @@ function outdoorDoors() {
       placeId: place.id,
       kind: door.kind,
       side: door.side,
+      approachSides: door.approachSides || [door.side],
       x: rectangle.x * settings.worldScale,
       y: rectangle.y * settings.worldScale,
       width: rectangle.width * settings.worldScale,
@@ -116,7 +117,7 @@ function nearOutdoorDoor(target) {
   if (Math.hypot(player.x - target.approach.x, footY - target.approach.footY) > city.entrances.interactDistance) return false;
   // 문 바깥쪽에 서 있어야 한다. 북쪽 문은 위, 남쪽 문은 아래, 동쪽 문은 오른쪽, 서쪽 문은 왼쪽이다.
   const outside = { north: footY <= target.y, south: footY >= target.y, east: player.x >= target.x, west: player.x <= target.x };
-  if (!outside[target.side]) return false;
+  if (!(target.approachSides || [target.side]).some(side => outside[side])) return false;
   // 문 가까이에 있어도 벽이나 잔디를 가로질러 출입하지 않도록 접근 지점까지 검사한다.
   const steps = Math.max(1, Math.ceil(Math.hypot(player.x - target.approach.x, footY - target.approach.footY) / 5));
   for (let i = 0; i <= steps; i++) {

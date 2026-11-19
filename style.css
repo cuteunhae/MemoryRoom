@@ -43,6 +43,7 @@ canvas {
 /* 일반 UI 창은 같은 종이를 사용한다. 암전 연출과 그림에는 적용하지 않는다. */
 .settings-open, #settings-dialog button { padding: 10px 14px; border: 1px solid #96856d; border-radius: 8px; background: #f8f1e4; color: #403a32; font: inherit; cursor: pointer; }
 #settings-keys { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+#settings-keys [data-action="interact"] { grid-column: 1 / -1; }
 #settings-keys [aria-pressed="true"] { background: #d7e7d6; border: 2px solid #45675c; }
 .volume-row { display: grid; grid-template-columns: 90px 1fr 50px; gap: 8px; align-items: center; margin-top: 20px; }
 .volume-row input { width: 100%; }

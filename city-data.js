@@ -39,8 +39,8 @@ const CITY_DATA = {
     { id: "R10", kind: "street", width: 100, points: [[388, 845], [388, 790]] },
     // 놀이공원 정문(아치).
     { id: "R11", kind: "street", width: 100, points: [[1243, 840], [1243, 778]] },
-    // 세로 길(R02)에서 집 뒤편 나무 쪽문으로 들어가는 짧은 골목. 쪽문은 이 골목을 통해서만 닿는다.
-    { id: "R16", kind: "alley", width: 20, points: [[1019, 205], [1005, 205]] },
+    // 쪽문 옆 세로 길과 문 정면의 포장길을 모두 큰길에 연결한다.
+    { id: "R16", kind: "alley", width: 24, points: [[1019, 205], [1005, 205], [982, 228], [982, 296]] },
     // 위쪽 큰길에서 놀이공원 북쪽 분홍 길로 내려가는 연결로. 폭은 그림의 분홍 길(x 1200~1320)에 맞춘다.
     { id: "R17", kind: "street", width: 120, points: [[1260, 335], [1260, 360]] },
   ],
@@ -61,7 +61,7 @@ const CITY_DATA = {
     { id: "C05", name: "집", x: 846, y: 100, width: 168, height: 160, color: "#a6b7bd", solid: true,
       doors: [{ side: "south", offset: 0, kind: "locked", width: 30, height: 12 },
         // 쪽문은 플레이어가 바로 옆에 서므로, 머리를 가리지 않게 안내를 문 윗부분에 놓는다.
-        { side: "east", kind: "side", x: 990, y: 200, width: 12, height: 45, hintOffset: { x: -8, y: -25 } }] },
+        { side: "east", approachSides: ["east", "south"], kind: "side", x: 990, y: 200, width: 12, height: 45, hintOffset: { x: -8, y: -25 } }] },
   ],
   // 그림 속 큰 장애물(놀이공원 안 화단). 논리 좌표 사각형이다.
   obstacles: [
