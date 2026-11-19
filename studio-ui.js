@@ -90,7 +90,7 @@ function renderInspection() {
     inspectionClose.append(icon);
   }
   const collected = mode === "album" && gameState.photoCollected;
-  inspectionTitle.textContent = item && ["photo", "infirmary", "playgroundMemo", "diary"].includes(mode) ? item.name : object.name;
+  inspectionTitle.textContent = item && ["photo", "infirmary", "playgroundMemo", "diary", "starSnack"].includes(mode) ? item.name : object.name;
   inspectionMessage.textContent = mode === "board" ? SCHOOL_DATA.boardMap.hint : mode === "dialogue" ? object.messages.dialogue :
     mode === "photo" ? STUDIO_TEXT.flip : collected ? STUDIO_TEXT.emptyAlbum : STUDIO_TEXT.albumPrompt;
   // 지정한 구절만 굵게 표시한다. 대사 문자열은 HTML로 해석하지 않는다.
@@ -118,6 +118,7 @@ function renderInspection() {
   renderPlaygroundMemo();
   renderCabinetPanel();
   renderDiaryPanel();
+  if (typeof renderEasterPanel === "function") renderEasterPanel();
   if (typeof recordInspectionHint === "function") recordInspectionHint();
 }
 

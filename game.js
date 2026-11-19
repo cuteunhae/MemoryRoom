@@ -235,6 +235,7 @@ function handleDoorClick(event) {
     return;
   }
   if (handleParkClick(x, y)) return;
+  if (typeof handleEasterClick === "function" && handleEasterClick(x, y)) return;
   if (handlePlaygroundClick(x, y)) return;
   const target = outdoorDoors().find(hit);
   if (!target) {
@@ -377,6 +378,7 @@ function canStandCity(x, y) {
   if (!circleInsidePolygon(logicalX, footY, radius, city.frame) ||
       !circleInsidePolygon(logicalX, footY, radius, city.coast)) return false;
   if (!isWalkableSurface(logicalX, footY, radius)) return false;
+  if (typeof EASTER_EGG_DATA !== "undefined" && circleHitsRectangle(logicalX, footY, radius, EASTER_EGG_DATA.shop)) return false;
   if (hitsPark(x, y + player.footOffset, player.collisionRadius)) return false;
   if (hitsPlayground(x, y + player.footOffset, player.collisionRadius)) return false;
   for (const place of city.locations) {
@@ -773,7 +775,7 @@ function drawObjectSprite(object) {
 // 상호작용 키로 열 수 있는 가까운 물체(messages.keyHint가 있는 인물·게시판·명부). 없으면 null이다.
 function nearbyKeyObject() {
   const interior = currentInterior();
-  if (!interior) return nearbyParkShop();
+  if (!interior) return (typeof nearEasterShop === "function" && nearEasterShop() ? easterOwnerObject() : nearbyParkShop());
   const footY = player.y + player.footOffset;
   const distance = object => Math.hypot(Math.max(0, Math.abs(player.x - object.x) - object.width / 2), Math.max(0, Math.abs(footY - object.y) - object.height / 2));
   // 여럿이 가까우면 가장 가까운 대상에 반응한다.
@@ -786,6 +788,7 @@ function nearbyKeyObject() {
 function interactNearbyObject() {
   const object = nearbyKeyObject();
   if (!object) return false;
+  if (typeof EASTER_EGG_DATA !== "undefined" && object.id === EASTER_EGG_DATA.id) return meetEasterOwner();
   openInspection(object);
   return true;
 }
@@ -853,6 +856,7 @@ function currentKeyHint() {
   }
   const object = nearbyKeyObject();
   if (object) {
+    if (object.hintPoint) return { text: keyObjectHint(), ...object.hintPoint, center: true };
     if (object.type !== "dialogue") {
       // 클릭 범위가 그림보다 넓은 물체는 그림(pictureRect)의 가운데를 쓴다.
       const rect = object.pictureRect ?? object;
@@ -952,6 +956,7 @@ function draw() {
   }
   if (!interior) drawPark();
   if (!interior) drawPlayground();
+  if (!interior && typeof drawEasterShop === "function") drawEasterShop();
   if (!interior && typeof drawOpeningRoute === "function") drawOpeningRoute();
   drawPlayer();
   drawBearBubbles();
@@ -974,6 +979,7 @@ function frame(time) {
   const deltaSeconds = previousTime === null ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
   update(deltaSeconds);
+  if (typeof updateEasterEgg === "function") updateEasterEgg();
   // 첫 프레임에는 뒤쪽 스크립트가 아직 로딩 중일 수 있다.
   if (typeof updateStudioAlbumGuide === "function") updateStudioAlbumGuide();
   if (typeof updateSchoolCrayonGuide === "function") updateSchoolCrayonGuide();

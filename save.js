@@ -29,7 +29,7 @@ function createProgressSnapshot() {
   }
   return { saveVersion: SAVE_DATA.saveVersion, inventory: state.inventory,
     acquiredItems: state.acquiredItems,
-    deskCollected: state.deskCollected,
+    deskCollected: state.deskCollected, easterEgg: state.easterEgg,
     puzzles: Object.fromEntries(savedFlagNames.map(key => [key, state[key]])),
     cabinet: state.cabinet, achievements: state.achievements,
     achievementConditions: state.achievementConditions, hints: state.hints, onboarding: state.onboarding, position: capturePosition() };
@@ -78,6 +78,11 @@ function decodeProgress(raw) {
   check(SCHOOL_DATA.floors.some(floor => floor.number === position.schoolFloor));
   check(position.interiorId === null ? position.returnPoint === null : point(position.returnPoint));
   const state = cloneSaveValue(initialGameState);
+  // 이스터에그가 없던 저장도 기존 진행을 그대로 유지한다.
+  if (data.easterEgg !== undefined) {
+    check(object(data.easterEgg) && typeof data.easterEgg.shopMet === "boolean");
+    state.easterEgg = { shopMet: data.easterEgg.shopMet };
+  }
   // 이전 저장에는 책상별 기록이 없다. 다른 책상의 물건을 임의로 지우지 않는다.
   if (data.deskCollected !== undefined) {
     const desks = [...classroomObjects().filter(desk => desk.type === "desk"), ...classroomDecorDesks()];
@@ -170,6 +175,13 @@ function restoreProgress() {
       Object.assign(gameState, state);
       Object.assign(scene, { interiorId: position.interiorId, schoolFloor: position.schoolFloor, returnPoint: position.returnPoint });
       Object.assign(player, { x: position.x, y: position.y, facing: position.facing });
+      // 문방구 추가 전 골목 끝에 저장한 경우, 진행은 유지하고 판매대 앞에 세운다.
+      if (scene.interiorId === null && typeof EASTER_EGG_DATA !== "undefined" &&
+          circleHitsRectangle(player.x / settings.worldScale, (player.y + player.footOffset) / settings.worldScale,
+            player.collisionRadius / settings.worldScale, EASTER_EGG_DATA.shop)) {
+        player.x = EASTER_EGG_DATA.approach.x * settings.worldScale;
+        player.y = EASTER_EGG_DATA.approach.y * settings.worldScale - player.footOffset;
+      }
       // 학교 문은 저장하지 않는다. 문 틈에 서 있던 저장이면 그 문만 열어 둔 채로 이어 한다.
       if (scene.interiorId === SCHOOL_DATA.placeId) openSchoolDoorsAtPlayer();
       if (scene.interiorId === HOUSE_DATA.placeId) openHouseDoorAtPlayer();

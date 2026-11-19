@@ -60,7 +60,7 @@ const key=code=>a.key({code,key:code});
 const release=code=>{for(const fn of a.windowHandlers.keyup)fn({code,key:code,preventDefault(){}});};
 const choose=action=>a.elements['settings-keys'].children.find(b=>b.dataset.action===action).handlers.click();
 key('Escape');assert.equal(a.run('settingsUi.open'),true);
-const start=a.read('({x:player.x,y:player.y})');key('ArrowRight');a.run('update(.1)');assert.deepEqual(a.read('({x:player.x,y:player.y})'),start);
+const start=a.read('({x:player.x,y:player.y})');key('KeyD');a.run('update(.1)');assert.deepEqual(a.read('({x:player.x,y:player.y})'),start);
 choose('up');key('KeyW');assert.equal(a.run('userPreferences.keys.up'),'KeyW');assert.equal(a.run('settingsUi.open'),true);
 choose('inventory');key('Tab');assert.equal(a.run('userPreferences.keys.achievements'),null);assert.equal(a.run('userPreferences.keys.inventory'),'Tab');
 choose('map');key('Escape');assert.equal(a.run('userPreferences.keys.settings'),null);assert.equal(a.run('settingsUi.open'),true);
@@ -89,7 +89,7 @@ b.control.confirm=true;b.elements['settings-new-game'].handlers.click();assert.e
 const legacy=b.read('userPreferences');legacy.sound={muted:false,volume:.4};b.storage.set(b.run('SAVE_DATA.preferencesKey'),JSON.stringify(legacy));
 const c=session(b.storage);assert.equal(c.run('getSoundVolume("bgm")'),.4);assert.equal(c.run('getSoundVolume("sfx")'),.4);
 // 저장 실패 시 설정을 잃지 않는다.
-b.control.failWrite=true;b.run('toggleSettings();settingsUi.listening="up"');assert.equal(b.run('assignSettingKey("KeyZ")'),false);assert.equal(b.run('userPreferences.keys.up'),'ArrowUp');
+b.control.failWrite=true;b.run('toggleSettings();settingsUi.listening="up"');assert.equal(b.run('assignSettingKey("KeyZ")'),false);assert.equal(b.run('userPreferences.keys.up'),'KeyW');
 assert.equal(b.run('setSoundVolume("bgm",90)'),false);assert.equal(b.run('getSoundVolume("bgm")'),.25);
 console.log('PASS: remapped movement/menu/map, duplicate unassignment, mouse recovery, stacked dialogs, volume channels/migration, restore keys only, persistence/new game, storage failure');
 

@@ -3,6 +3,7 @@
 // 영구 진행 상태를 모은다. save.js에서 임시 조작을 제외하여 저장한다.
 const gameState = {
   onboarding: { introSeen: false, studioVisited: false },
+  easterEgg: { shopMet: false },
   inventory: { itemIds: [], selectedItemId: null },
   acquiredItems: {},
   deskCollected: {},

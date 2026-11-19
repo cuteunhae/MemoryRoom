@@ -15,6 +15,7 @@
     <script src="park.js" defer></script>
     <script src="school.js" defer></script>
     <script src="data/items.js" defer></script>
+    <script src="data/easter-egg.js" defer></script>
     <script src="data/ordinary-items.js" defer></script>
     <script src="data/cabinet.js" defer></script>
     <script src="cabinet.js" defer></script>
@@ -36,6 +37,7 @@
     <script src="inventory-list.js" defer></script>
     <script src="inventory-ui.js" defer></script>
     <script src="studio-ui.js" defer></script>
+    <script src="easter-egg.js" defer></script>
     <script src="registry.js" defer></script>
     <script src="park-ui.js" defer></script>
     <script src="hints.js" defer></script>
@@ -51,7 +53,7 @@
   <body>
     <dialog id="opening-dialog" aria-label="이야기의 시작" tabindex="-1"><p id="opening-text" aria-live="polite"></p></dialog>
     <main>
-      <canvas id="game" width="640" height="420" tabindex="0" aria-label="방향키로 도시를 걸어 다니는 게임 화면">
+      <canvas id="game" width="640" height="420" tabindex="0" aria-label="WASD로 이동하는 게임 화면. 설정에서 이동키를 변경할 수 있습니다.">
         이 게임은 Canvas를 지원하는 PC 브라우저에서 실행할 수 있습니다.
       </canvas>
     </main>
@@ -135,6 +137,7 @@
           <div><h2 id="cabinet-inventory-title"></h2><div id="cabinet-inventory"></div><p id="cabinet-reset-notice"></p></div>
         </div>
       </section>
+      <div id="easter-snack-panel" hidden></div>
       <div id="playground-memo" hidden>
         <img id="home-memo-picture" alt="집의 잠긴 정문과 옆 골목의 쪽문 약도" />
       </div>
