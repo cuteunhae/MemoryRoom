@@ -9,8 +9,10 @@ const EASTER_EGG_DATA = {
     wall: 24, cameraFillViewport: true, wallColor: "#95795d", floorColor: "#ead5ae",
     spawn: { x: 450, footY: 490, facing: "up" },
     exit: { x: 450, y: 600, width: 140, height: 40, side: "south" } },
-  owner: { x: 450, y: 120, width: 50, height: 70 },
-  snack: { x: 545, y: 186, width: 60, height: 45 },
+  owner: { x: 450, y: 120, width: 50, height: 70,
+    sprite: { src: "assets/npc-stationery-owner.png", width: 90, height: 100 } },
+  snack: { x: 545, y: 186, width: 60, height: 45,
+    sprite: { src: "assets/item-star-snack.png", width: 78, height: 52 } },
   counter: { x: 450, y: 190, width: 400, height: 90 },
   shelves: [{ x: 100, y: 260, width: 110, height: 320, kind: "stationery" },
     { x: 800, y: 260, width: 110, height: 320, kind: "draw" }],
@@ -34,4 +36,4 @@ const EASTER_EGG_DATA = {
 };
 CITY_DATA.interiors.push(EASTER_EGG_DATA.interior);
 ITEM_DATA.push({ id: EASTER_EGG_DATA.itemId, name: EASTER_EGG_DATA.text.snack,
-  purpose: EASTER_EGG_DATA.text.purpose, viewer: EASTER_EGG_DATA.viewer });
+  icon: EASTER_EGG_DATA.snack.sprite.src, purpose: EASTER_EGG_DATA.text.purpose, viewer: EASTER_EGG_DATA.viewer });

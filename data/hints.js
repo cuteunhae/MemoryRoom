@@ -15,7 +15,7 @@ const HINT_DATA = {
   entries: [
 
     { id: "HNT-01", placeId: "C01", text: "사진관의 테이블 위를 잘 살펴보세요." },
-    { id: "HNT-20", placeId: "C02", text: "돌잔치 사진의 날짜에서 학교의 반과 자리 번호를 찾아보세요." },
+    { id: "HNT-20", placeId: "C02", text: "돌잔치 날짜를 학교의 반과 자리 번호로 연결해보세요." },
     { id: "HNT-02", placeId: "C02", text: "복도 게시판에는 각 반의 위치가 표시되어 있어요." },
     { id: "HNT-03", placeId: "C02", text: "교실 뒤쪽 게시판의 자리 배치도를 확인해 보세요." },
     { id: "HNT-04", placeId: "C02", text: "흐릿한 명부에 파스텔를 사용해 보세요." },
@@ -24,7 +24,7 @@ const HINT_DATA = {
     { id: "HNT-08", placeId: "C05", text: "다섯 장소에서 얻은 추억의 물건을 순서에 맞게 놓아보세요." },
     
     { id: "HNT-09", placeId: "C03", text: "놀이공원 입구의 매표소에 남겨진 물건을 살펴보세요." },
-    { id: "HNT-10", placeId: "C03", text: "기념품 판매대 옆에 달라진 것이 있는지 살펴보세요." },
+    { id: "HNT-10", placeId: "C03", text: "놀이공원 기념품 판매대 옆에 달라진 것이 있는지 살펴보세요." },
     { id: "HNT-11", placeId: "C03", text: "풍선과 함께 발견한 메모를 인벤토리에서 확인해 보세요." },
     { id: "HNT-12", placeId: "C04", text: "놀이시설을 움직인 뒤, 놀이터에 달라진 것이 있는지 찾아보세요." },
  

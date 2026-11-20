@@ -137,6 +137,7 @@ function renderInspection() {
 }
 
 function showInspection() {
+  if (inspectionUiState.mode === "starSnack" && typeof snackCollection !== "undefined") snackCollection.clear();
   if (inspectionUiState.mode === "diary") diaryUi.page = 0;
   stopBubbleDrag();
   pressedKeys.clear();
@@ -169,6 +170,7 @@ function openPhotoViewer(item) {
 }
 
 function closeInspection(options = {}) {
+  if (inspectionUiState.mode === "starSnack" && typeof snackCollection !== "undefined") snackCollection.clear();
   const diaryFinished = inspectionUiState.mode === "diary" && finishDiaryReading(options.confirmDiary === true);
   if (inspectionUiState.mode === "cabinet") restoreUnsolvedCabinet();
   if (inspectionUiState.mode === "playgroundMemo") finishPlaygroundMemo();

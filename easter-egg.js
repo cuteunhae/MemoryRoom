@@ -1,5 +1,8 @@
 "use strict";
 
+// 한 번 연 봉지에서 모은 별만 센다. 부분 수집 기록은 저장하지 않는다.
+const snackCollection = new Set();
+
 function inEasterShop() { return scene.interiorId === EASTER_EGG_DATA.interior.placeId; }
 
 function nearEasterShop() {
@@ -76,14 +79,20 @@ function drawEasterInterior() {
       if(shelf.kind==="stationery") {ctx.fillStyle="#fff3db";ctx.fillRect(x+2,y+19,20,6);}
     }
   }
+  // 주인 이미지를 판매대 뒤에 그린다. 불러오지 못했을 때만 임시 도형을 쓴다.
+  if (!drawObjectSprite(d.owner)) {
   rect(d.owner,"#9cae93");
   ctx.fillStyle="#71665b";ctx.beginPath();ctx.arc(d.owner.x,d.owner.y-25,25,0,Math.PI*2);ctx.fill();
   ctx.fillStyle="#e6bd95";ctx.beginPath();ctx.arc(d.owner.x,d.owner.y-18,20,0,Math.PI*2);ctx.fill();
   ctx.fillStyle="#493e33";ctx.fillRect(d.owner.x-8,d.owner.y-22,3,3);ctx.fillRect(d.owner.x+6,d.owner.y-22,3,3);
+  }
   rect(d.counter,"#ab8057");
   ctx.fillStyle="#f2ddb7";ctx.font="16px 'Malgun Gothic', sans-serif";ctx.fillText(d.text.owner,d.counter.x-75,d.counter.y+15);
-  rect({...d.snack,width:90,height:60},"#80613d");rect(d.snack,"#e7c566");
+  rect({...d.snack,width:90,height:60},"#80613d");
+  if (!drawObjectSprite(d.snack)) {
+  rect(d.snack,"#e7c566");
   ctx.fillStyle="#58462e";ctx.font="13px 'Malgun Gothic', sans-serif";ctx.fillText(d.text.snack,d.snack.x,d.snack.y);
+  }
   rect(d.interior.exit,"#687f70");ctx.fillStyle="#fff3d7";ctx.font="17px 'Malgun Gothic', sans-serif";
   ctx.fillText(d.text.exit,d.interior.exit.x,d.interior.exit.y);
   ctx.restore();
@@ -101,6 +110,7 @@ function renderEasterPanel() {
     piece.setAttribute("aria-hidden", "true"); panel.append(piece);
   }
   for (const star of d.stars) {
+    if (snackCollection.has(star.id)) continue;
     const button = document.createElement("button"); button.type = "button"; button.className = "snack-star";
     button.dataset.starId = star.id; button.setAttribute("aria-label", d.text.star);
     button.style.left = `${star.x}%`; button.style.top = `${star.y}%`;
@@ -108,10 +118,20 @@ function renderEasterPanel() {
     const glow = document.createElement("img"); glow.src = d.sparkleImage; glow.alt = ""; glow.className = "snack-star-glow";
     button.append(candy, glow);
     button.addEventListener("click", () => {
+      if (inspectionUiState.mode !== d.viewer || snackCollection.has(star.id)) return;
+      snackCollection.add(star.id);
+      button.disabled = true; candy.hidden = true;
+      if (d.stars.every(entry => snackCollection.has(entry.id))) {
+        gameState.easterEgg.starsCompleted = true;
+        updateAchievementConditions();
+      }
       glow.getAnimations().forEach(animation => animation.cancel());
-      glow.animate([{ opacity: 0, transform: "scale(.6) rotate(-15deg)" },
+      const animation = glow.animate([{ opacity: 0, transform: "scale(.6) rotate(-15deg)" },
         { opacity: 1, transform: "scale(1.15) rotate(0deg)", offset: .35 },
         { opacity: 0, transform: "scale(1.4) rotate(15deg)" }], { duration: d.sparkleMs });
+      animation.onfinish = () => { button.hidden = true; };
+      const next = panel.querySelector(".snack-star:not(:disabled)");
+      (next || inspectionClose).focus();
     });
     panel.append(button);
   }

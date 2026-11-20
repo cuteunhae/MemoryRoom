@@ -8,6 +8,8 @@ const ACHIEVEMENT_CONDITIONS = [
   { id: "ACH-04", order: 4, name: "다시 뛰노는 하루", description: "그네·시소·미끄럼틀 이용", items: [], flags: ["swingUsed", "seesawUsed", "slideUsed"] },
   { id: "ACH-05", order: 5, name: "기억을 채우는 다섯 칸", description: "장식장 해결", items: [], flag: "cabinetSolved" },
   { id: "ACH-06", order: 6, name: "일곱 살의 꿈", description: "일기장 최초 발견", items: [], flag: "diaryDiscovered" },
+  { id: "ACH-H01", order: 7, secret: true, name: "가장 아껴둔 마지막 한 알",
+    description: "별뽀빠이를 한 번 열어 별사탕 모두 모으기", items: ["EGG-ITEM-01"], statePath: ["easterEgg", "starsCompleted"] },
  
 ];
 const ACHIEVEMENT_SETTINGS = {

@@ -57,7 +57,7 @@ for (let count = 0; count <= 5; count++) {
 }
 reset();
 const key=(code,repeat=false)=>{let prevented=false;for(const handler of windowHandlers.keydown)handler({code,key:code,repeat,preventDefault(){prevented=true}});return prevented;};
-assert.equal(run('gameState.achievements["ACH-01"]'),'active');assert.equal(read('Object.values(gameState.achievements)').filter(x=>x==='hidden').length,5);
+assert.equal(run('gameState.achievements["ACH-01"]'),'active');assert.equal(read('Object.values(gameState.achievements)').filter(x=>x==='hidden').length,6);
 key('Tab');assert.equal(run('achievementUi.open'),true);assert.equal(elements['achievement-list'].children.length,1);
 assert.equal(elements['achievement-list'].children[0].dataset.achievementId,'ACH-01');
 const before=read('({x:player.x,y:player.y})');key('ArrowRight');run('update(0.2)');assert.deepEqual(read('({x:player.x,y:player.y})'),before);
@@ -74,7 +74,7 @@ now+=2999;run('updateAchievementNotifications()');assert.equal(elements['achieve
 run('acquireItem("ITM-01")');assert.equal(run('gameState.achievements["ACH-03"]'),'active');
 reset();run('gameState.carouselSolved=true;acquireItem("ITM-04")');assert.equal(run('gameState.achievements["ACH-03"]'),'hidden');run('gameState.playgroundMemoViewed=true;updateAchievementConditions()');assert.equal(run('gameState.achievements["ACH-03"]'),'completed');
 reset();run('gameState.swingUsed=true;gameState.seesawUsed=true;updateAchievementConditions()');assert.equal(run('gameState.achievements["ACH-04"]'),'hidden');run('gameState.slideUsed=true;updateAchievementConditions()');assert.equal(run('gameState.achievements["ACH-04"]'),'completed');
-const ids=read('[...ACHIEVEMENT_CONDITIONS].sort((a,b)=>a.order-b.order).map(e=>e.id)');
+const ids=read('ACHIEVEMENT_CONDITIONS.filter(e=>!e.secret).sort((a,b)=>a.order-b.order).map(e=>e.id)');
 const permutations=arr=>arr.length?arr.flatMap((id,i)=>permutations(arr.filter((_,j)=>j!==i)).map(rest=>[id,...rest])):[[]];
 for(const order of permutations(ids)){
  reset();const completed=new Set();

@@ -71,7 +71,8 @@ function decodeProgress(raw) {
   check(object(data.puzzles) && savedFlagNames.every(key => (key === "endingCompleted" && data.saveVersion < 3) || typeof data.puzzles[key] === "boolean"));
   check(object(data.cabinet) && Array.isArray(data.cabinet.slots) && data.cabinet.slots.length === CABINET_DATA.rules.slotCount);
   check(data.cabinet.slots.every(id => id === null || CABINET_DATA.allowedItemIds.includes(id)));
-  check(object(data.achievements) && ACHIEVEMENT_CONDITIONS.every(entry => ["hidden","active","completed"].includes(data.achievements[entry.id])));
+  check(object(data.achievements) && ACHIEVEMENT_CONDITIONS.every(entry =>
+    (entry.secret && data.achievements[entry.id] === undefined) || ["hidden","active","completed"].includes(data.achievements[entry.id])));
   check(object(data.achievementConditions) && Object.entries(data.achievementConditions).every(([id,value]) => ACHIEVEMENT_CONDITIONS.some(entry => entry.id === id) && typeof value === "boolean"));
   const position = data.position;
   check(point(position) && (position.interiorId === null || city.interiors.some(room => room.placeId === position.interiorId)));
@@ -81,7 +82,8 @@ function decodeProgress(raw) {
   // 이스터에그가 없던 저장도 기존 진행을 그대로 유지한다.
   if (data.easterEgg !== undefined) {
     check(object(data.easterEgg) && typeof data.easterEgg.shopMet === "boolean");
-    state.easterEgg = { shopMet: data.easterEgg.shopMet };
+    check(data.easterEgg.starsCompleted === undefined || typeof data.easterEgg.starsCompleted === "boolean");
+    state.easterEgg = { shopMet: data.easterEgg.shopMet, starsCompleted: data.easterEgg.starsCompleted ?? false };
   }
   // 이전 저장에는 책상별 기록이 없다. 다른 책상의 물건을 임의로 지우지 않는다.
   if (data.deskCollected !== undefined) {
@@ -130,7 +132,7 @@ function decodeProgress(raw) {
   if (state.acquiredItems[PARK_DATA.memoId]) state.playgroundMemoPending = false;
   if (state.acquiredItems[PARK_DATA.balloonId] && !state.acquiredItems[PARK_DATA.memoId]) state.playgroundMemoPending = true;
   for (const entry of ACHIEVEMENT_CONDITIONS) {
-    const met = (entry.flags || [entry.flag]).every(flag => state[flag]) && entry.items.every(id => state.acquiredItems[id]);
+    const met = achievementConditionMet(entry, state);
     // 완료 업적의 조건이 부족한 저장은 손상된 것으로 처리한다.
     check(data.achievements[entry.id] !== "completed" || met);
     if (met) state.achievementConditions[entry.id] = true;

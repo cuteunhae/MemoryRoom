@@ -3,7 +3,7 @@
 // 영구 진행 상태를 모은다. save.js에서 임시 조작을 제외하여 저장한다.
 const gameState = {
   onboarding: { introSeen: false, studioVisited: false },
-  easterEgg: { shopMet: false },
+  easterEgg: { shopMet: false, starsCompleted: false },
   inventory: { itemIds: [], selectedItemId: null },
   acquiredItems: {},
   deskCollected: {},
@@ -47,11 +47,16 @@ function acquireItem(itemId) {
   return true;
 }
 
+function achievementConditionMet(condition, state = gameState) {
+  const complete = condition.statePath ? condition.statePath.reduce((value, key) => value?.[key], state) === true :
+    (condition.flags || [condition.flag]).every(flag => state[flag]);
+  return complete && condition.items.every(id => state.acquiredItems[id]);
+}
+
 function updateAchievementConditions() {
   const ordered = [...ACHIEVEMENT_CONDITIONS].sort((a,b) => a.order-b.order);
   for (const condition of ordered) {
-    const flags = condition.flags || [condition.flag];
-    if (flags.every(flag => gameState[flag]) && condition.items.every(id => gameState.acquiredItems[id])) {
+    if (achievementConditionMet(condition)) {
       gameState.achievementConditions[condition.id] = true;
     }
     if (gameState.achievementConditions[condition.id] && gameState.achievements[condition.id] !== "completed") {
@@ -62,6 +67,7 @@ function updateAchievementConditions() {
   let activeAssigned = false;
   for (const condition of ordered) {
     if (gameState.achievements[condition.id] === "completed") continue;
+    if (condition.secret) { gameState.achievements[condition.id] = "hidden"; continue; }
     gameState.achievements[condition.id] = activeAssigned ? "hidden" : "active";
     activeAssigned = true;
   }
