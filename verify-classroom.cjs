@@ -104,7 +104,7 @@ assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.near'));
 inspect(first);
 assert.equal(run('inspectionUiState.mode'), null);
 assert.deepEqual(read('gameState.inventory.itemIds'), ['ITM-02', 'ITM-03']);
-assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '알림장, 크레파스'));
+assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '알림장, 파스텔'));
 assert.equal(run('gameState.hints.clues.includes("desk-one")'), true);
 // 다시 클릭해도 중복되지 않는다.
 inspect(first);
@@ -241,16 +241,16 @@ assert.ok(read('classroomObjects().filter(object => object.type === "desk")').ev
   const none = decor.find(desk => !desk.itemIds.length);
   stand(none); advance(); click(none);
   assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.empty'));
-  // 알림장은 1번 책상과 같은 아이템이다. 먼저 얻으면 1번 책상에서는 크레파스만 얻는다.
+  // 알림장은 1번 책상과 같은 아이템이다. 먼저 얻으면 1번 책상에서는 파스텔만 얻는다.
   const notice = decor.find(desk => desk.itemIds[0] === 'ITM-02');
   stand(notice); advance(); click(notice);
   assert.equal(run('gameState.acquiredItems["ITM-02"]'), true);
   stand(first); advance(); click(first);
   assert.equal(read('gameState.inventory.itemIds').filter(id => id === 'ITM-02').length, 1);
   assert.equal(run('gameState.acquiredItems["ITM-03"]'), true);
-  assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '알림장, 크레파스'));
+  assert.equal(run('scene.message'), run('CLASSROOM_DATA.text.gained').replace('{items}', '알림장, 파스텔'));
 }
-// 9반 책상: 1번 자리만 알림장·크레파스 2종이고, 나머지는 1~8반과 같은 5종 중 최대 1종이다. 그림은 얻기 전까지 보인다.
+// 9반 책상: 1번 자리만 알림장·파스텔 2종이고, 나머지는 1~8반과 같은 5종 중 최대 1종이다. 그림은 얻기 전까지 보인다.
 {
   run('gameState.inventory.itemIds=[];gameState.acquiredItems={};gameState.deskCollected={}');
   const room9 = read('classroomObjects().filter(object => object.type === "desk").map(({ number, itemIds }) => ({ number, itemIds }))');

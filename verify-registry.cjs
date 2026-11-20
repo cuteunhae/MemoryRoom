@@ -92,12 +92,12 @@ assert.equal(run('registryProgress.erased'),0);
 for(let y=30;y<320;y+=50) stroke(5,y,595,y);
 assert.equal(run('gameState.registrySolved'),true);
 assert.equal(cover.hidden,true);
-assert.equal(run('gameState.achievementConditions[ACHIEVEMENT_CONDITIONS[0].id] === true'),false);
+assert.equal(run('gameState.achievementConditions[ACHIEVEMENT_CONDITIONS.find(entry => entry.id === "ACH-02").id] === true'),false);
 close();open();assert.equal(cover.hidden,true);close();
-run('acquireItem(ACHIEVEMENT_CONDITIONS[0].items[0])');
-assert.equal(run('gameState.achievementConditions[ACHIEVEMENT_CONDITIONS[0].id]'),true);
+run('acquireItem(ACHIEVEMENT_CONDITIONS.find(entry => entry.id === "ACH-02").items[0])');
+assert.equal(run('gameState.achievementConditions[ACHIEVEMENT_CONDITIONS.find(entry => entry.id === "ACH-02").id]'),true);
 // 잘못 선택한 물건과 70% 경계, 반대 획득 순서도 확인한다.
-run('gameState.registrySolved=false; gameState.achievementConditions={}; selectInventoryItem(ACHIEVEMENT_CONDITIONS[0].items[0])');
+run('gameState.registrySolved=false; gameState.achievementConditions={}; selectInventoryItem(ACHIEVEMENT_CONDITIONS.find(entry => entry.id === "ACH-02").items[0])');
 open();stroke(5,20,595,20);assert.equal(run('registryProgress.erased'),0);
 close();run('selectInventoryItem(REGISTRY_DATA.requiredItemId)');open();
 run(`registryProgress.mask.fill(1); registryProgress.mask[0]=0; registryProgress.erased=REGISTRY_DATA.width*REGISTRY_DATA.height*REGISTRY_DATA.solvedRatio-1`);
@@ -105,7 +105,7 @@ run('rubRegistry({x:300,y:150},{x:301,y:150})');
 assert.equal(run('gameState.registrySolved'),false);
 run('rubRegistry({x:0,y:0},{x:1,y:0})');
 assert.equal(run('gameState.registrySolved'),true);
-assert.equal(run('gameState.achievementConditions[ACHIEVEMENT_CONDITIONS[0].id]'),true);
+assert.equal(run('gameState.achievementConditions[ACHIEVEMENT_CONDITIONS.find(entry => entry.id === "ACH-02").id]'),true);
 assert.ok(!JSON.stringify(read('gameState')).includes('mask'));
 close();
 // 명부 가까이에서 키 안내가 나오고 E 키로 열고 닫는다. 보건실 밖 벽 너머에서는 거리가 가까워도 반응하지 않는다.

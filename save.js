@@ -175,13 +175,6 @@ function restoreProgress() {
       Object.assign(gameState, state);
       Object.assign(scene, { interiorId: position.interiorId, schoolFloor: position.schoolFloor, returnPoint: position.returnPoint });
       Object.assign(player, { x: position.x, y: position.y, facing: position.facing });
-      // 문방구 추가 전 골목 끝에 저장한 경우, 진행은 유지하고 판매대 앞에 세운다.
-      if (scene.interiorId === null && typeof EASTER_EGG_DATA !== "undefined" &&
-          circleHitsRectangle(player.x / settings.worldScale, (player.y + player.footOffset) / settings.worldScale,
-            player.collisionRadius / settings.worldScale, EASTER_EGG_DATA.shop)) {
-        player.x = EASTER_EGG_DATA.approach.x * settings.worldScale;
-        player.y = EASTER_EGG_DATA.approach.y * settings.worldScale - player.footOffset;
-      }
       // 학교 문은 저장하지 않는다. 문 틈에 서 있던 저장이면 그 문만 열어 둔 채로 이어 한다.
       if (scene.interiorId === SCHOOL_DATA.placeId) openSchoolDoorsAtPlayer();
       if (scene.interiorId === HOUSE_DATA.placeId) openHouseDoorAtPlayer();

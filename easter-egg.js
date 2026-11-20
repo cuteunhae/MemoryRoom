@@ -1,74 +1,91 @@
 "use strict";
 
+function inEasterShop() { return scene.interiorId === EASTER_EGG_DATA.interior.placeId; }
+
 function nearEasterShop() {
-  if (scene.interiorId !== null) return false;
-  const p = EASTER_EGG_DATA.approach;
-  return Math.hypot(player.x / settings.worldScale - p.x,
-    (player.y + player.footOffset) / settings.worldScale - p.y) <= EASTER_EGG_DATA.interactDistance;
+  if (!inEasterShop()) return false;
+  const p = EASTER_EGG_DATA.counter;
+  return Math.hypot(Math.max(0, Math.abs(player.x - p.x) - p.width / 2),
+    Math.max(0, Math.abs(player.y + player.footOffset - p.y) - p.height / 2)) <= EASTER_EGG_DATA.interactDistance;
 }
 
 function easterOwnerObject() {
-  const d = EASTER_EGG_DATA, p = d.owner, scale = settings.worldScale;
-  return { id: d.id, type: "dialogue", name: d.text.owner,
-    hintPoint: { x: d.hint.x * scale, y: d.hint.y * scale },
-    x: p.x * scale, y: p.y * scale, width: p.width * scale, height: p.height * scale,
+  const d = EASTER_EGG_DATA;
+  return { id: d.id, type: "dialogue", name: d.text.owner, ...d.owner,
     messages: { dialogue: d.text.dialogue.join("\n"), keyHint: d.text.keyHint, keyHintClick: d.text.keyHintClick } };
 }
 
 function meetEasterOwner() {
   if (isGameInputBlocked() || !nearEasterShop()) return false;
   gameState.easterEgg.shopMet = true;
-  openInspection(easterOwnerObject());
-  saveProgress();
+  openInspection(easterOwnerObject()); saveProgress();
   return true;
 }
 
 function updateEasterEgg() {
-  if (gameState.easterEgg.shopMet || isGameInputBlocked() || scene.interiorId !== null || document.hidden) return;
-  const p = EASTER_EGG_DATA.approach;
-  if (Math.hypot(player.x / settings.worldScale - p.x,
-    (player.y + player.footOffset) / settings.worldScale - p.y) <= EASTER_EGG_DATA.autoDistance) meetEasterOwner();
+  if (isGameInputBlocked() || document.hidden || Date.now() < scene.nextTransitionAt) return;
+  const d = EASTER_EGG_DATA;
+  if (scene.interiorId === null) {
+    const x = player.x / settings.worldScale, footY = (player.y + player.footOffset) / settings.worldScale;
+    if (!insideRect(x, footY, d.entrance)) return;
+    const r = d.returnPoint, room = d.interior;
+    scene.returnPoint = { x: r.x * settings.worldScale, y: r.footY * settings.worldScale - player.footOffset, facing: r.facing };
+    scene.interiorId = room.placeId; scene.schoolFloor = 1;
+    player.x = room.spawn.x; player.y = room.spawn.footY - player.footOffset; player.facing = room.spawn.facing;
+    finishMapTransition();
+  } else if (inEasterShop()) {
+    if (insideRect(player.x, player.y + player.footOffset, d.interior.exit)) { exitInterior(); return; }
+    if (!gameState.easterEgg.shopMet && nearEasterShop()) meetEasterOwner();
+  }
 }
 
 function handleEasterClick(x, y) {
-  if (scene.interiorId !== null) return false;
-  const d = EASTER_EGG_DATA, lx = x / settings.worldScale, ly = y / settings.worldScale;
-  const hit = r => Math.abs(lx - r.x) <= r.width / 2 + d.clickPadding && Math.abs(ly - r.y) <= r.height / 2 + d.clickPadding;
-  if (!hit(d.shop)) return false;
+  if (!inEasterShop()) return false;
+  const d = EASTER_EGG_DATA;
+  const snack = insideRect(x, y, d.snack, d.clickPadding);
+  if (!snack && !insideRect(x, y, d.counter) && !insideRect(x, y, d.owner, d.clickPadding)) return false;
   if (!nearEasterShop()) { showDoorMessage(d.text.tooFar); return true; }
-  if (!gameState.easterEgg.shopMet || !hit(d.snack)) return meetEasterOwner();
+  if (!gameState.easterEgg.shopMet || !snack) return meetEasterOwner();
   if (acquireItem(d.itemId)) showDoorMessage(d.text.acquired);
   openInspection({ type: d.viewer, name: d.text.snack, rewardId: d.itemId });
   return true;
 }
 
-// TODO: 문방구 외관·주인·진열 물건은 교체 가능한 임시 도형이다.
-function drawEasterShop() {
-  const d = EASTER_EGG_DATA, s = d.shop;
-  ctx.save(); ctx.scale(settings.worldScale, settings.worldScale);
-  if (s.sprite && drawObjectSprite(s)) { ctx.restore(); return; }
-  ctx.translate(s.x - s.width / 2, s.y - s.height / 2);
-  ctx.fillStyle = "#a97752"; ctx.fillRect(0, 0, s.width, s.height);
-  ctx.fillStyle = "#f2ddb0"; ctx.fillRect(3, 3, s.width - 6, s.height - 6);
-  ctx.fillStyle = "#687f70"; ctx.fillRect(0, 0, s.width, 14);
-  ctx.font = "bold 8px 'Malgun Gothic', sans-serif"; ctx.textAlign = "center";
-  ctx.fillStyle = "#fff2cc"; ctx.fillText(d.text.shop, s.width / 2, 10);
-  ctx.fillStyle = "#624c40"; ctx.fillRect(24, 19, 65, 30);
-  ctx.fillStyle = "#d1bd93"; ctx.fillRect(5, 20, 16, 28);
-  ctx.font = "5px 'Malgun Gothic', sans-serif"; ctx.fillStyle = "#5d4637"; ctx.fillText(d.text.draw, 13, 26);
-  for (let i = 0; i < 6; i++) { ctx.fillStyle = i % 2 ? "#e3a39a" : "#e9d27b"; ctx.fillRect(7 + i % 2 * 7, 29 + Math.floor(i / 2) * 6, 5, 4); }
-  // 창가의 주인과 작은 앞치마.
-  ctx.fillStyle = "#727372"; ctx.beginPath(); ctx.arc(35, 29, 9, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#edc49e"; ctx.beginPath(); ctx.arc(35, 33, 7, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#9db1a0"; ctx.fillRect(26, 39, 18, 12);
-  ctx.fillStyle = "#46392e"; ctx.fillRect(32, 32, 1, 1); ctx.fillRect(38, 32, 1, 1);
-  ctx.fillStyle = "#bc9366"; ctx.fillRect(0, 48, s.width, 12);
-  // 공책·지우개·간식 바구니.
-  for (let i = 0; i < 3; i++) { ctx.fillStyle = ["#8ea9af", "#c8998c", "#e4d29b"][i]; ctx.fillRect(6 + i * 5, 45 - i, 13, 6); }
-  ctx.fillStyle = "#f5e9d5"; ctx.fillRect(27, 49, 7, 4);
-  ctx.fillStyle = "#976a42"; ctx.fillRect(45, 47, 34, 12);
-  ctx.fillStyle = "#e7c566"; ctx.fillRect(51, 44, 20, 14);
-  ctx.font = "5px 'Malgun Gothic', sans-serif"; ctx.fillStyle = "#684635"; ctx.fillText(d.text.snack, 61, 53);
+function hitsEasterFurniture(x, footY, radius) {
+  return [EASTER_EGG_DATA.counter, EASTER_EGG_DATA.owner, ...EASTER_EGG_DATA.shelves]
+    .some(rect => circleHitsRectangle(x, footY, radius, rect));
+}
+
+// TODO: 작은 문방구 실내와 진열 물건은 최종 에셋으로 교체할 임시 도형이다.
+function drawEasterInterior() {
+  const d = EASTER_EGG_DATA, room = d.interior;
+  const rect = (r, color) => { ctx.fillStyle = color; ctx.fillRect(r.x-r.width/2,r.y-r.height/2,r.width,r.height); };
+  ctx.save();
+  ctx.fillStyle = room.wallColor; ctx.fillRect(0,0,room.width,room.height);
+  ctx.fillStyle = room.floorColor; ctx.fillRect(room.wall,room.wall,room.width-room.wall*2,room.height-room.wall*2);
+  ctx.strokeStyle = "#cbb58b"; ctx.lineWidth = 1;
+  for (let y=60;y<room.height-room.wall;y+=45) { ctx.beginPath();ctx.moveTo(room.wall,y);ctx.lineTo(room.width-room.wall,y);ctx.stroke(); }
+  ctx.textAlign = "center";ctx.textBaseline = "middle";ctx.font = "bold 24px 'Malgun Gothic', sans-serif";
+  ctx.fillStyle = "#514636";ctx.fillText(d.text.shop,room.width/2,50);
+  for(const shelf of d.shelves) {
+    rect(shelf,"#a5825e");
+    ctx.fillStyle="#514636";ctx.font="16px 'Malgun Gothic', sans-serif";ctx.fillText(d.text[shelf.kind],shelf.x,shelf.y-shelf.height/2-18);
+    for(let row=0;row<4;row++) for(let col=0;col<3;col++) {
+      const x=shelf.x-36+col*30, y=shelf.y-130+row*75;
+      ctx.fillStyle=["#b8c9b2","#ead6ad","#caa5a0"][col];ctx.fillRect(x,y,24,shelf.kind==="draw"?42:52);
+      if(shelf.kind==="stationery") {ctx.fillStyle="#fff3db";ctx.fillRect(x+2,y+19,20,6);}
+    }
+  }
+  rect(d.owner,"#9cae93");
+  ctx.fillStyle="#71665b";ctx.beginPath();ctx.arc(d.owner.x,d.owner.y-25,25,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#e6bd95";ctx.beginPath();ctx.arc(d.owner.x,d.owner.y-18,20,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#493e33";ctx.fillRect(d.owner.x-8,d.owner.y-22,3,3);ctx.fillRect(d.owner.x+6,d.owner.y-22,3,3);
+  rect(d.counter,"#ab8057");
+  ctx.fillStyle="#f2ddb7";ctx.font="16px 'Malgun Gothic', sans-serif";ctx.fillText(d.text.owner,d.counter.x-75,d.counter.y+15);
+  rect({...d.snack,width:90,height:60},"#80613d");rect(d.snack,"#e7c566");
+  ctx.fillStyle="#58462e";ctx.font="13px 'Malgun Gothic', sans-serif";ctx.fillText(d.text.snack,d.snack.x,d.snack.y);
+  rect(d.interior.exit,"#687f70");ctx.fillStyle="#fff3d7";ctx.font="17px 'Malgun Gothic', sans-serif";
+  ctx.fillText(d.text.exit,d.interior.exit.x,d.interior.exit.y);
   ctx.restore();
 }
 

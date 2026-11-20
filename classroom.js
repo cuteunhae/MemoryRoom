@@ -124,7 +124,7 @@ function classroomDeskItemTargets(desk) {
 function drawClassroomDeskIcons(desk) {
   classroomDeskItemTargets(desk).forEach(target => {
     drawObjectSprite(target);
-    // 알림장 획득으로 아이콘 위치가 달라져도 현재 크레파스 위치를 따라간다.
+    // 알림장 획득으로 아이콘 위치가 달라져도 현재 파스텔 위치를 따라간다.
     if (target.itemId === CLASSROOM_DATA.crayonGuide.itemId) {
       drawCrayonStars(target.x, target.y);
     }

@@ -30,6 +30,6 @@ const CLASSROOM_DATA = {
   // 배치는 불규칙해 보이지만 항상 같다(저장 불필요). itemRate는 물건이 있는 책상의 비율, seed를 바꾸면 배치가 달라진다.
   // TODO: 비율은 임시 값이다.
   decorItems: { ids: ["GEN-06", "GEN-07", "ITM-02", "GEN-01", "GEN-05"], itemRate: 0.5, seed: 7, iconSize: 30, iconTop: -12 },
-  // 9반에서 물건이 정해진 자리. 1번 책상은 퍼즐에 필요한 알림장과 크레파스 2종을 둔다. 나머지 자리는 decorItems 규칙을 따른다.
+  // 9반에서 물건이 정해진 자리. 1번 책상은 퍼즐에 필요한 알림장과 파스텔 2종을 둔다. 나머지 자리는 decorItems 규칙을 따른다.
   assignments: { 1: ["ITM-02", "ITM-03"] },
 };

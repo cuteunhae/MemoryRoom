@@ -74,6 +74,26 @@ function drawPhotoRoads() {
   context.restore();
 }
 
+// 문자열 하나 또는 배열에 지정한 모든 구절을 강조한다. HTML은 해석하지 않는다.
+function renderBoldText(element, text, bold) {
+  const phrases = [...new Set((Array.isArray(bold) ? bold : [bold])
+    .filter(value => typeof value === "string" && value.length > 0))].sort((a, b) => b.length - a.length);
+  const parts = [];
+  let start = 0, cursor = 0;
+  while (cursor < text.length) {
+    const phrase = phrases.find(value => text.startsWith(value, cursor));
+    if (!phrase) { cursor++; continue; }
+    if (start < cursor) parts.push(text.slice(start, cursor));
+    const strong = document.createElement("strong");
+    strong.textContent = phrase;
+    parts.push(strong);
+    cursor += phrase.length;
+    start = cursor;
+  }
+  if (start < text.length) parts.push(text.slice(start));
+  element.replaceChildren(...parts);
+}
+
 function renderInspection() {
   const { mode, object, item, back } = inspectionUiState;
   inspectionDialog.dataset.mode = mode;
@@ -95,13 +115,7 @@ function renderInspection() {
     mode === "photo" ? STUDIO_TEXT.flip : collected ? STUDIO_TEXT.emptyAlbum : STUDIO_TEXT.albumPrompt;
   // 지정한 구절만 굵게 표시한다. 대사 문자열은 HTML로 해석하지 않는다.
   if (mode === "dialogue" && object.messages.dialogueBold) {
-    const text = object.messages.dialogue, bold = object.messages.dialogueBold;
-    const start = text.indexOf(bold);
-    if (start >= 0) {
-      const emphasis = document.createElement("strong");
-      emphasis.textContent = bold;
-      inspectionMessage.replaceChildren(text.slice(0, start), emphasis, text.slice(start + bold.length));
-    }
+    renderBoldText(inspectionMessage, object.messages.dialogue, object.messages.dialogueBold);
   }
   photoButton.hidden = !["photo", "album"].includes(mode) || collected;
   emptyPhoto.hidden = !collected;

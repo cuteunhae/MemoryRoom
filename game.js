@@ -207,6 +207,7 @@ function handleDoorClick(event) {
     Math.abs(y - target.y) <= target.height / 2 + city.entrances.clickPadding;
   const interior = currentInterior();
   if (interior) {
+    if (typeof handleEasterClick === "function" && handleEasterClick(x, y)) return;
     if (interior.placeId === HOUSE_DATA.placeId && handleHouseClick(x, y)) return;
     if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolStairs(x, y)) return;
     if (interior.placeId === SCHOOL_DATA.placeId && handleSchoolDoorClick(x, y)) return;
@@ -236,7 +237,6 @@ function handleDoorClick(event) {
     return;
   }
   if (handleParkClick(x, y)) return;
-  if (typeof handleEasterClick === "function" && handleEasterClick(x, y)) return;
   if (handlePlaygroundClick(x, y)) return;
   const target = outdoorDoors().find(hit);
   if (!target) {
@@ -354,6 +354,7 @@ function pictureCanStand(x, footY, radius, picture) {
 
 function canStandInterior(x, y, interior) {
   const footY = y + player.footOffset;
+  if (typeof EASTER_EGG_DATA !== "undefined" && interior.placeId === EASTER_EGG_DATA.interior.placeId && hitsEasterFurniture(x, footY, player.collisionRadius)) return false;
   if (interior.placeId === HOUSE_DATA.placeId && houseObstacles().some(rectangle => circleHitsRectangle(x, footY, player.collisionRadius, rectangle))) return false;
   // 학교는 그림의 바닥 사각형 안만 걸을 수 있다.
   if (interior.placeId === SCHOOL_DATA.placeId && !schoolCanStand(x, footY, player.collisionRadius)) return false;
@@ -379,7 +380,6 @@ function canStandCity(x, y) {
   if (!circleInsidePolygon(logicalX, footY, radius, city.frame) ||
       !circleInsidePolygon(logicalX, footY, radius, city.coast)) return false;
   if (!isWalkableSurface(logicalX, footY, radius)) return false;
-  if (typeof EASTER_EGG_DATA !== "undefined" && circleHitsRectangle(logicalX, footY, radius, EASTER_EGG_DATA.shop)) return false;
   if (hitsPark(x, y + player.footOffset, player.collisionRadius)) return false;
   if (hitsPlayground(x, y + player.footOffset, player.collisionRadius)) return false;
   for (const place of city.locations) {
@@ -702,6 +702,7 @@ function drawInteriorPicture(interior) {
 }
 
 function drawInterior(interior) {
+  if (typeof EASTER_EGG_DATA !== "undefined" && interior.placeId === EASTER_EGG_DATA.interior.placeId) { drawEasterInterior(); return; }
   // 학교·사진관·집은 그림이 바닥·벽을 모두 그린다.
   if (interior.placeId === SCHOOL_DATA.placeId) drawSchool();
   else drawInteriorPicture(interior);
@@ -776,7 +777,8 @@ function drawObjectSprite(object) {
 // 상호작용 키로 열 수 있는 가까운 물체(messages.keyHint가 있는 인물·게시판·명부). 없으면 null이다.
 function nearbyKeyObject() {
   const interior = currentInterior();
-  if (!interior) return (typeof nearEasterShop === "function" && nearEasterShop() ? easterOwnerObject() : nearbyParkShop());
+  if (!interior) return nearbyParkShop();
+  if (typeof nearEasterShop === "function" && nearEasterShop()) return easterOwnerObject();
   const footY = player.y + player.footOffset;
   const distance = object => Math.hypot(Math.max(0, Math.abs(player.x - object.x) - object.width / 2), Math.max(0, Math.abs(footY - object.y) - object.height / 2));
   // 여럿이 가까우면 가장 가까운 대상에 반응한다.
@@ -817,7 +819,8 @@ function entranceKeyHint() {
     const key = interactKeyLabel();
     return key ? keyText.replace("{key}", key) : clickText;
   };
-  if (interior) return nearInteriorExit(interior) ? format(text.exit, text.exitClick) : "";
+  if (interior) return nearInteriorExit(interior) ?
+    (typeof inEasterShop === "function" && inEasterShop() ? EASTER_EGG_DATA.text.exitHint : format(text.exit, text.exitClick)) : "";
   const target = outdoorDoors().find(nearOutdoorDoor);
   return target && target.kind !== "locked" ? format(text.enter, text.enterClick) : "";
 }
@@ -957,7 +960,6 @@ function draw() {
   }
   if (!interior) drawPark();
   if (!interior) drawPlayground();
-  if (!interior && typeof drawEasterShop === "function") drawEasterShop();
   if (!interior && typeof drawOpeningRoute === "function") drawOpeningRoute();
   drawPlayer();
   drawBearBubbles();

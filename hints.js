@@ -109,7 +109,7 @@ function hintCandidates() {
     if (insideHintClassroom() || gameState.hints.clues.includes("class-nine")) add("HNT-03");
     else add("HNT-02");
   }
-  // 필요한 크레파스가 없으면 명부 대신 교실에서 물건을 찾는 활동이 후보가 된다.
+  // 필요한 파스텔가 없으면 명부 대신 교실에서 물건을 찾는 활동이 후보가 된다.
   if (!gameState.registrySolved && has("crayon")) add("HNT-04");
   if (!has("headband")) add("HNT-09");
   if (gameState.carouselSolved) {

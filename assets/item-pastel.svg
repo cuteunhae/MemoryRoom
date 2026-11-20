@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="240" viewBox="0 0 300 240">
+  <!-- TODO: 네모난 파스텔 막대와 종이 상자를 표현한 임시 아이콘. -->
+  <g stroke="#70563e" stroke-width="5" stroke-linejoin="round">
+    <path d="M36 38Q38 24 54 24H249Q262 24 263 38L278 179 250 216H33Q18 216 20 201Z" fill="#bd9569"/>
+    <path d="M36 38H254L269 174H25Z" fill="#f4e4ba"/>
+    <path d="M46 53H245L258 174H34Z" fill="#8a7059" stroke-width="3"/>
+    <g stroke-width="2.5">
+      <path d="M51 66H77L72 163H46Z" fill="#d88f99"/>
+      <path d="M87 66H113L111 163H84Z" fill="#e5ad7c"/>
+      <path d="M123 66H149V163H122Z" fill="#edda8b"/>
+      <path d="M159 66H185L188 163H161Z" fill="#9fbc9c"/>
+      <path d="M195 66H221L227 163H200Z" fill="#94b6cb"/>
+      <path d="M231 66H246L254 163H237Z" fill="#b3a0c5"/>
+    </g>
+    <path d="M25 174H269L250 216H33Q18 216 20 201Z" fill="#f1d7a0"/>
+  </g>
+  <g fill="#fff4df" opacity=".5">
+    <path d="M53 69H74V77H53ZM89 69H110V77H89ZM125 69H146V77H125ZM161 69H182V77H161ZM197 69H218V77H197ZM233 69H244V77H233Z"/>
+  </g>
+  <path d="M61 193H218" stroke="#b28e62" stroke-width="3" stroke-linecap="round"/>
+</svg>

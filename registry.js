@@ -15,7 +15,10 @@ function renderRegistry() {
   registryPanel.hidden = inspectionUiState.mode !== "registry";
   if (registryPanel.hidden) return;
   inspectionMessage.textContent = gameState.registrySolved ? "" : REGISTRY_DATA.text.instruction;
-  document.getElementById("registry-clue").textContent = REGISTRY_DATA.text.clue;
+  // 한 문장 흐름 안에서 강조해 기존 줄바꿈과 가림층 위치를 유지한다.
+  const clue = document.createElement("span");
+  renderBoldText(clue, REGISTRY_DATA.text.clue, REGISTRY_DATA.text.dialogueBold);
+  document.getElementById("registry-clue").replaceChildren(clue);
   registryCanvas.width = REGISTRY_DATA.width;
   registryCanvas.height = REGISTRY_DATA.height;
   registryCanvas.hidden = gameState.registrySolved;
