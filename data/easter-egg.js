@@ -11,6 +11,9 @@ const EASTER_EGG_DATA = {
     exit: { x: 450, y: 600, width: 140, height: 40, side: "south" } },
   owner: { x: 450, y: 120, width: 50, height: 70,
     sprite: { src: "assets/npc-stationery-owner.png", width: 90, height: 100 } },
+  // 문 그림은 기존 퇴장 영역의 아래쪽 끝에 맞춘다.
+  exitDoor: { x: 450, y: 550, width: 210, height: 140,
+    sprite: { src: "assets/stationery-exit-door.png" } },
   snack: { x: 545, y: 186, width: 60, height: 45,
     sprite: { src: "assets/item-star-snack.png", width: 78, height: 52 } },
   counter: { x: 450, y: 190, width: 400, height: 90 },
@@ -38,7 +41,7 @@ const EASTER_EGG_DATA = {
   sparkleMs: 1100, sparkleImage: "assets/guide-star.png",
   text: {
     shop: "골목 문방구", owner: "문방구 주인", snack: "별뽀빠이", draw: "뽑기",
-    stationery: "추억의 간식", exit: "골목으로 나가기", exitHint: "출입구까지 걸어가면 나갑니다.",
+    stationery: "추억의 간식", exitHint: "{key}키 또는 문을 클릭해서 나가기", exitClick: "문을 클릭해서 나가기",
     purpose: "골목 문방구에서 받은 기념품", star: "별사탕",
     dialogue: ["어머, 너 오랜만이다. 잘 지냈어?", "넌 이거 사면 꼭 별사탕부터 골라 먹었잖아.",
       "봉지 안에 별이 몇 개 들었나 한참 들여다보고.", "하나 가져가. 오늘은 별이 좀 많이 들었으려나."],

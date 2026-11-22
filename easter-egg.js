@@ -45,6 +45,11 @@ function updateEasterEgg() {
 function handleEasterClick(x, y) {
   if (!inEasterShop()) return false;
   const d = EASTER_EGG_DATA;
+  if (insideRect(x, y, d.exitDoor)) {
+    if (!nearInteriorExit(d.interior)) showDoorMessage(d.text.tooFar);
+    else if (!isGameInputBlocked()) exitInterior();
+    return true;
+  }
   const machine = d.shelves.find(shelf => shelf.kind === "draw");
   if (machine && insideRect(x, y, machine, d.clickPadding)) {
     if (!nearFortuneMachine()) showDoorMessage(d.text.tooFar);
@@ -105,8 +110,7 @@ function drawEasterInterior() {
   rect(d.snack,"#e7c566");
   ctx.fillStyle="#58462e";ctx.font="13px 'Malgun Gothic', sans-serif";ctx.fillText(d.text.snack,d.snack.x,d.snack.y);
   }
-  rect(d.interior.exit,"#687f70");ctx.fillStyle="#fff3d7";ctx.font="17px 'Malgun Gothic', sans-serif";
-  ctx.fillText(d.text.exit,d.interior.exit.x,d.interior.exit.y);
+  drawObjectSprite(d.exitDoor);
   ctx.restore();
 }
 

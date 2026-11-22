@@ -820,7 +820,7 @@ function entranceKeyHint() {
     return key ? keyText.replace("{key}", key) : clickText;
   };
   if (interior) return nearInteriorExit(interior) ?
-    (typeof inEasterShop === "function" && inEasterShop() ? EASTER_EGG_DATA.text.exitHint : format(text.exit, text.exitClick)) : "";
+    (typeof inEasterShop === "function" && inEasterShop() ? format(EASTER_EGG_DATA.text.exitHint, EASTER_EGG_DATA.text.exitClick) : format(text.exit, text.exitClick)) : "";
   const target = outdoorDoors().find(nearOutdoorDoor);
   return target && target.kind !== "locked" ? format(text.enter, text.enterClick) : "";
 }
