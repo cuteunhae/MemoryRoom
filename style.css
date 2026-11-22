@@ -196,3 +196,52 @@ dialog button, dialog input, dialog select { font-family: inherit; }
 .snack-star-shape { position: absolute; inset: 9px; background: #fff4c1; clip-path: polygon(50% 0, 63% 32%, 98% 35%, 73% 59%, 80% 96%, 50% 78%, 20% 96%, 27% 59%, 2% 35%, 37% 32%); }
 .snack-star-glow { position: absolute; inset: -12px; width: 72px; height: 72px; object-fit: contain; opacity: 0; pointer-events: none; }
 .snack-star:focus-visible { outline: 3px solid #45675c; outline-offset: 2px; }
+#fortune-panel { text-align: center; padding: 12px 0; }
+#fortune-quote { margin: 12px 0; padding: 24px; border: 1px solid #b9a279; border-radius: 8px; background: #fff7e6; font-size: 20px; line-height: 1.9; white-space: pre-line; word-break: keep-all; overflow-wrap: anywhere; }
+#fortune-author { text-align: right; margin: 16px 8px 24px; }
+#inspection-dialog #fortune-again { display: inline-flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 18px; border: 0; border-radius: 18px; background: transparent; box-shadow: none; color: #604a39; font: inherit; cursor: pointer; }
+.fortune-crank { position: relative; display: block; width: 88px; height: 88px; border: 4px solid #8c7860; border-radius: 50%; background: radial-gradient(circle at 35% 25%, #fff8df, #c5b899 65%, #9b8b70); box-shadow: inset 0 0 0 5px #f3e6c4, inset 0 0 0 7px #a59275, 0 4px 0 #77624c, 0 6px 10px #55402e30; }
+.fortune-crank::before { content: "↻"; position: absolute; top: 1px; left: 0; right: 0; font: bold 23px Georgia, serif; color: #80684d; }
+.fortune-crank-grip { position: absolute; inset: 0; }
+.fortune-crank-grip::before { content: ""; position: absolute; width: 66px; height: 23px; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-25deg); border: 2px solid #754e39; border-radius: 9px; background: linear-gradient(#e1a27d, #ba7453 55%, #925539); box-shadow: inset 0 2px 1px #ffe4b6a6, 0 4px 3px #68513d55; }
+.fortune-crank-grip::after { content: ""; position: absolute; inset: 36px; border: 1px solid #806950; border-radius: 50%; background: radial-gradient(circle at 35% 25%, #fff3d3, #ae9874); }
+#fortune-again:hover .fortune-crank { filter: brightness(1.06); }
+.fortune-crank-label { font-size: 15px; }
+#fortune-again:focus-visible { outline: 3px solid #45675c; outline-offset: 3px; }
+
+/* 명언 창만 오래된 뽑기 캡슐과 안쪽 종이 쪽지처럼 표현한다. */
+#inspection-dialog[data-mode="fortune"] {
+  box-sizing: border-box;
+  width: min(960px, calc(100vw - 32px));
+  padding: 32px 44px;
+  border: 3px solid #8d7561;
+  border-radius: 100px;
+  background: radial-gradient(ellipse at 28% 0%, #ffffffa6, transparent 55%),
+    linear-gradient(to bottom, #dfebe2 0%, #b9cec2 49%, #8d7561 49%, #8d7561 50%, #cb8d74 50%, #b97560 100%);
+  box-shadow: inset 0 0 0 7px #fff5df45, inset 0 -12px 24px #754c3729, 0 16px 48px #17201766;
+}
+#inspection-dialog[data-mode="fortune"] #inspection-message { display: none; }
+#inspection-dialog[data-mode="fortune"] #fortune-panel {
+  margin-top: 24px;
+  padding: 0;
+}
+#inspection-dialog[data-mode="fortune"] .fortune-paper {
+  margin-bottom: 16px;
+  padding: 12px 28px;
+  border: 1px solid #bca17b;
+  border-radius: 5px;
+  background: linear-gradient(#fff8e6c9, #f5e6c9c9), var(--paper-noise);
+  box-shadow: 0 4px 12px #5a382d30, inset 0 0 24px #c5a26820;
+}
+#inspection-dialog[data-mode="fortune"] #fortune-quote {
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1.9;
+}
+@media (max-width: 640px) {
+  #inspection-dialog[data-mode="fortune"] { padding: 24px 18px; border-radius: 40px; }
+  #inspection-dialog[data-mode="fortune"] .fortune-paper { padding: 12px 16px; }
+  #inspection-dialog[data-mode="fortune"] #fortune-quote { font-size: 18px; }
+}

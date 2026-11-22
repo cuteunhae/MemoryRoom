@@ -133,6 +133,7 @@ function renderInspection() {
   renderCabinetPanel();
   renderDiaryPanel();
   if (typeof renderEasterPanel === "function") renderEasterPanel();
+  if (typeof renderFortunePanel === "function") renderFortunePanel();
   if (typeof recordInspectionHint === "function") recordInspectionHint();
 }
 

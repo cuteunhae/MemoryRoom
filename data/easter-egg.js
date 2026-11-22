@@ -14,8 +14,21 @@ const EASTER_EGG_DATA = {
   snack: { x: 545, y: 186, width: 60, height: 45,
     sprite: { src: "assets/item-star-snack.png", width: 78, height: 52 } },
   counter: { x: 450, y: 190, width: 400, height: 90 },
-  shelves: [{ x: 100, y: 260, width: 110, height: 320, kind: "stationery" },
-    { x: 800, y: 260, width: 110, height: 320, kind: "draw" }],
+  shelves: [{ x: 125, y: 260, width: 160, height: 320, kind: "stationery" },
+    { x: 760, y: 260, width: 210, height: 280, kind: "draw",
+      sprite: { src: "assets/stationery-capsule-machine.png" } }],
+  // 진열용 간식 그림. 획득 가능한 별뽀빠이는 기존 판매대에 따로 둔다.
+  shelfDisplay: { columns: 2, cellWidth: 74, rowHeight: 76, width: 66, height: 59 },
+  shelfSnacks: [
+    { name: "꾀돌이", src: "assets/snack-kkoedori.png" },
+    { name: "달고나", src: "assets/snack-dalgona.png" },
+    { name: "밭두렁", src: "assets/snack-corn.png" },
+    { name: "아폴로", src: "assets/snack-apollo.png" },
+    { name: "쫀듸기", src: "assets/snack-jjondigi.png" },
+    { name: "차카니", src: "assets/snack-chakani.png" },
+    { name: "별뽀빠이", src: "assets/item-star-snack.png" },
+    { name: "별사탕", src: "assets/snack-star-candy.png" },
+  ],
   interactDistance: 190, clickPadding: 12,
   // TODO: 봉지 안 배치는 백분율 좌표다. 최종 간식 그림으로 교체할 수 있다.
   crumbs: Array.from({ length: 54 }, (_, i) => ({ x: 5 + i % 9 * 10 + Math.sin(i * 3) * 2,
@@ -25,7 +38,7 @@ const EASTER_EGG_DATA = {
   sparkleMs: 1100, sparkleImage: "assets/guide-star.png",
   text: {
     shop: "골목 문방구", owner: "문방구 주인", snack: "별뽀빠이", draw: "뽑기",
-    stationery: "공책 · 지우개", exit: "골목으로 나가기", exitHint: "출입구까지 걸어가면 나갑니다.",
+    stationery: "추억의 간식", exit: "골목으로 나가기", exitHint: "출입구까지 걸어가면 나갑니다.",
     purpose: "골목 문방구에서 받은 기념품", star: "별사탕",
     dialogue: ["어머, 너 오랜만이다. 잘 지냈어?", "넌 이거 사면 꼭 별사탕부터 골라 먹었잖아.",
       "봉지 안에 별이 몇 개 들었나 한참 들여다보고.", "하나 가져가. 오늘은 별이 좀 많이 들었으려나."],

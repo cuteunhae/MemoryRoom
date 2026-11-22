@@ -45,6 +45,12 @@ function updateEasterEgg() {
 function handleEasterClick(x, y) {
   if (!inEasterShop()) return false;
   const d = EASTER_EGG_DATA;
+  const machine = d.shelves.find(shelf => shelf.kind === "draw");
+  if (machine && insideRect(x, y, machine, d.clickPadding)) {
+    if (!nearFortuneMachine()) showDoorMessage(d.text.tooFar);
+    else if (!isGameInputBlocked()) openInspection({ type: "fortune", name: FORTUNE_DATA.title, fortune: drawFortune() });
+    return true;
+  }
   const snack = insideRect(x, y, d.snack, d.clickPadding);
   if (!snack && !insideRect(x, y, d.counter) && !insideRect(x, y, d.owner, d.clickPadding)) return false;
   if (!nearEasterShop()) { showDoorMessage(d.text.tooFar); return true; }
@@ -71,12 +77,18 @@ function drawEasterInterior() {
   ctx.textAlign = "center";ctx.textBaseline = "middle";ctx.font = "bold 24px 'Malgun Gothic', sans-serif";
   ctx.fillStyle = "#514636";ctx.fillText(d.text.shop,room.width/2,50);
   for(const shelf of d.shelves) {
+    if (shelf.sprite && drawObjectSprite(shelf)) continue;
     rect(shelf,"#a5825e");
     ctx.fillStyle="#514636";ctx.font="16px 'Malgun Gothic', sans-serif";ctx.fillText(d.text[shelf.kind],shelf.x,shelf.y-shelf.height/2-18);
-    for(let row=0;row<4;row++) for(let col=0;col<3;col++) {
-      const x=shelf.x-36+col*30, y=shelf.y-130+row*75;
-      ctx.fillStyle=["#b8c9b2","#ead6ad","#caa5a0"][col];ctx.fillRect(x,y,24,shelf.kind==="draw"?42:52);
-      if(shelf.kind==="stationery") {ctx.fillStyle="#fff3db";ctx.fillRect(x+2,y+19,20,6);}
+    if (shelf.kind === "stationery") {
+      const layout = d.shelfDisplay;
+      d.shelfSnacks.forEach((snack, index) => {
+        const x = shelf.x + (index % layout.columns - (layout.columns - 1) / 2) * layout.cellWidth;
+        const y = shelf.y - shelf.height / 2 + 37 + Math.floor(index / layout.columns) * layout.rowHeight;
+        drawObjectSprite({ x, y, width: layout.width, height: layout.height, sprite: { src: snack.src } });
+        ctx.fillStyle = "#fff2da"; ctx.font = "11px 'Malgun Gothic', sans-serif";
+        ctx.fillText(snack.name, x, y + layout.height / 2 + 6);
+      });
     }
   }
   // 주인 이미지를 판매대 뒤에 그린다. 불러오지 못했을 때만 임시 도형을 쓴다.
@@ -97,6 +109,41 @@ function drawEasterInterior() {
   ctx.fillText(d.text.exit,d.interior.exit.x,d.interior.exit.y);
   ctx.restore();
 }
+
+function nearFortuneMachine() {
+  if (!inEasterShop()) return false;
+  const r = EASTER_EGG_DATA.shelves.find(shelf => shelf.kind === "draw");
+  return !!r && Math.hypot(Math.max(0, Math.abs(player.x - r.x) - r.width / 2),
+    Math.max(0, Math.abs(player.y + player.footOffset - r.y) - r.height / 2)) <= FORTUNE_DATA.interactDistance;
+}
+
+function drawFortune() {
+  return FORTUNE_DATA.entries[Math.floor(Math.random() * FORTUNE_DATA.entries.length)];
+}
+
+function renderFortunePanel() {
+  const panel = document.getElementById("fortune-panel");
+  panel.hidden = inspectionUiState.mode !== "fortune";
+  if (panel.hidden) return;
+  const fortune = inspectionUiState.object.fortune;
+  inspectionMessage.textContent = "";
+  document.getElementById("fortune-quote").textContent = `“${fortune.quote}”`;
+  document.getElementById("fortune-author").textContent = `— ${fortune.author}`;
+  document.querySelector("#fortune-again .fortune-crank-label").textContent = FORTUNE_DATA.again;
+}
+
+document.getElementById("fortune-again").addEventListener("click", () => {
+  if (inspectionUiState.mode !== "fortune" || settingsUi.open) return;
+  const grip = document.querySelector("#fortune-again .fortune-crank-grip");
+  // 연속으로 눌러도 회전 효과가 쌓이지 않도록 이전 효과를 끝낸다.
+  grip.getAnimations().forEach(animation => animation.cancel());
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    grip.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }],
+      { duration: FORTUNE_DATA.turnDurationMs, easing: "ease-in-out" });
+  }
+  inspectionUiState.object.fortune = drawFortune();
+  renderFortunePanel();
+});
 
 function renderEasterPanel() {
   const panel = document.getElementById("easter-snack-panel"), d = EASTER_EGG_DATA;
