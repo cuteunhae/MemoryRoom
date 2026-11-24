@@ -104,8 +104,12 @@ function drawEasterInterior() {
   ctx.fillStyle="#493e33";ctx.fillRect(d.owner.x-8,d.owner.y-22,3,3);ctx.fillRect(d.owner.x+6,d.owner.y-22,3,3);
   }
   rect(d.counter,"#ab8057");
-  ctx.fillStyle="#f2ddb7";ctx.font="16px 'Malgun Gothic', sans-serif";ctx.fillText(d.text.owner,d.counter.x-75,d.counter.y+15);
-  rect({...d.snack,width:90,height:60},"#80613d");
+  // 쏟아진 과자까지 작은 타원형 받침 안에 담아 판매대에 놓는다.
+  const tray = d.snackTray;
+  ctx.fillStyle = tray.shadow;
+  ctx.beginPath(); ctx.ellipse(d.snack.x, d.snack.y + 4, tray.width / 2, tray.height / 2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = tray.surface; ctx.strokeStyle = tray.rim; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(d.snack.x, d.snack.y, tray.width / 2, tray.height / 2, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   if (!drawObjectSprite(d.snack)) {
   rect(d.snack,"#e7c566");
   ctx.fillStyle="#58462e";ctx.font="13px 'Malgun Gothic', sans-serif";ctx.fillText(d.text.snack,d.snack.x,d.snack.y);
