@@ -87,6 +87,7 @@ function exitEndingGame() {
   if(endingUi.mode!=="menu")return;
   if(typeof saveProgress==="function")saveProgress();
   endingUi.mode="exited";pressedKeys.clear();
+  if(typeof syncBackgroundMusic==="function")syncBackgroundMusic();
   document.getElementById("ending-dialog").setAttribute("data-mode","exited");
   document.getElementById("ending-message").textContent=ENDING_DATA.text.exitMessage;
   document.getElementById("ending-message").hidden=false;

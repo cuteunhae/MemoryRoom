@@ -39,7 +39,7 @@ canvas {
   font: 16px "Malgun Gothic", sans-serif;
 }
 #inventory-dialog::backdrop, #inspection-dialog::backdrop, #achievement-dialog::backdrop, #hint-dialog::backdrop, #settings-dialog::backdrop, #map-dialog::backdrop { background: #18231cb3; }
-#settings-launcher { position: fixed; right: 16px; bottom: 16px; }
+#settings-launcher { position: fixed; right: 16px; bottom: 16px; display: flex; gap: 8px; }
 /* 일반 UI 창은 같은 종이를 사용한다. 암전 연출과 그림에는 적용하지 않는다. */
 .settings-open, #settings-dialog button { padding: 10px 14px; border: 1px solid #96856d; border-radius: 8px; background: #f8f1e4; color: #403a32; font: inherit; cursor: pointer; }
 #settings-keys { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
@@ -48,6 +48,8 @@ canvas {
 .volume-row { display: grid; grid-template-columns: 90px 1fr 50px; gap: 8px; align-items: center; margin-top: 20px; }
 .volume-row input { width: 100%; }
 #settings-dialog button:focus-visible, .settings-open:focus-visible { outline: 3px solid #45675c; outline-offset: 2px; }
+#settings-launcher #settings-toggle { width: 52px; height: 52px; padding: 8px; align-self: center; }
+#settings-toggle img { display: block; width: 100%; height: 100%; object-fit: contain; }
 #map-dialog { width: min(800px, calc(100vw - 32px)); }
 #map-picture { width: 100%; height: auto; max-height: 70dvh; object-fit: contain; margin-top: 14px; }
 #hint-controls { position: fixed; left: 16px; top: 80px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }

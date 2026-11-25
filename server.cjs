@@ -25,6 +25,11 @@ for (const file of ["data/classroom.js", "data/ordinary-items.js", "classroom.js
 files["/assets/Gaegu-Regular.ttf"] = ["assets/Gaegu-Regular.ttf", "font/ttf"];
 for (const file of ["data/opening.js", "opening.js"]) files[`/${file}`] = [file, "text/javascript; charset=utf-8"];
 files["/assets/Gaegu-OFL.txt"] = ["assets/Gaegu-OFL.txt", "text/plain; charset=utf-8"];
+// 최근 추가한 문방구·뽑기·배경음악도 서버 실행에서 불러올 수 있게 한다.
+for (const file of ["data/easter-egg.js", "easter-egg.js", "data/fortunes.js", "music.js"]) {
+  files[`/${file}`] = [file, "text/javascript; charset=utf-8"];
+}
+files["/assets/background-music.mp3"] = ["assets/background-music.mp3", "audio/mpeg"];
 const server = http.createServer((request, response) => {
   const pathname = request.url.split("?")[0];
   let file = files[pathname];

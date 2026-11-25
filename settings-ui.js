@@ -48,6 +48,7 @@ function setSoundVolume(kind,value) {
   if(!success)document.getElementById("settings-message").textContent=SETTINGS_DATA.text.failed;
   document.getElementById(`settings-${kind}-value`).textContent=`${Math.round(userPreferences.sound[`${kind}Volume`]*100)}%`;
   document.getElementById(`settings-${kind}`).value=Math.round(userPreferences.sound[`${kind}Volume`]*100);
+  if (typeof syncBackgroundMusic === "function") syncBackgroundMusic();
   return success;
 }
 // 힌트 알림음을 비롯한 소리 재생에 사용할 실제 채널 볼륨이다.
@@ -69,8 +70,37 @@ document.getElementById("settings-restore").addEventListener("click",()=>{
 // 사용자 결정: 마우스 설정 버튼은 화면 오른쪽 아래에만 둔다. 상세창에는 넣지 않는다.
 // 설정 키가 할당 없음이어도 창을 닫기 버튼으로 닫은 뒤 이 버튼으로 설정을 열 수 있다.
 {
+  const fullscreenButton = document.createElement("button");
+  fullscreenButton.id = "fullscreen-toggle";
+  fullscreenButton.type = "button";
+  fullscreenButton.className = "settings-open";
+  const refreshFullscreen = () => {
+    const active = !!document.fullscreenElement;
+    fullscreenButton.textContent = active ? SETTINGS_DATA.fullscreen.exit : SETTINGS_DATA.fullscreen.enter;
+    fullscreenButton.setAttribute("aria-pressed", String(active));
+    pressedKeys.clear(); heldMovementCodes.clear();
+  };
+  fullscreenButton.addEventListener("click", async () => {
+    if (!document.documentElement?.requestFullscreen) {
+      showDoorMessage(SETTINGS_DATA.fullscreen.unavailable); return;
+    }
+    fullscreenButton.disabled = true;
+    try {
+      // 캔버스뿐 아니라 설정·인벤토리 등 모든 UI를 함께 전체화면으로 표시한다.
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch { showDoorMessage(SETTINGS_DATA.fullscreen.failed); }
+    finally { fullscreenButton.disabled = false; refreshFullscreen(); canvas.focus(); }
+  });
+  document.addEventListener("fullscreenchange", refreshFullscreen);
+  refreshFullscreen();
   const button=document.createElement("button");button.type="button";button.className="settings-open";
-  button.textContent=`${SETTINGS_DATA.launcherIcon} ${SETTINGS_DATA.text.title}`;
+  button.id = "settings-toggle";
+  const gear = document.createElement("img");
+  gear.src = SETTINGS_DATA.launcherIcon;
+  gear.alt = "";
+  button.append(gear);
   button.setAttribute("aria-label", SETTINGS_DATA.text.title);
   button.addEventListener("click",toggleSettings);document.getElementById("settings-launcher").append(button);
+  document.getElementById("settings-launcher").append(fullscreenButton);
 }
