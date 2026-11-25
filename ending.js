@@ -2,6 +2,54 @@
 const endingUi = { mode: null, startedAt: 0, scene: -1 };
 const endingImages = new Map();
 
+// 게임 시작 때부터 그림을 준비해 짧은 회상 도중 불러오기를 기다리지 않게 한다.
+function preloadEndingImages() {
+  // 브라우저 이미지 API가 없는 검증 환경에서는 임시 그림으로 검사한다.
+  if (typeof Image === "undefined") return;
+  for (const [index, entry] of ENDING_DATA.scenes.entries()) {
+    const composition = ENDING_DATA.compositions?.[index];
+    const sources = [entry.image, composition?.backdrop?.src, ...(composition?.layers || []).map(layer => layer.src)].filter(Boolean);
+    for (const src of sources) {
+      if (endingImages.has(src)) continue;
+      const picture = new Image();
+      endingImages.set(src, picture);
+      picture.onload = () => { if (endingUi.mode === "playing") drawEndingScene(endingUi.scene); };
+      picture.src = src;
+    }
+  }
+}
+
+function drawEndingComposition(c, composition) {
+  const ready = src => { const image = endingImages.get(src); return image?.complete && image.naturalWidth ? image : null; };
+  if (composition.backdrop && !ready(composition.backdrop.src)) return false;
+  if (composition.layers.some(layer => !ready(layer.src))) return false;
+  c.save();
+  if (composition.backdrop) {
+    c.drawImage(ready(composition.backdrop.src), ...composition.backdrop.crop, 0, 0, 900, 500);
+    c.fillStyle = "#fff0d42b"; c.fillRect(0, 0, 900, 500);
+  }
+  for (const layer of composition.layers) {
+    const picture = ready(layer.src);
+    const sprite = layer.sprite;
+    const source = sprite ? [
+      (sprite.restFrame % sprite.columns) * picture.naturalWidth / sprite.columns + sprite.crop.x,
+      Math.floor(sprite.restFrame / sprite.columns) * picture.naturalHeight / sprite.rows + sprite.crop.y,
+      sprite.crop.width, sprite.crop.height,
+    ] : [0, 0, picture.naturalWidth, picture.naturalHeight];
+    const scale = Math.min(layer.width / source[2], layer.height / source[3]);
+    const width = source[2] * scale, height = source[3] * scale;
+    c.save(); c.translate(layer.x, layer.y); c.rotate(layer.angle || 0);
+    c.globalAlpha = layer.opacity ?? 1;
+    if (layer.shadow) { c.shadowColor = "#503b3038"; c.shadowBlur = 18; c.shadowOffsetY = 8; }
+    c.drawImage(picture, ...source, -width / 2, -height / 2, width, height); c.restore();
+  }
+  // 가장자리만 부드럽게 어둡혀 추억의 사진처럼 시선을 중앙에 모은다.
+  const shade = c.createRadialGradient(450, 240, 140, 450, 250, 540);
+  shade.addColorStop(0, "#57433000"); shade.addColorStop(1, "#57433050");
+  c.fillStyle = shade; c.fillRect(0, 0, 900, 500); c.restore();
+  return true;
+}
+
 function startEnding() {
   if(endingUi.mode)return;
   gameState.endingReached=true;
@@ -12,12 +60,7 @@ function startEnding() {
   endingUi.mode="playing";endingUi.startedAt=Date.now();endingUi.scene=-1;
   document.getElementById("ending-dialog").setAttribute("data-mode","playing");
   document.getElementById("ending-title").hidden=false;
-  for(const [index,entry] of ENDING_DATA.scenes.entries()) {
-    if(!entry.image || endingImages.has(entry.image))continue;
-    const picture=new Image();endingImages.set(entry.image,picture);
-    picture.onload=()=>{if(endingUi.mode==="playing"&&endingUi.scene===index)drawEndingScene(index);};
-    picture.src=entry.image;
-  }
+  preloadEndingImages();
   document.getElementById("ending-title").textContent=ENDING_DATA.text.title;
   document.getElementById("ending-menu").hidden=true;
   document.getElementById("ending-art").hidden=false;
@@ -66,7 +109,7 @@ function updateEnding() {
 }
 
 function drawEndingScene(scene) {
-  // TODO: 기획서 순서에 맞춘 임시 회상 그림이다. 최종 일러스트로 교체한다.
+  // 에셋 합성을 우선하고, 불러오기 실패 시 기존 임시 그림을 표시한다.
   const c=document.getElementById("ending-art").getContext("2d");
   const entry=ENDING_DATA.scenes[scene];
   c.clearRect(0,0,900,500);c.fillStyle=entry.background;c.fillRect(0,0,900,500);
@@ -75,6 +118,8 @@ function drawEndingScene(scene) {
     const scale=Math.min(900/picture.naturalWidth,500/picture.naturalHeight),w=picture.naturalWidth*scale,h=picture.naturalHeight*scale;
     c.drawImage(picture,(900-w)/2,(500-h)/2,w,h);return;
   }
+  const composition = ENDING_DATA.compositions?.[scene];
+  if (composition && drawEndingComposition(c, composition)) return;
   const rect=(x,y,w,h,color)=>{c.fillStyle=color;c.fillRect(x,y,w,h);};
   const ellipse=(x,y,rx,ry,color)=>{c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=color;c.fill();};
   const line=(points,color,width=5)=>{c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.strokeStyle=color;c.lineWidth=width;c.stroke();};
@@ -92,3 +137,4 @@ document.getElementById("ending-exit").textContent=ENDING_DATA.text.exit;
 document.getElementById("ending-restart").addEventListener("click",()=>requestNewGame());
 document.getElementById("ending-exit").addEventListener("click",exitEndingGame);
 document.getElementById("ending-dialog").addEventListener("cancel",event=>event.preventDefault());
+preloadEndingImages();
