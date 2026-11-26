@@ -76,7 +76,10 @@ a.elements['settings-close'].handlers.click();assert.equal(a.run('inventoryUiSta
 key('Escape');assert.equal(a.run('mapUi.open'),true);assert.equal(a.elements['map-picture'].width,a.run('city.width'));assert.equal(a.elements['map-picture'].height,a.run('city.height'));
 a.run('toggleSettings()');assert.equal(a.run('settingsUi.open'),true);
 a.run('setSoundVolume("bgm",25);setSoundVolume("sfx",70)');assert.equal(a.run('getSoundVolume("bgm")'),.25);assert.equal(a.run('getSoundVolume("sfx")'),.7);
-a.elements['settings-restore'].handlers.click();assert.deepEqual(a.read('userPreferences.keys'),a.read('SETTINGS_DATA.keys'));assert.equal(a.run('getSoundVolume("bgm")'),.25);
+a.elements['settings-restore'].handlers.click();assert.deepEqual(a.read('userPreferences.keys'),a.read('SETTINGS_DATA.keys'));assert.deepEqual(a.read('userPreferences.sound'),a.read('SAVE_DATA.defaultPreferences.sound'));
+// 복원된 볼륨도 저장되며, 이후 다시 바꾼 값은 새 게임에서 유지된다.
+assert.deepEqual(session(a.storage).read('userPreferences.sound'),a.read('SAVE_DATA.defaultPreferences.sound'));
+a.run('setSoundVolume("bgm",25);setSoundVolume("sfx",70)');
 key('Escape');assert.equal(a.run('settingsUi.open'),false);assert.equal(a.run('mapUi.open'),true);key('KeyM');assert.equal(a.run('mapUi.open'),false);
 // 일기장 위에서 설정을 닫아도 페이지가 유지되고 완료 처리를 하지 않는다.
 a.run('openInspection({type:"diary",name:DIARY_DATA.text.title});diaryUi.page=2');key('Escape');assert.equal(a.run('settingsUi.open'),true);
@@ -91,5 +94,5 @@ const c=session(b.storage);assert.equal(c.run('getSoundVolume("bgm")'),.4);asser
 // 저장 실패 시 설정을 잃지 않는다.
 b.control.failWrite=true;b.run('toggleSettings();settingsUi.listening="up"');assert.equal(b.run('assignSettingKey("KeyZ")'),false);assert.equal(b.run('userPreferences.keys.up'),'KeyW');
 assert.equal(b.run('setSoundVolume("bgm",90)'),false);assert.equal(b.run('getSoundVolume("bgm")'),.25);
-console.log('PASS: remapped movement/menu/map, duplicate unassignment, mouse recovery, stacked dialogs, volume channels/migration, restore keys only, persistence/new game, storage failure');
+console.log('PASS: remapped movement/menu/map, duplicate unassignment, mouse recovery, stacked dialogs, volume channels/migration, restore keys and sound, persistence/new game, storage failure');
 

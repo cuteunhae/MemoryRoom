@@ -64,7 +64,10 @@ document.getElementById("settings-close").addEventListener("click",closeSettings
 document.getElementById("settings-dialog").addEventListener("cancel",event=>event.preventDefault());
 document.getElementById("settings-cancel-key").addEventListener("click",()=>{settingsUi.listening=null;renderSettings();});
 document.getElementById("settings-restore").addEventListener("click",()=>{
-  if(savePreferences({...userPreferences,keys:{...SETTINGS_DATA.keys}})) {settingsUi.listening=null;pressedKeys.clear();heldMovementCodes.clear();renderSettings();}
+  if(savePreferences({keys:{...SETTINGS_DATA.keys},sound:{...SAVE_DATA.defaultPreferences.sound}})) {
+    settingsUi.listening=null;pressedKeys.clear();heldMovementCodes.clear();renderSettings();
+    if (typeof syncBackgroundMusic === "function") syncBackgroundMusic();
+  }
   else document.getElementById("settings-message").textContent=SETTINGS_DATA.text.failed;
 });
 // 사용자 결정: 마우스 설정 버튼은 화면 오른쪽 아래에만 둔다. 상세창에는 넣지 않는다.

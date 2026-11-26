@@ -144,8 +144,8 @@ const SCHOOL_DATA = {
     // TODO: 2층 계단 오른쪽 복도의 임시 위치·크기·대화 거리. 계단 도착 지점과 교실 문은 비워 둔다.
     { id: "school-friend", placeId: "C02", floor: 2, type: "dialogue", name: "친구", solid: true,
       rect: { left: 476, top: 1234, right: 500, bottom: 1266 }, interactDistance: 140, color: "#557d78",
-      // 사용자 요청: 높이는 유지하고 그림의 가로 폭만 10% 넓힌다.
-      sprite: { src: "assets/npc-school-friend.png", width: 134, height: 144, stretchX: 1.1 }, messages: {
+      // 높이는 유지하고 기존 가로 폭에서 10% 더 넓힌다.
+      sprite: { src: "assets/npc-school-friend.png", width: 134, height: 144, stretchX: 1.21 }, messages: {
         tooFar: "친구 가까이에서 클릭해 주세요.",
         keyHint: "{key} 키 또는 클릭해 대화하기", keyHintClick: "클릭해 대화하기",
         dialogue: "오랜만이야, 반갑다! 너 그때 그거 기억나?\n돌잔치 사진에 적힌 날짜가 네 반이랑 자리 번호 같다고 했잖아. \n사진을 다시 보면 생각날지도 몰라!",

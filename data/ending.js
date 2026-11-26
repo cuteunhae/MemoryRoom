@@ -4,12 +4,12 @@ const ENDING_DATA = {
   // 실제 게임 에셋을 원본 그대로 합성한다. 배치 좌표는 900×500 회상 화면 기준이다.
   // image를 지정하면 합성 대신 해당 완성 그림을 표시한다.
   scenes: [
-    { id: "END-01", title: "어린 시절의 돌잔치 사진", durationMs: 1500, image: null, background: "#efe0c0" },
-    { id: "END-02", title: "학교 책상과 파스텔", durationMs: 1500, image: null, background: "#e8ddbf" },
-    { id: "END-03", title: "놀이공원의 회전목마", durationMs: 1500, image: null, background: "#e7d8c5" },
-    { id: "END-04", title: "놀이터의 곰 모양 비눗방울", durationMs: 1500, image: null, background: "#dce7dc" },
-    { id: "END-05", title: "어린 시절의 집", durationMs: 1500, image: null, background: "#edddc0" },
-    { id: "END-06", title: "어린 주인공과 현재 주인공의 모습이 겹쳐지는 장면", durationMs: 1500, image: null, background: "#e1d9c9" },
+    { id: "END-01", title: "어린 시절의 돌잔치 사진", durationMs: 2500, image: null, background: "#efe0c0" },
+    { id: "END-02", title: "학교 책상과 파스텔", durationMs: 2500, image: null, background: "#e8ddbf" },
+    { id: "END-03", title: "놀이공원의 회전목마", durationMs: 2500, image: null, background: "#e7d8c5" },
+    { id: "END-04", title: "놀이터의 곰 모양 비눗방울", durationMs: 2500, image: null, background: "#dce7dc" },
+    { id: "END-05", title: "어린 시절의 집", durationMs: 2500, image: null, background: "#edddc0" },
+    { id: "END-06", title: "어린 주인공과 현재 주인공의 모습이 겹쳐지는 장면", durationMs: 2500, image: null, background: "#e1d9c9" },
   ],
   compositions: [
     { layers: [{ src: "assets/item-photo.png", x: 450, y: 250, width: 660, height: 460, shadow: true }] },
